@@ -1,13 +1,13 @@
 Package: rscl
-Title: What the Package Does (One Line, Title Case)
+Title: R Scripting at the Command Line
 Version: 0.0.0.9000
 Authors@R: 
-    person(given = "First",
-           family = "Last",
+    person(given = "Jeroen",
+           family = "Janssens",
            role = c("aut", "cre"),
-           email = "first.last@example.com",
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
+           email = "jeroen@jeroenjanssens.com",
+           comment = c(ORCID = "0000-0002-5878-8924"))
+Description: Run expressions, create plots, and install packages from the command line.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
@@ -19,5 +19,5 @@ Imports:
 Suggests: 
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
-URL: https://github.com/jeroenjanssens/rscl
+URL: https://jeroenjanssens.github.io/rscl, https://github.com/jeroenjanssens/rscl
 BugReports: https://github.com/jeroenjanssens/rscl/issues
