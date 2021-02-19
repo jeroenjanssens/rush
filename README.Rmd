@@ -16,6 +16,7 @@ knitr::opts_chunk$set(
 # rscl
 
 <!-- badges: start -->
+[![R-CMD-check](https://github.com/jeroenjanssens/rscl/workflows/R-CMD-check/badge.svg)](https://github.com/jeroenjanssens/rscl/actions)
 <!-- badges: end -->
 
 ## Installation
