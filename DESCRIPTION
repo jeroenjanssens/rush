@@ -14,10 +14,23 @@ LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.1
 Imports: 
-    rlang,
-    magrittr
+    rlang (>= 0.1.2),
+    magrittr,
+    docopt,
+    pak,
+    prettycode,
+    stringr,
+    devoutansi,
+    purrr,
+    dplyr,
+    vroom,
+    janitor,
+    ggplot2,
+    tibble,
+    cli
 Suggests: 
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    roxygen2
 Config/testthat/edition: 3
 URL: https://jeroenjanssens.github.io/rscl, https://github.com/jeroenjanssens/rscl
 BugReports: https://github.com/jeroenjanssens/rscl/issues
