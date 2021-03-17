@@ -154,7 +154,7 @@ rscl <- function(...) {
         options(tibble.width = flags$width %||% cli::console_width())
         print(tibble::as_tibble(result), n = flags$height)
       } else {
-        con <- flags$output %||% stdout()
+        con <- flags$output %||% file("/dev/stdout", "wb", raw = TRUE)
         readr::write_delim(result, con, delim = flags$delim)
       }
     }
