@@ -29,7 +29,8 @@ Imports:
     cli,
     devout (>= 0.2.7),
     miniansi (>= 0.1.1),
-    devoutansi (>= 0.1.0)
+    devoutansi (>= 0.1.0),
+    fs
 Suggests: 
     testthat (>= 3.0.0),
     roxygen2
