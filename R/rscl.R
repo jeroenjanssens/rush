@@ -45,7 +45,7 @@ rscl <- function(...) {
     if (length(flags$file) == 1) {
       df_file <- flags$file
       if (df_file == "-") df_file <- expr(stdin())
-      read_expr <- expr(vroom::vroom(!!df_file, delim = !!flags$delimiter, col_names = !!(!flags$no_header)))
+      read_expr <- expr(readr::read_delim(!!df_file, delim = !!flags$delimiter, col_names = !!(!flags$no_header)))
       if (!flags$no_clean_names) read_expr <- expr(janitor::clean_names(!!read_expr))
       write_script(script, df <- !!read_expr)
     } else if (length(flags$file) > 1) {
@@ -60,7 +60,7 @@ rscl <- function(...) {
         df_file <- flags$file[[i]]
         if (df_file == "-") df_file <- expr(stdin())
 
-        read_expr <- expr(vroom::vroom(!!df_file, delim = !!flags$delimiter, col_names = !!(!flags$no_header)))
+        read_expr <- expr(readr::read_delim(!!df_file, delim = !!flags$delimiter, col_names = !!(!flags$no_header)))
         if (!flags$no_clean_names) read_expr <- expr(janitor::clean_names(!!read_expr))
         write_script(script, !!df_name <- !!read_expr)
       }
@@ -82,7 +82,7 @@ rscl <- function(...) {
       df_file <- flags$file
     }
 
-    read_expr <- expr(vroom::vroom(!!df_file, delim = !!flags$delimiter, col_names = !!(!flags$no_header)))
+    read_expr <- expr(readr::read_delim(!!df_file, delim = !!flags$delimiter, col_names = !!(!flags$no_header)))
     if (!flags$no_clean_names) read_expr <- expr(janitor::clean_names(!!read_expr))
     write_script(script, df <- !!read_expr)
 
@@ -155,7 +155,7 @@ rscl <- function(...) {
         print(tibble::as_tibble(result), n = flags$height)
       } else {
         con <- flags$output %||% stdout()
-        vroom::vroom_write(result, con, delim = ",")
+        readr::write_delim(result, con, delim = flags$delim)
       }
     }
 

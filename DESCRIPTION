@@ -22,7 +22,7 @@ Imports:
     stringr,
     purrr,
     dplyr,
-    vroom,
+    readr,
     janitor,
     ggplot2,
     tibble,
