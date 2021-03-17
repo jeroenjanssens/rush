@@ -20,17 +20,23 @@ Imports:
     pak,
     prettycode,
     stringr,
-    devoutansi,
+    devoutansi (>= 0.1.0),
     purrr,
     dplyr,
     vroom,
     janitor,
     ggplot2,
     tibble,
-    cli
+    cli,
+    miniansi (>= 0.1.1),
+    devout (>= 0.2.7)
 Suggests: 
     testthat (>= 3.0.0),
     roxygen2
 Config/testthat/edition: 3
 URL: https://jeroenjanssens.github.io/rscl, https://github.com/jeroenjanssens/rscl
 BugReports: https://github.com/jeroenjanssens/rscl/issues
+Remotes: 
+    coolbutuseless/devout,
+    coolbutuseless/devoutansi,
+    coolbutuseless/miniansi
