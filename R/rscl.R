@@ -31,7 +31,7 @@ rscl <- function(...) {
   write_script(script, "#!/usr/bin/env Rscript")
 
   if (flags$command == "install") {
-    write_script(script, pak::pkg_install(!!flags$package,
+    write_script(script, install.packages(!!flags$package,
                                           upgrade = !!flags$upgrade))
   }
 
@@ -170,7 +170,8 @@ rscl <- function(...) {
 
         devoutansi::ansi(width = flags$width,
                          height = flags$height,
-                         plain_ascii = flags$output == "ascii")
+                         plain_ascii = TRUE,
+                         char_lookup_table = 2)
         p <- result +
           ggplot2::theme_minimal() +
           ggplot2::theme(panel.grid = ggplot2::element_blank())

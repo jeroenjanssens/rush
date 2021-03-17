@@ -39,5 +39,5 @@ URL: https://jeroenjanssens.github.io/rscl, https://github.com/jeroenjanssens/rs
 BugReports: https://github.com/jeroenjanssens/rscl/issues
 Remotes: 
     coolbutuseless/devout,
-    coolbutuseless/miniansi,
+    jeroenjanssens/miniansi,
     coolbutuseless/devoutansi
