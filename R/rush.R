@@ -173,16 +173,19 @@ rush <- function(...) {
 
       if (flags$output %in% c("ansi", "ascii")) {
         if (is.null(flags$width)) flags$width <- cli::console_width()
-
-        devoutansi::ansi(width = flags$width,
-                         height = flags$height,
-                         plain_ascii = TRUE,
-                         char_lookup_table = 2)
-        p <- result +
-          ggplot2::theme_minimal() +
-          ggplot2::theme(panel.grid = ggplot2::element_blank())
-        print(p)
-        invisible(grDevices::dev.off())
+        if (requireNamespace("devoutansi", quietly = TRUE)) {
+          devoutansi::ansi(width = flags$width,
+                           height = flags$height,
+                           plain_ascii = TRUE,
+                           char_lookup_table = 2)
+          p <- result +
+            ggplot2::theme_minimal() +
+            ggplot2::theme(panel.grid = ggplot2::element_blank())
+          print(p)
+          invisible(grDevices::dev.off())
+        } else {
+          cli::cat_line("Please specify --output, redirect to a file, or install {devoutansi}")
+        }
       } else {
         if (fs::path_ext(flags$output) == "") {
           output_filename <- tempfile()
