@@ -1,6 +1,6 @@
 Package: rush
 Title: R Scripting at the Command Line
-Version: 0.0.0.9000
+Version: 0.1.0
 Authors@R: 
     person(given = "Jeroen",
            family = "Janssens",
