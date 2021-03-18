@@ -143,9 +143,7 @@ rscl <- function(...) {
       cli::cat_line(result)
     }
 
-    if (rlang::is_list(result) &&
-        !is.data.frame(result) &&
-        !ggplot2::is.ggplot(result)) {
+    if (rlang::is_bare_list(result)) {
       result <- tibble::enframe(result)
     }
 
