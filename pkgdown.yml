@@ -2,8 +2,8 @@ pandoc: 2.7.3
 pkgdown: 1.6.1
 pkgdown_sha: ~
 articles: {}
-last_built: 2021-03-17T18:30Z
+last_built: 2021-03-18T15:34Z
 urls:
-  reference: https://jeroenjanssens.github.io/rscl/reference
-  article: https://jeroenjanssens.github.io/rscl/articles
+  reference: https://jeroenjanssens.github.io/rush/reference
+  article: https://jeroenjanssens.github.io/rush/articles
 

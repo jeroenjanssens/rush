@@ -1,12 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://jeroenjanssens.github.io/rscl/index.html</loc>
+    <loc>https://jeroenjanssens.github.io/rush/index.html</loc>
   </url>
   <url>
-    <loc>https://jeroenjanssens.github.io/rscl/reference/pipe.html</loc>
+    <loc>https://jeroenjanssens.github.io/rush/reference/pipe.html</loc>
   </url>
   <url>
-    <loc>https://jeroenjanssens.github.io/rscl/reference/tidyeval.html</loc>
+    <loc>https://jeroenjanssens.github.io/rush/reference/rush.html</loc>
+  </url>
+  <url>
+    <loc>https://jeroenjanssens.github.io/rush/reference/tidyeval.html</loc>
   </url>
 </urlset>
