@@ -80,10 +80,10 @@ flags_section <- function(filter_exp = TRUE) {
 
 
 docs <- list(
-"rscl: R Scripting at the Command Line
+"rush: R Scripting at the Command Line
 
 Usage:
-  rscl [options] <command> [<args>]
+  rush [options] <command> [<args>]
 
 Options:
 {flags_section(category == 'general')}
@@ -93,10 +93,10 @@ Commands:
   run
   install",
 
-run = "rscl: Run an R expression
+run = "rush: Run an R expression
 
 Usage:
-  rscl run [options] <expression> [--] [<file>...]
+  rush run [options] <expression> [--] [<file>...]
 
 Reading options:
 {flags_section(category == 'read')}
@@ -110,10 +110,10 @@ Saving options:
 General options:
 {flags_section(category == 'general')}",
 
-install = "rscl: Install a package
+install = "rush: Install a package
 
 Usage:
-  rscl install [options] <package>...
+  rush install [options] <package>...
 
 Install options:
 {flags_section(category == 'install')}
@@ -121,10 +121,10 @@ Install options:
 General options:
 {flags_section(category == 'general')}",
 
-qplot = "rscl: Quick plot
+qplot = "rush: Quick plot
 
 Usage:
-  rscl qplot [options] [--] [<file>|-]
+  rush qplot [options] [--] [<file>|-]
 
 Reading options:
 {flags_section(category == 'read')}
@@ -163,7 +163,7 @@ parse_arguments <- function(...) {
 
   args <- docopt::docopt(glue::glue(doc),
                          args = argv,
-                         version = as.character(utils::packageVersion("rscl")),
+                         version = as.character(utils::packageVersion("rush")),
                          strict = FALSE)
 
   args$command <- command

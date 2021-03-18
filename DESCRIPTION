@@ -1,4 +1,4 @@
-Package: rscl
+Package: rush
 Title: R Scripting at the Command Line
 Version: 0.0.0.9000
 Authors@R: 
@@ -37,8 +37,8 @@ Suggests:
     testthat (>= 3.0.0),
     roxygen2
 Config/testthat/edition: 3
-URL: https://jeroenjanssens.github.io/rscl, https://github.com/jeroenjanssens/rscl
-BugReports: https://github.com/jeroenjanssens/rscl/issues
+URL: https://jeroenjanssens.github.io/rush, https://github.com/jeroenjanssens/rush
+BugReports: https://github.com/jeroenjanssens/rush/issues
 Remotes: 
     coolbutuseless/devout,
     jeroenjanssens/miniansi,

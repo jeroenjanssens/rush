@@ -3,7 +3,7 @@
 #' @param ... character vector of parameters
 #'
 #' @export
-rscl <- function(...) {
+rush <- function(...) {
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # Parse flags

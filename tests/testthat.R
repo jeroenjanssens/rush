@@ -1,4 +1,4 @@
 library(testthat)
-library(rscl)
+library(rush)
 
-test_check("rscl")
+test_check("rush")
