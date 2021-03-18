@@ -46,7 +46,7 @@ rush <- function(...) {
     # Read files
     if (length(flags$file) == 1) {
       df_file <- flags$file
-      if (df_file == "-") df_file <- expr(stdin())
+      if (df_file == "-") df_file <- expr(file("stdin", "rb", raw = TRUE))
       read_expr <- expr(readr::read_delim(!!df_file, delim = !!flags$delimiter, col_names = !!(!flags$no_header)))
       if (!flags$no_clean_names) read_expr <- expr(janitor::clean_names(!!read_expr))
       code_expression(script, `<-`(df, !!read_expr))
@@ -60,7 +60,7 @@ rush <- function(...) {
       for (i in seq_along(df_names)) {
         df_name <- rlang::parse_expr(paste0("dfs$", df_names[[i]]))
         df_file <- flags$file[[i]]
-        if (df_file == "-") df_file <- expr(stdin())
+        if (df_file == "-") df_file <- expr(file("stdin", "rb", raw = TRUE))
 
         read_expr <- expr(readr::read_delim(!!df_file, delim = !!flags$delimiter, col_names = !!(!flags$no_header)))
         if (!flags$no_clean_names) read_expr <- expr(janitor::clean_names(!!read_expr))
@@ -79,7 +79,7 @@ rush <- function(...) {
     code_library(script, "ggplot2")
 
     if (rlang::is_null(flags$file) || flags$file == "-") {
-      df_file <- expr(stdin())
+      df_file <- expr(file("stdin", "rb", raw = TRUE))
     } else {
       df_file <- flags$file
     }
