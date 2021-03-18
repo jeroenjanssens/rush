@@ -52,6 +52,8 @@ flags_df <-
   ) %>%
   dplyr::mutate(arg = dplyr::if_else(is.na(arg), long, arg))
 
+utils::globalVariables(c(names(flags_df), "text", "text_left", "text_right"))
+
 flags_section <- function(filter_exp = TRUE) {
   flags_df %>%
   dplyr::rowwise() %>%

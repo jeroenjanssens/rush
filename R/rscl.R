@@ -1,12 +1,13 @@
-
-`%||%` <- function(x, y) {
-  if (is.null(x)) y else x
-}
-
+#' Main entry point
+#'
+#' @param ... character vector of parameters
+#'
 #' @export
 rscl <- function(...) {
 
-  # parse flags -------------------------------------------------------------
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # Parse flags
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   flags <- parse_arguments(...)
   has_tty <- isatty(stdout())
@@ -22,23 +23,24 @@ rscl <- function(...) {
     cli::cat_rule(file = stderr())
   }
 
-  # create script -----------------------------------------------------------
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # Create script
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   filename <- tempfile()
   script <- file(filename, open = "w")
   on.exit(unlink(filename))
 
-  write_script(script, "#!/usr/bin/env Rscript")
+  code_expression(script, "#!/usr/bin/env Rscript")
 
   if (flags$command == "install") {
-    write_script(script, install.packages(!!flags$package,
-                                          upgrade = !!flags$upgrade))
+    code_expression(script, utils::install.packages(!!flags$package))
   }
 
   if (flags$command == "run") {
     # Load libraries
     if (!is.null(flags$library)) {
-      purrr::walk(flags$library, function(e) write_script(script, library(!!e)))
+      purrr::walk(flags$library, function(e) code_library(script, e))
     }
 
     # Read files
@@ -47,14 +49,14 @@ rscl <- function(...) {
       if (df_file == "-") df_file <- expr(stdin())
       read_expr <- expr(readr::read_delim(!!df_file, delim = !!flags$delimiter, col_names = !!(!flags$no_header)))
       if (!flags$no_clean_names) read_expr <- expr(janitor::clean_names(!!read_expr))
-      write_script(script, df <- !!read_expr)
+      code_expression(script, `<-`(df, !!read_expr))
     } else if (length(flags$file) > 1) {
       df_names <-
         ifelse(flags$file == "-", "stdin",
                fs::path_ext_remove(basename(flags$file))) %>%
         janitor::make_clean_names()
 
-      write_script(script, dfs <- list())
+      code_expression(script, dfs <- list())
       for (i in seq_along(df_names)) {
         df_name <- rlang::parse_expr(paste0("dfs$", df_names[[i]]))
         df_file <- flags$file[[i]]
@@ -62,19 +64,19 @@ rscl <- function(...) {
 
         read_expr <- expr(readr::read_delim(!!df_file, delim = !!flags$delimiter, col_names = !!(!flags$no_header)))
         if (!flags$no_clean_names) read_expr <- expr(janitor::clean_names(!!read_expr))
-        write_script(script, !!df_name <- !!read_expr)
+        code_expression(script, !!rlang::call2("<-", df_name, read_expr))
       }
     }
 
     # Add expressions
     if (!is.null(flags$expression)) {
-      purrr::walk(flags$expression, function(e) write_script(script, !!e))
+      purrr::walk(flags$expression, function(e) code_expression(script, !!e))
     }
 
   }
 
   if (flags$command == "qplot") {
-    write_script(script, library(ggplot2))
+    code_library(script, "ggplot2")
 
     if (rlang::is_null(flags$file) || flags$file == "-") {
       df_file <- expr(stdin())
@@ -84,37 +86,43 @@ rscl <- function(...) {
 
     read_expr <- expr(readr::read_delim(!!df_file, delim = !!flags$delimiter, col_names = !!(!flags$no_header)))
     if (!flags$no_clean_names) read_expr <- expr(janitor::clean_names(!!read_expr))
-    write_script(script, df <- !!read_expr)
+    code_expression(script, `<-`(df, !!read_expr))
 
     if (!is.null(flags$pre)) {
-      purrr::walk(flags$pre, function(e) write_script(script, !!e))
+      purrr::walk(flags$pre, function(e) code_expression(script, !!e))
     }
 
     qplot_args <- purrr::compact(
       flags[union(methods::formalArgs(ggplot2::qplot),
-                  setdiff(ggplot2:::ggplot_global$all_aesthetics, c("width")))])
-    qplot_args$data <- rlang:::expr(df)
+                  c("adj", "alpha", "angle", "bg", "cex", "col", "color",
+                    "colour", "fg", "fill", "group", "hjust", "label",
+                    "linetype", "lower", "lty", "lwd", "max", "middle", "min",
+                    "pch", "radius", "sample", "shape", "size", "srt", "upper",
+                    "vjust", "weight", "x", "xend", "xmax", "xmin",
+                    "xintercept", "y", "yend", "ymax", "ymin", "yintercept",
+                    "z"))])
+    qplot_args$data <- rlang::parse_expr("df")
 
     qplot_call <- rlang::call2("qplot", !!!qplot_args)
     qplot_call <- rlang::call_modify(qplot_call, !!!flags$aes, .homonyms = "last")
-
-
 
     if (!is.null(flags$post)) {
       qplot_call <- rlang::call2("<-", rlang::sym("p"), qplot_call)
     }
 
-    write_script(script, !!qplot_call)
+    code_expression(script, !!qplot_call)
 
     if (!is.null(flags$post)) {
-      purrr::walk(flags$post, function(e) write_script(script, !!e))
+      purrr::walk(flags$post, function(e) code_expression(script, !!e))
     }
 
   }
 
   close(script)
 
-  # output ------------------------------------------------------------------
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # Output result
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   if (flags$dry_run) {
     code <- readLines(filename)
@@ -152,7 +160,7 @@ rscl <- function(...) {
         options(tibble.width = flags$width %||% cli::console_width())
         print(tibble::as_tibble(result), n = flags$height)
       } else {
-        con <- flags$output %||% file("/dev/stdout", "wb", raw = TRUE)
+        con <- flags$output %||% stdout_binary()
         readr::write_delim(result, con, delim = flags$delim)
       }
     }
@@ -200,8 +208,7 @@ rscl <- function(...) {
 
         if (cat_output) {
           contents <- readBin(output_filename, raw(), n = 1e8)
-          std_out <- file("/dev/stdout", "wb", raw = TRUE)
-          writeBin(contents, std_out)
+          writeBin(contents, stdout_binary())
         }
       }
     }

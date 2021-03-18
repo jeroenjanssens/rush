@@ -17,8 +17,9 @@ Imports:
     rlang (>= 0.1.2),
     magrittr,
     docopt,
-    pak,
     prettycode,
+    glue,
+    methods,
     stringr,
     purrr,
     dplyr,
@@ -30,7 +31,8 @@ Imports:
     devout (>= 0.2.7),
     miniansi (>= 0.1.1),
     devoutansi (>= 0.1.0),
-    fs
+    fs,
+    utils
 Suggests: 
     testthat (>= 3.0.0),
     roxygen2
