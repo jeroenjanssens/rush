@@ -1,5 +1,5 @@
 Package: rush
-Title: R One-liners from the Shell
+Title: R One-Liners from the Shell
 Version: 0.1.0
 Authors@R: 
     person(given = "Jeroen",
