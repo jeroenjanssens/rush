@@ -166,53 +166,32 @@ rush <- function(...) {
     }
 
     if (ggplot2::is.ggplot(result)) {
-
-      if (is.null(flags$output)) {
-        flags$output <- ifelse(has_tty, "ansi", "png")
+      if (is.null(flags$output)) flags$output <- "png"
+      if (fs::path_ext(flags$output) == "") {
+        output_filename <- tempfile()
+        on.exit(unlink(output_filename))
+        device <- flags$output
+        cat_output <- TRUE
+      } else {
+        output_filename  <- flags$output
+        device <- NULL
+        cat_output <- FALSE
       }
 
-      if (flags$output %in% c("ansi", "ascii")) {
-        if (is.null(flags$width)) flags$width <- cli::console_width()
-        if (requireNamespace("devoutansi", quietly = TRUE)) {
-          devoutansi::ansi(width = flags$width,
-                           height = flags$height,
-                           plain_ascii = TRUE,
-                           char_lookup_table = 2)
-          p <- result +
-            ggplot2::theme_minimal() +
-            ggplot2::theme(panel.grid = ggplot2::element_blank())
-          print(p)
-          invisible(grDevices::dev.off())
-        } else {
-          cli::cat_line("Please specify --output, redirect to a file, or install {devoutansi}")
-        }
-      } else {
-        if (fs::path_ext(flags$output) == "") {
-          output_filename <- tempfile()
-          on.exit(unlink(output_filename))
-          device <- flags$output
-          cat_output <- TRUE
-        } else {
-          output_filename  <- flags$output
-          device <- NULL
-          cat_output <- FALSE
-        }
+      if (is.null(flags$width)) flags$width <- 6
+      if (is.null(flags$height)) flags$height <- 4
 
-        if (is.null(flags$width)) flags$width <- 6
-        if (is.null(flags$height)) flags$height <- 4
+      ggplot2::ggsave(output_filename,
+                      result,
+                      device = device,
+                      width = flags$width,
+                      height = flags$height,
+                      units = flags$units,
+                      dpi = flags$dpi)
 
-        ggplot2::ggsave(output_filename,
-                        result,
-                        device = device,
-                        width = flags$width,
-                        height = flags$height,
-                        units = flags$units,
-                        dpi = flags$dpi)
-
-        if (cat_output) {
-          contents <- readBin(output_filename, raw(), n = 1e8)
-          writeBin(contents, stdout_binary())
-        }
+      if (cat_output) {
+        contents <- readBin(output_filename, raw(), n = 1e8)
+        writeBin(contents, stdout_binary())
       }
     }
   }

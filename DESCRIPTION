@@ -31,15 +31,8 @@ Imports:
     fs,
     utils
 Suggests: 
-    devout (>= 0.2.7),
-    miniansi (>= 0.1.1),
-    devoutansi (>= 0.1.0),
     testthat (>= 3.0.0),
     roxygen2
 Config/testthat/edition: 3
 URL: https://jeroenjanssens.github.io/rush/, https://github.com/jeroenjanssens/rush
 BugReports: https://github.com/jeroenjanssens/rush/issues
-Remotes:
-    coolbutuseless/devout,
-    jeroenjanssens/miniansi,
-    coolbutuseless/devoutansi
