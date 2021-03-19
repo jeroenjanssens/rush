@@ -1,5 +1,5 @@
 Package: rush
-Title: R Scripting at the Command Line
+Title: R One-liners from the Shell
 Version: 0.1.0
 Authors@R: 
     person(given = "Jeroen",
@@ -7,7 +7,7 @@ Authors@R:
            role = c("aut", "cre"),
            email = "jeroen@jeroenjanssens.com",
            comment = c(ORCID = "0000-0002-5878-8924"))
-Description: Run expressions, create plots, and install packages from the command line.
+Description: Run expressions, create plots, and install packages directly from the shell.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
