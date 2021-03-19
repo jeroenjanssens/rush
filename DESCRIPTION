@@ -39,11 +39,7 @@ Suggests:
 Config/testthat/edition: 3
 URL: https://jeroenjanssens.github.io/rush/, https://github.com/jeroenjanssens/rush
 BugReports: https://github.com/jeroenjanssens/rush/issues
-Remotes: 
+Remotes:
     coolbutuseless/devout,
     jeroenjanssens/miniansi,
     coolbutuseless/devoutansi
-Additional_repositories:
-    https://github.com/coolbutuseless/devout,
-    https://github.com/jeroenjanssens/miniansi,
-    https://github.com/coolbutuseless/devoutansi
