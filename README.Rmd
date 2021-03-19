@@ -19,12 +19,78 @@ knitr::opts_chunk$set(
 [![R-CMD-check](https://github.com/jeroenjanssens/rush/workflows/R-CMD-check/badge.svg)](https://github.com/jeroenjanssens/rush/actions)
 <!-- badges: end -->
 
+`rush` is an R package that allows you to run expressions, create plots, and install packages directly from the shell.
+
 ## Installation
 
-You can install the development version of rush from with:
+You can install the development version of `rush` with:
 
-``` r
+```r
 remotes::install_github("jeroenjanssens/rush")
+```
+
+## Examples
+
+```{r, include=FALSE}
+knitr::opts_knit$set(root.dir="exec")
+```
+
+`rush` should be invoked from the command line. The executable is located in the *exec* sub-directory of the package directory.
+
+```{bash}
+./rush run 6*7
+```
+
+Read from standard input:
+
+```{bash}
+seq 6 | ./rush run -H '2 * sum(df$x1)' -
+```
+
+Write to standard output:
+
+```{bash}
+./rush run 'head(mtcars, 10)' | tee mtcars.csv
+```
+
+Show generated script with the `--dry-run` option:
+
+```{bash}
+< mtcars.csv ./rush qplot --dry-run --x mpg --geom density --fill 'factor(cyl)'
+```
+
+Create plots with the `qplot command`:
+
+```{bash}
+< mtcars.csv ./rush qplot --x mpg --geom density --fill 'factor(cyl)' > ../man/figures/mtcars.png 
+```
+
+![](man/figures/mtcars.png)
+
+## Help
+
+```{bash}
+./rush -h
+```
+
+```{bash}
+./rush run -h
+```
+
+```{bash}
+./rush qplot -h
+```
+
+```{bash}
+./rush install -h
+```
+
+```{r, include=FALSE}
+knitr::opts_knit$set(root.dir=".")
+```
+
+```{bash, include=FALSE}
+rm exec/mtcars.csv
 ```
 
 ## Code of Conduct

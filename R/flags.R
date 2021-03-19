@@ -89,7 +89,7 @@ Options:
 {flags_section(category == 'general')}
 
 Commands:
-- qplot
+  qplot
   run
   install",
 
