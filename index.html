@@ -74,12 +74,153 @@
 <a href="#rush" class="anchor"></a>rush</h1></div>
 <!-- badges: start -->
 
+<p><code>rush</code> is an R package that allows you to run expressions, create plots, and install packages directly from the shell.</p>
 <div id="installation" class="section level2">
 <h2 class="hasAnchor">
 <a href="#installation" class="anchor"></a>Installation</h2>
-<p>You can install the development version of rush from with:</p>
+<p>You can install the development version of <code>rush</code> with:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html">install_github</a></span><span class="op">(</span><span class="st">"jeroenjanssens/rush"</span><span class="op">)</span></code></pre></div>
+</div>
+<div id="examples" class="section level2">
+<h2 class="hasAnchor">
+<a href="#examples" class="anchor"></a>Examples</h2>
+<p><code>rush</code> should be invoked from the command line. The executable is located in the <em>exec</em> sub-directory of the package directory.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1"></a><span class="ex">./rush</span> run 6*7</span>
+<span id="cb2-2"><a href="#cb2-2"></a><span class="co">#&gt; 42</span></span></code></pre></div>
+<p>Read from standard input:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1"></a><span class="fu">seq</span> 6 <span class="kw">|</span> <span class="ex">./rush</span> run -H <span class="st">'2 * sum(df$x1)'</span> -</span>
+<span id="cb3-2"><a href="#cb3-2"></a><span class="co">#&gt; 42</span></span></code></pre></div>
+<p>Write to standard output:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1"></a><span class="ex">./rush</span> run <span class="st">'head(mtcars, 10)'</span> <span class="kw">|</span> <span class="fu">tee</span> mtcars.csv</span>
+<span id="cb4-2"><a href="#cb4-2"></a><span class="co">#&gt; mpg,cyl,disp,hp,drat,wt,qsec,vs,am,gear,carb</span></span>
+<span id="cb4-3"><a href="#cb4-3"></a><span class="co">#&gt; 21,6,160,110,3.9,2.62,16.46,0,1,4,4</span></span>
+<span id="cb4-4"><a href="#cb4-4"></a><span class="co">#&gt; 21,6,160,110,3.9,2.875,17.02,0,1,4,4</span></span>
+<span id="cb4-5"><a href="#cb4-5"></a><span class="co">#&gt; 22.8,4,108,93,3.85,2.32,18.61,1,1,4,1</span></span>
+<span id="cb4-6"><a href="#cb4-6"></a><span class="co">#&gt; 21.4,6,258,110,3.08,3.215,19.44,1,0,3,1</span></span>
+<span id="cb4-7"><a href="#cb4-7"></a><span class="co">#&gt; 18.7,8,360,175,3.15,3.44,17.02,0,0,3,2</span></span>
+<span id="cb4-8"><a href="#cb4-8"></a><span class="co">#&gt; 18.1,6,225,105,2.76,3.46,20.22,1,0,3,1</span></span>
+<span id="cb4-9"><a href="#cb4-9"></a><span class="co">#&gt; 14.3,8,360,245,3.21,3.57,15.84,0,0,3,4</span></span>
+<span id="cb4-10"><a href="#cb4-10"></a><span class="co">#&gt; 24.4,4,146.7,62,3.69,3.19,20,1,0,4,2</span></span>
+<span id="cb4-11"><a href="#cb4-11"></a><span class="co">#&gt; 22.8,4,140.8,95,3.92,3.15,22.9,1,0,4,2</span></span>
+<span id="cb4-12"><a href="#cb4-12"></a><span class="co">#&gt; 19.2,6,167.6,123,3.92,3.44,18.3,1,0,4,4</span></span></code></pre></div>
+<p>Show generated script with the <code>--dry-run</code> option:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1"></a><span class="op">&lt;</span> <span class="ex">mtcars.csv</span> ./rush qplot --dry-run --x mpg --geom density --fill <span class="st">'factor(cyl)'</span></span>
+<span id="cb5-2"><a href="#cb5-2"></a><span class="co">#&gt; #!/usr/bin/env Rscript</span></span>
+<span id="cb5-3"><a href="#cb5-3"></a><span class="co">#&gt; library(ggplot2)</span></span>
+<span id="cb5-4"><a href="#cb5-4"></a><span class="co">#&gt; df &lt;- janitor::clean_names(readr::read_delim(file("stdin", "rb", raw = TRUE), delim = ",", col_names = TRUE))</span></span>
+<span id="cb5-5"><a href="#cb5-5"></a><span class="co">#&gt; qplot(x = mpg, margins = FALSE, geom = "density", fill = factor(cyl), data = df)</span></span></code></pre></div>
+<p>Create plots with the <code>qplot command</code>:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1"></a><span class="op">&lt;</span> <span class="ex">mtcars.csv</span> ./rush qplot --x mpg --geom density --fill <span class="st">'factor(cyl)'</span> <span class="op">&gt;</span> ../man/figures/mtcars.png </span></code></pre></div>
+<p><img src="reference/figures/mtcars.png"></p>
+</div>
+<div id="help" class="section level2">
+<h2 class="hasAnchor">
+<a href="#help" class="anchor"></a>Help</h2>
+<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1"></a><span class="ex">./rush</span> -h</span>
+<span id="cb7-2"><a href="#cb7-2"></a><span class="co">#&gt; rush: R Scripting at the Command Line</span></span>
+<span id="cb7-3"><a href="#cb7-3"></a><span class="co">#&gt; </span></span>
+<span id="cb7-4"><a href="#cb7-4"></a><span class="co">#&gt; Usage:</span></span>
+<span id="cb7-5"><a href="#cb7-5"></a><span class="co">#&gt;   rush [options] &lt;command&gt; [&lt;args&gt;]</span></span>
+<span id="cb7-6"><a href="#cb7-6"></a><span class="co">#&gt; </span></span>
+<span id="cb7-7"><a href="#cb7-7"></a><span class="co">#&gt; Options:</span></span>
+<span id="cb7-8"><a href="#cb7-8"></a><span class="co">#&gt;   -n, --dry-run            Only print generated script.</span></span>
+<span id="cb7-9"><a href="#cb7-9"></a><span class="co">#&gt;   -h, --help               Show this help.</span></span>
+<span id="cb7-10"><a href="#cb7-10"></a><span class="co">#&gt;   -q, --quiet              Be quiet.</span></span>
+<span id="cb7-11"><a href="#cb7-11"></a><span class="co">#&gt;   -v, --verbose            Be verbose.</span></span>
+<span id="cb7-12"><a href="#cb7-12"></a><span class="co">#&gt;       --version            Show version.</span></span>
+<span id="cb7-13"><a href="#cb7-13"></a><span class="co">#&gt; </span></span>
+<span id="cb7-14"><a href="#cb7-14"></a><span class="co">#&gt; Commands:</span></span>
+<span id="cb7-15"><a href="#cb7-15"></a><span class="co">#&gt;   qplot</span></span>
+<span id="cb7-16"><a href="#cb7-16"></a><span class="co">#&gt;   run</span></span>
+<span id="cb7-17"><a href="#cb7-17"></a><span class="co">#&gt;   install</span></span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1"></a><span class="ex">./rush</span> run -h</span>
+<span id="cb8-2"><a href="#cb8-2"></a><span class="co">#&gt; rush: Run an R expression</span></span>
+<span id="cb8-3"><a href="#cb8-3"></a><span class="co">#&gt; </span></span>
+<span id="cb8-4"><a href="#cb8-4"></a><span class="co">#&gt; Usage:</span></span>
+<span id="cb8-5"><a href="#cb8-5"></a><span class="co">#&gt;   rush run [options] &lt;expression&gt; [--] [&lt;file&gt;...]</span></span>
+<span id="cb8-6"><a href="#cb8-6"></a><span class="co">#&gt; </span></span>
+<span id="cb8-7"><a href="#cb8-7"></a><span class="co">#&gt; Reading options:</span></span>
+<span id="cb8-8"><a href="#cb8-8"></a><span class="co">#&gt;   -d, --delimiter &lt;str&gt;    Delimiter [default: ,].</span></span>
+<span id="cb8-9"><a href="#cb8-9"></a><span class="co">#&gt;   -C, --no-clean-names     No clean names.</span></span>
+<span id="cb8-10"><a href="#cb8-10"></a><span class="co">#&gt;   -H, --no-header          No header.</span></span>
+<span id="cb8-11"><a href="#cb8-11"></a><span class="co">#&gt; </span></span>
+<span id="cb8-12"><a href="#cb8-12"></a><span class="co">#&gt; Run options:</span></span>
+<span id="cb8-13"><a href="#cb8-13"></a><span class="co">#&gt;   -l, --library &lt;name&gt;     Libraries to load.</span></span>
+<span id="cb8-14"><a href="#cb8-14"></a><span class="co">#&gt; </span></span>
+<span id="cb8-15"><a href="#cb8-15"></a><span class="co">#&gt; Saving options:</span></span>
+<span id="cb8-16"><a href="#cb8-16"></a><span class="co">#&gt;       --dpi &lt;str|int&gt;      Plot resolution [default: 300].</span></span>
+<span id="cb8-17"><a href="#cb8-17"></a><span class="co">#&gt;       --height &lt;int&gt;       Plot height.</span></span>
+<span id="cb8-18"><a href="#cb8-18"></a><span class="co">#&gt;   -o, --output &lt;str&gt;       Output file.</span></span>
+<span id="cb8-19"><a href="#cb8-19"></a><span class="co">#&gt;       --units &lt;str&gt;        Plot size units [default: in].</span></span>
+<span id="cb8-20"><a href="#cb8-20"></a><span class="co">#&gt;   -w, --width &lt;int&gt;        Plot width.</span></span>
+<span id="cb8-21"><a href="#cb8-21"></a><span class="co">#&gt; </span></span>
+<span id="cb8-22"><a href="#cb8-22"></a><span class="co">#&gt; General options:</span></span>
+<span id="cb8-23"><a href="#cb8-23"></a><span class="co">#&gt;   -n, --dry-run            Only print generated script.</span></span>
+<span id="cb8-24"><a href="#cb8-24"></a><span class="co">#&gt;   -h, --help               Show this help.</span></span>
+<span id="cb8-25"><a href="#cb8-25"></a><span class="co">#&gt;   -q, --quiet              Be quiet.</span></span>
+<span id="cb8-26"><a href="#cb8-26"></a><span class="co">#&gt;   -v, --verbose            Be verbose.</span></span>
+<span id="cb8-27"><a href="#cb8-27"></a><span class="co">#&gt;       --version            Show version.</span></span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1"></a><span class="ex">./rush</span> qplot -h</span>
+<span id="cb9-2"><a href="#cb9-2"></a><span class="co">#&gt; rush: Quick plot</span></span>
+<span id="cb9-3"><a href="#cb9-3"></a><span class="co">#&gt; </span></span>
+<span id="cb9-4"><a href="#cb9-4"></a><span class="co">#&gt; Usage:</span></span>
+<span id="cb9-5"><a href="#cb9-5"></a><span class="co">#&gt;   rush qplot [options] [--] [&lt;file&gt;|-]</span></span>
+<span id="cb9-6"><a href="#cb9-6"></a><span class="co">#&gt; </span></span>
+<span id="cb9-7"><a href="#cb9-7"></a><span class="co">#&gt; Reading options:</span></span>
+<span id="cb9-8"><a href="#cb9-8"></a><span class="co">#&gt;   -d, --delimiter &lt;str&gt;    Delimiter [default: ,].</span></span>
+<span id="cb9-9"><a href="#cb9-9"></a><span class="co">#&gt;   -C, --no-clean-names     No clean names.</span></span>
+<span id="cb9-10"><a href="#cb9-10"></a><span class="co">#&gt;   -H, --no-header          No header.</span></span>
+<span id="cb9-11"><a href="#cb9-11"></a><span class="co">#&gt; </span></span>
+<span id="cb9-12"><a href="#cb9-12"></a><span class="co">#&gt; Plotting options:</span></span>
+<span id="cb9-13"><a href="#cb9-13"></a><span class="co">#&gt;       --aes &lt;key=value&gt;    Additional aesthetics.</span></span>
+<span id="cb9-14"><a href="#cb9-14"></a><span class="co">#&gt;   -a, --alpha &lt;name&gt;       Alpha column.</span></span>
+<span id="cb9-15"><a href="#cb9-15"></a><span class="co">#&gt;   -c, --color &lt;name&gt;       Color column.</span></span>
+<span id="cb9-16"><a href="#cb9-16"></a><span class="co">#&gt;       --facets &lt;formula&gt;   Facet specification.</span></span>
+<span id="cb9-17"><a href="#cb9-17"></a><span class="co">#&gt;   -f, --fill &lt;name&gt;        Fill column.</span></span>
+<span id="cb9-18"><a href="#cb9-18"></a><span class="co">#&gt;   -g, --geom &lt;geom&gt;        Geometry [default: auto].</span></span>
+<span id="cb9-19"><a href="#cb9-19"></a><span class="co">#&gt;       --group &lt;name&gt;       Group column.</span></span>
+<span id="cb9-20"><a href="#cb9-20"></a><span class="co">#&gt;       --log &lt;x|y|xy&gt;       Variables to log transform.</span></span>
+<span id="cb9-21"><a href="#cb9-21"></a><span class="co">#&gt;       --main &lt;str&gt;         Plot title.</span></span>
+<span id="cb9-22"><a href="#cb9-22"></a><span class="co">#&gt;       --margins            Display marginal facets.</span></span>
+<span id="cb9-23"><a href="#cb9-23"></a><span class="co">#&gt;       --post &lt;code&gt;        Code to run after plotting.</span></span>
+<span id="cb9-24"><a href="#cb9-24"></a><span class="co">#&gt;       --pre &lt;code&gt;         Code to run before plotting.</span></span>
+<span id="cb9-25"><a href="#cb9-25"></a><span class="co">#&gt;       --shape &lt;name&gt;       Shape column.</span></span>
+<span id="cb9-26"><a href="#cb9-26"></a><span class="co">#&gt;       --size &lt;name&gt;        Size column.</span></span>
+<span id="cb9-27"><a href="#cb9-27"></a><span class="co">#&gt;   -x, --x &lt;name&gt;           X column.</span></span>
+<span id="cb9-28"><a href="#cb9-28"></a><span class="co">#&gt;       --xlab &lt;str&gt;         X axis label.</span></span>
+<span id="cb9-29"><a href="#cb9-29"></a><span class="co">#&gt;   -y, --y &lt;name&gt;           Y column.</span></span>
+<span id="cb9-30"><a href="#cb9-30"></a><span class="co">#&gt;       --ylab &lt;str&gt;         Y axis label.</span></span>
+<span id="cb9-31"><a href="#cb9-31"></a><span class="co">#&gt;   -z, --z &lt;name&gt;           Z column.</span></span>
+<span id="cb9-32"><a href="#cb9-32"></a><span class="co">#&gt; </span></span>
+<span id="cb9-33"><a href="#cb9-33"></a><span class="co">#&gt; Saving options:</span></span>
+<span id="cb9-34"><a href="#cb9-34"></a><span class="co">#&gt;       --dpi &lt;str|int&gt;      Plot resolution [default: 300].</span></span>
+<span id="cb9-35"><a href="#cb9-35"></a><span class="co">#&gt;       --height &lt;int&gt;       Plot height.</span></span>
+<span id="cb9-36"><a href="#cb9-36"></a><span class="co">#&gt;   -o, --output &lt;str&gt;       Output file.</span></span>
+<span id="cb9-37"><a href="#cb9-37"></a><span class="co">#&gt;       --units &lt;str&gt;        Plot size units [default: in].</span></span>
+<span id="cb9-38"><a href="#cb9-38"></a><span class="co">#&gt;   -w, --width &lt;int&gt;        Plot width.</span></span>
+<span id="cb9-39"><a href="#cb9-39"></a><span class="co">#&gt; </span></span>
+<span id="cb9-40"><a href="#cb9-40"></a><span class="co">#&gt; General options:</span></span>
+<span id="cb9-41"><a href="#cb9-41"></a><span class="co">#&gt;   -n, --dry-run            Only print generated script.</span></span>
+<span id="cb9-42"><a href="#cb9-42"></a><span class="co">#&gt;   -h, --help               Show this help.</span></span>
+<span id="cb9-43"><a href="#cb9-43"></a><span class="co">#&gt;   -q, --quiet              Be quiet.</span></span>
+<span id="cb9-44"><a href="#cb9-44"></a><span class="co">#&gt;   -v, --verbose            Be verbose.</span></span>
+<span id="cb9-45"><a href="#cb9-45"></a><span class="co">#&gt;       --version            Show version.</span></span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1"></a><span class="ex">./rush</span> install -h</span>
+<span id="cb10-2"><a href="#cb10-2"></a><span class="co">#&gt; rush: Install a package</span></span>
+<span id="cb10-3"><a href="#cb10-3"></a><span class="co">#&gt; </span></span>
+<span id="cb10-4"><a href="#cb10-4"></a><span class="co">#&gt; Usage:</span></span>
+<span id="cb10-5"><a href="#cb10-5"></a><span class="co">#&gt;   rush install [options] &lt;package&gt;...</span></span>
+<span id="cb10-6"><a href="#cb10-6"></a><span class="co">#&gt; </span></span>
+<span id="cb10-7"><a href="#cb10-7"></a><span class="co">#&gt; Install options:</span></span>
+<span id="cb10-8"><a href="#cb10-8"></a><span class="co">#&gt;   -u, --upgrade            Upgrade packages.</span></span>
+<span id="cb10-9"><a href="#cb10-9"></a><span class="co">#&gt; </span></span>
+<span id="cb10-10"><a href="#cb10-10"></a><span class="co">#&gt; General options:</span></span>
+<span id="cb10-11"><a href="#cb10-11"></a><span class="co">#&gt;   -n, --dry-run            Only print generated script.</span></span>
+<span id="cb10-12"><a href="#cb10-12"></a><span class="co">#&gt;   -h, --help               Show this help.</span></span>
+<span id="cb10-13"><a href="#cb10-13"></a><span class="co">#&gt;   -q, --quiet              Be quiet.</span></span>
+<span id="cb10-14"><a href="#cb10-14"></a><span class="co">#&gt;   -v, --verbose            Be verbose.</span></span>
+<span id="cb10-15"><a href="#cb10-15"></a><span class="co">#&gt;       --version            Show version.</span></span></code></pre></div>
 </div>
 <div id="code-of-conduct" class="section level2">
 <h2 class="hasAnchor">
