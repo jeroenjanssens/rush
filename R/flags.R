@@ -23,7 +23,8 @@ flags_df <-
     "d"    , "delimiter"       , "str"       , "Delimiter"                   , ","      , NA        , as.character        , "read"    ,
     "H"    , "no-header"       , NA          , "No header"                   , NA       , NA        , as.logical          , "read"    ,
     "C"    , "no-clean-names"  , NA          , "No clean names"              , NA       , NA        , as.logical          , "read"    ,
-    "l"    , "library"         , "name"      , "Libraries to load"           , NA       , NA        , parse_syms          , "run"     ,
+    "t"    , "tidyverse"       , NA          , "Enter the Tidyverse"         , NA       , NA        , as.logical          , "setup"   ,
+    "l"    , "library"         , "name"      , "Libraries to load"           , NA       , NA        , parse_syms          , "setup"   ,
     "x"    , "x"               , "name"      , "X column"                    , NA       , NA        , rlang::parse_expr   , "qplot"   ,
     "y"    , "y"               , "name"      , "Y column"                    , NA       , NA        , rlang::parse_expr   , "qplot"   ,
     "z"    , "z"               , "name"      , "Z column"                    , NA       , NA        , rlang::parse_expr   , "qplot"   ,
@@ -89,7 +90,7 @@ Options:
 {flags_section(category == 'general')}
 
 Commands:
-- qplot
+  qplot
   run
   install",
 
@@ -101,8 +102,8 @@ Usage:
 Reading options:
 {flags_section(category == 'read')}
 
-Run options:
-{flags_section(category == 'run')}
+Setup options:
+{flags_section(category == 'setup')}
 
 Saving options:
 {flags_section(category == 'save')}
@@ -128,6 +129,9 @@ Usage:
 
 Reading options:
 {flags_section(category == 'read')}
+
+Setup options:
+{flags_section(category == 'setup')}
 
 Plotting options:
 {flags_section(category == 'qplot')}
