@@ -39,7 +39,10 @@ rush <- function(...) {
 
   if (flags$command == "run") {
     # Load libraries
-    if (flags$tidyverse) code_library(script, "tidyverse")
+    if (flags$tidyverse) {
+      code_library(script, "tidyverse")
+      code_library(script, "glue")
+    }
     if (!is.null(flags$library)) {
       purrr::walk(flags$library, function(e) code_library(script, e))
     }
@@ -79,8 +82,12 @@ rush <- function(...) {
   if (flags$command == "qplot") {
     if (flags$tidyverse) {
       code_library(script, "tidyverse")
+      code_library(script, "glue")
     } else {
       code_library(script, "ggplot2")
+    }
+    if (!is.null(flags$library)) {
+      purrr::walk(flags$library, function(e) code_library(script, e))
     }
 
     if (rlang::is_null(flags$file) || flags$file == "-") {
