@@ -25,26 +25,26 @@ flags_df <-
     "C"    , "no-clean-names"  , NA          , "No clean names"              , NA       , NA        , as.logical          , "read"    ,
     "t"    , "tidyverse"       , NA          , "Enter the Tidyverse"         , NA       , NA        , as.logical          , "setup"   ,
     "l"    , "library"         , "name"      , "Libraries to load"           , NA       , NA        , parse_syms          , "setup"   ,
-    "x"    , "x"               , "name"      , "X column"                    , NA       , NA        , rlang::parse_expr   , "qplot"   ,
-    "y"    , "y"               , "name"      , "Y column"                    , NA       , NA        , rlang::parse_expr   , "qplot"   ,
-    "z"    , "z"               , "name"      , "Z column"                    , NA       , NA        , rlang::parse_expr   , "qplot"   ,
-    "c"    , "color"           , "name"      , "Color column"                , NA       , NA        , rlang::parse_expr   , "qplot"   ,
-    "a"    , "alpha"           , "name"      , "Alpha column"                , NA       , NA        , rlang::parse_expr   , "qplot"   ,
-    NA     , "aes"             , "key=value" , "Additional aesthetics"       , NA       , NA        , parse_named_exprs   , "qplot"   ,
-    NA     , "shape"           , "name"      , "Shape column"                , NA       , NA        , rlang::parse_expr   , "qplot"   ,
-    NA     , "group"           , "name"      , "Group column"                , NA       , NA        , rlang::parse_expr   , "qplot"   ,
-    NA     , "size"            , "name"      , "Size column"                 , NA       , NA        , rlang::parse_expr   , "qplot"   ,
+    "x"    , "x"               , "name"      , "X column"                    , NA       , NA        , rlang::parse_expr   , "plot"   ,
+    "y"    , "y"               , "name"      , "Y column"                    , NA       , NA        , rlang::parse_expr   , "plot"   ,
+    "z"    , "z"               , "name"      , "Z column"                    , NA       , NA        , rlang::parse_expr   , "plot"   ,
+    "c"    , "color"           , "name"      , "Color column"                , NA       , NA        , rlang::parse_expr   , "plot"   ,
+    "a"    , "alpha"           , "name"      , "Alpha column"                , NA       , NA        , rlang::parse_expr   , "plot"   ,
+    NA     , "aes"             , "key=value" , "Additional aesthetics"       , NA       , NA        , parse_named_exprs   , "plot"   ,
+    NA     , "shape"           , "name"      , "Shape column"                , NA       , NA        , rlang::parse_expr   , "plot"   ,
+    NA     , "group"           , "name"      , "Group column"                , NA       , NA        , rlang::parse_expr   , "plot"   ,
+    NA     , "size"            , "name"      , "Size column"                 , NA       , NA        , rlang::parse_expr   , "plot"   ,
     NA    ,  "expression"      , "code"      , "Code to run"                 , NA       , NA        , rlang::parse_exprs  , NA        ,
-    NA     , "post"            , "code"      , "Code to run after plotting"  , NA       , NA        , rlang::parse_exprs  , "qplot"   ,
-    NA     , "pre"             , "code"      , "Code to run before plotting" , NA       , NA        , rlang::parse_exprs  , "qplot"   ,
-    "f"    , "fill"            , "name"      , "Fill column"                 , NA       , NA        , rlang::parse_expr   , "qplot"   ,
-    "g"    , "geom"            , "geom"      , "Geometry"                    , "auto"   , NA        , as.character        , "qplot"   ,
-    NA     , "facets"          , "formula"   , "Facet specification"         , NA       , NA        , rlang::parse_expr   , "qplot"   ,
-    NA     , "log"             , "x|y|xy"    , "Variables to log transform"  , NA       , NA        , as.character        , "qplot"   ,
-    NA     , "xlab"            , "str"       , "X axis label"                , NA       , NA        , as.character        , "qplot"   ,
-    NA     , "ylab"            , "str"       , "Y axis label"                , NA       , NA        , as.character        , "qplot"   ,
-    NA     , "main"            , "str"       , "Plot title"                  , NA       , NA        , as.character        , "qplot"   ,
-    NA     , "margins"         , NA          , "Display marginal facets"     , NA       , NA        , as.logical          , "qplot"   ,
+    NA     , "post"            , "code"      , "Code to run after plotting"  , NA       , NA        , rlang::parse_exprs  , "plot"   ,
+    NA     , "pre"             , "code"      , "Code to run before plotting" , NA       , NA        , rlang::parse_exprs  , "plot"   ,
+    "f"    , "fill"            , "name"      , "Fill column"                 , NA       , NA        , rlang::parse_expr   , "plot"   ,
+    "g"    , "geom"            , "geom"      , "Geometry"                    , "auto"   , NA        , as.character        , "plot"   ,
+    NA     , "facets"          , "formula"   , "Facet specification"         , NA       , NA        , rlang::parse_expr   , "plot"   ,
+    NA     , "log"             , "x|y|xy"    , "Variables to log transform"  , NA       , NA        , as.character        , "plot"   ,
+    NA     , "xlab"            , "str"       , "X axis label"                , NA       , NA        , as.character        , "plot"   ,
+    NA     , "ylab"            , "str"       , "Y axis label"                , NA       , NA        , as.character        , "plot"   ,
+    NA     , "main"            , "str"       , "Plot title"                  , NA       , NA        , as.character        , "plot"   ,
+    NA     , "margins"         , NA          , "Display marginal facets"     , NA       , NA        , as.logical          , "plot"   ,
     "w"    , "width"           , "int"       , "Plot width"                  , NA       , NA        , as.numeric          , "save"    ,
     NA     , "height"          , "int"       , "Plot height"                 , NA       , NA        , as.numeric          , "save"    ,
     NA     , "units"           , "str"       , "Plot size units"             , "in"     , NA        , as.character        , "save"    ,
@@ -90,7 +90,7 @@ Options:
 {flags_section(category == 'general')}
 
 Commands:
-  qplot
+  plot
   run
   install",
 
@@ -122,10 +122,10 @@ Install options:
 General options:
 {flags_section(category == 'general')}",
 
-qplot = "rush: Quick plot
+plot = "rush: Quick plot
 
 Usage:
-  rush qplot [options] [--] [<file>|-]
+  rush plot [options] [--] [<file>|-]
 
 Reading options:
 {flags_section(category == 'read')}
@@ -134,7 +134,7 @@ Setup options:
 {flags_section(category == 'setup')}
 
 Plotting options:
-{flags_section(category == 'qplot')}
+{flags_section(category == 'plot')}
 
 Saving options:
 {flags_section(category == 'save')}

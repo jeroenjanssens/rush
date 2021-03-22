@@ -79,7 +79,7 @@ rush <- function(...) {
 
   }
 
-  if (flags$command == "qplot") {
+  if (flags$command == "plot") {
     if (flags$tidyverse) {
       code_library(script, "tidyverse")
       code_library(script, "glue")
