@@ -43,7 +43,7 @@ flags_df <-
     NA     , "log"             , "x|y|xy"    , "Variables to log transform"  , NA       , NA        , as.character        , "plot"   ,
     NA     , "xlab"            , "str"       , "X axis label"                , NA       , NA        , as.character        , "plot"   ,
     NA     , "ylab"            , "str"       , "Y axis label"                , NA       , NA        , as.character        , "plot"   ,
-    NA     , "main"            , "str"       , "Plot title"                  , NA       , NA        , as.character        , "plot"   ,
+    NA     , "title"           , "str"       , "Plot title"                  , NA       , "main"    , as.character        , "plot"   ,
     NA     , "margins"         , NA          , "Display marginal facets"     , NA       , NA        , as.logical          , "plot"   ,
     "w"    , "width"           , "int"       , "Plot width"                  , NA       , NA        , as.numeric          , "save"    ,
     NA     , "height"          , "int"       , "Plot height"                 , NA       , NA        , as.numeric          , "save"    ,

@@ -104,6 +104,7 @@ rush <- function(...) {
       purrr::walk(flags$pre, function(e) code_expression(script, !!e))
     }
 
+    flags$main <- flags$title
     qplot_args <- purrr::compact(
       flags[union(methods::formalArgs(ggplot2::qplot),
                   c("adj", "alpha", "angle", "bg", "cex", "col", "color",
