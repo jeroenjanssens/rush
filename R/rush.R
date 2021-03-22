@@ -191,10 +191,13 @@ rush <- function(...) {
                            height = flags$height,
                            plain_ascii = TRUE,
                            char_lookup_table = 2)
-          p <- result +
+
+          if (is.null(flags$post)) {
+            result <- result +
             ggplot2::theme_minimal() +
             ggplot2::theme(panel.grid = ggplot2::element_blank())
-          print(p)
+          }
+          print(result)
           invisible(grDevices::dev.off())
         } else {
           cli::cat_line("Please specify --output, redirect to a file, or install {devoutansi}")
