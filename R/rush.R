@@ -1,4 +1,4 @@
-#' Main entry point
+#' Main entry point for rush
 #'
 #' @param ... character vector of parameters
 #'
