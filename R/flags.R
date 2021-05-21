@@ -16,6 +16,7 @@ flags_df <-
     ~short , ~long             , ~value      , ~description                  , ~default , ~arg      , ~apply              , ~category ,
     "h"    , "help"            , NA          , "Show this help"              , NA       , NA        , as.logical          , "general" ,
     NA     , "version"         , NA          , "Show version"                , NA       , NA        , as.logical          , "general" ,
+    NA     , "seed"            , "int"       , "Seed random number generator", NA       , NA        , as.integer          , "general" ,
     "v"    , "verbose"         , NA          , "Be verbose"                  , NA       , NA        , as.logical          , "general" ,
     "q"    , "quiet"           , NA          , "Be quiet"                    , NA       , NA        , as.logical          , "general" ,
     "n"    , "dry-run"         , NA          , "Only print generated script" , NA       , "dry_run" , as.logical          , "general" ,

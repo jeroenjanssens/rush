@@ -33,6 +33,10 @@ rush <- function(...) {
 
   code_expression(script, "#!/usr/bin/env Rscript")
 
+  if (is.integer(flags$seed)) {
+    code_expression(script, set.seed(!!flags$seed))
+  }
+
   if (flags$command == "install") {
     code_expression(script, utils::install.packages(!!flags$package))
   }
