@@ -204,7 +204,17 @@ rush <- function(...) {
           print(result)
           invisible(grDevices::dev.off())
         } else {
-          cli::cat_line("Please specify --output, redirect to a file, or install {devoutansi}")
+          cli::cat_line(
+            "Terminal plotting requires the devout, miniansi, and devoutansi ",
+            "packages, which are not on CRAN. Install them from GitHub with:"
+          )
+          cli::cat_line(
+            '  remotes::install_github(c("coolbutuseless/devout", ',
+            '"jeroenjanssens/miniansi", "coolbutuseless/devoutansi"))'
+          )
+          cli::cat_line(
+            "Alternatively, specify --output or redirect the plot to a file."
+          )
         }
       } else {
         if (fs::path_ext(flags$output) == "") {

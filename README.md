@@ -16,6 +16,24 @@ You can install the development version of rush from with:
 remotes::install_github("jeroenjanssens/rush")
 ```
 
+## Terminal plotting
+
+`rush plot` can render plots directly in the terminal as ANSI/ASCII art.
+This feature relies on three packages that are not on CRAN, so they are
+not installed automatically. To enable terminal plotting, install them
+from GitHub:
+
+``` r
+remotes::install_github(c(
+  "coolbutuseless/devout",
+  "jeroenjanssens/miniansi",
+  "coolbutuseless/devoutansi"
+))
+```
+
+Without these packages, `rush plot` still works when you write the plot
+to a file (for example with `--output plot.png`) or redirect its output.
+
 ## Code of Conduct
 
 Please note that the rush project is released with a [Contributor Code
