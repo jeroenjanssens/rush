@@ -249,24 +249,40 @@ rush plot --dry-run --x mpg --geom density --fill 'factor(cyl)' mtcars.csv
 #> )
 #> 
 #> library(ggplot2)
-#> df <- janitor::clean_names(readr::read_delim("mtcars.csv", delim = ",", col_names = TRUE))
+#> df <- janitor::clean_names(readr::read_delim(
+#>   "mtcars.csv",
+#>   delim = ",",
+#>   col_names = TRUE
+#> ))
 #> result <- ggplot(df, aes(x = mpg, fill = factor(cyl))) + geom_density()
 #> 
 #> #~~~ Output dispatch (added by rush) ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #> .has_tty <- isatty(stdout())
 #> .stdout_binary <- function() {
-#>   if (.Platform$OS.type == "windows") file("stdout", "wb", raw = TRUE)
-#>   else file("/dev/stdout", "wb", raw = TRUE)
+#>   if (.Platform$OS.type == "windows") {
+#>     file("stdout", "wb", raw = TRUE)
+#>   } else {
+#>     file("/dev/stdout", "wb", raw = TRUE)
+#>   }
 #> }
 #> 
 #> out <- .rush$output
 #> w <- .rush$width
 #> h <- .rush$height
-#> if (is.null(out)) out <- if (.has_tty) "ansi" else "png"
+#> if (is.null(out)) {
+#>   out <- if (.has_tty) "ansi" else "png"
+#> }
 #> 
 #> if (out %in% c("ansi", "ascii")) {
-#>   if (is.null(w)) w <- cli::console_width()
-#>   devoutansi::ansi(width = w, height = h, plain_ascii = TRUE, char_lookup_table = 2)
+#>   if (is.null(w)) {
+#>     w <- cli::console_width()
+#>   }
+#>   devoutansi::ansi(
+#>     width = w,
+#>     height = h,
+#>     plain_ascii = TRUE,
+#>     char_lookup_table = 2
+#>   )
 #>   if (!.rush$has_post) {
 #>     result <- result +
 #>       ggplot2::theme_minimal() +
@@ -284,10 +300,21 @@ rush plot --dry-run --x mpg --geom density --fill 'factor(cyl)' mtcars.csv
 #>     device <- NULL
 #>     cat_output <- FALSE
 #>   }
-#>   if (is.null(w)) w <- 6
-#>   if (is.null(h)) h <- 4
-#>   ggplot2::ggsave(output_filename, result, device = device,
-#>                   width = w, height = h, units = .rush$units, dpi = .rush$dpi)
+#>   if (is.null(w)) {
+#>     w <- 6
+#>   }
+#>   if (is.null(h)) {
+#>     h <- 4
+#>   }
+#>   ggplot2::ggsave(
+#>     output_filename,
+#>     result,
+#>     device = device,
+#>     width = w,
+#>     height = h,
+#>     units = .rush$units,
+#>     dpi = .rush$dpi
+#>   )
 #>   if (cat_output) {
 #>     contents <- readBin(output_filename, raw(), n = 1e8)
 #>     writeBin(contents, .stdout_binary())
@@ -344,6 +371,11 @@ chmod +x analysis.R
 This is also handy for tweaking: dump a `rush` one-liner to a file, edit
 the generated R to do something `rush` does not express directly, and
 run it with `ir run analysis.R`.
+
+If the [air](https://posit-dev.github.io/air/) formatter is on your
+`PATH`, `rush` runs the `--dry-run` output through it, so the printed
+script is neatly formatted and ready to save. This affects only what
+`--dry-run` shows; the script that actually runs is never reformatted.
 
 ## Running without `ir`
 
