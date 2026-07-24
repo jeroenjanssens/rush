@@ -62,30 +62,7 @@ rush <- function(...) {
 
     # Read files
     if (length(flags$file) >= 1) {
-      if (!flags$no_clean_names) pkgs <- c(pkgs, "janitor")
-    }
-    if (length(flags$file) == 1) {
-      df_file <- flags$file
-      if (df_file == "-") df_file <- expr(file("stdin", "rb", raw = TRUE))
-      read_expr <- expr(readr::read_delim(!!df_file, delim = !!flags$delimiter, col_names = !!(!flags$no_header)))
-      if (!flags$no_clean_names) read_expr <- expr(janitor::clean_names(!!read_expr))
-      code_expression(body, `<-`(df, !!read_expr))
-    } else if (length(flags$file) > 1) {
-      df_names <-
-        ifelse(flags$file == "-", "stdin",
-               tools::file_path_sans_ext(basename(flags$file))) |>
-        clean_names_simple()
-
-      code_expression(body, dfs <- list())
-      for (i in seq_along(df_names)) {
-        df_name <- rlang::parse_expr(paste0("dfs$", df_names[[i]]))
-        df_file <- flags$file[[i]]
-        if (df_file == "-") df_file <- expr(file("stdin", "rb", raw = TRUE))
-
-        read_expr <- expr(readr::read_delim(!!df_file, delim = !!flags$delimiter, col_names = !!(!flags$no_header)))
-        if (!flags$no_clean_names) read_expr <- expr(janitor::clean_names(!!read_expr))
-        code_expression(body, !!rlang::call2("<-", df_name, read_expr))
-      }
+      pkgs <- c(pkgs, emit_read_files(body, flags$file, flags))
     }
 
     # Add expressions, capturing the value of the last one as `result`. With
@@ -115,18 +92,12 @@ rush <- function(...) {
       pkgs <- c(pkgs, as.character(flags$library))
     }
 
-    if (rlang::is_null(flags$file) || flags$file == "-") {
-      df_file <- expr(file("stdin", "rb", raw = TRUE))
-    } else {
-      df_file <- flags$file
-    }
-
-    read_expr <- expr(readr::read_delim(!!df_file, delim = !!flags$delimiter, col_names = !!(!flags$no_header)))
-    if (!flags$no_clean_names) {
-      read_expr <- expr(janitor::clean_names(!!read_expr))
-      pkgs <- c(pkgs, "janitor")
-    }
-    code_expression(body, `<-`(df, !!read_expr))
+    # Default to standard input when no file is given. Multiple files are read
+    # into a `dfs` list; combine them into `df` yourself with, e.g.,
+    # --pre 'df <- dplyr::bind_rows(dfs)'.
+    plot_files <- flags$file %||% "-"
+    if (length(plot_files) == 0) plot_files <- "-"
+    pkgs <- c(pkgs, emit_read_files(body, plot_files, flags))
 
     if (!is.null(flags$pre)) {
       purrr::walk(flags$pre, function(e) code_expression(body, !!e))

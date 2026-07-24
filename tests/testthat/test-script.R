@@ -50,6 +50,32 @@ test_that("stdin is read from a binary connection", {
   expect_true(any(grepl("stdin", script)))
 })
 
+test_that("run reads multiple files into a dfs list", {
+  script <- dry_run("run", "-n", "nrow(dfs$a)", "a.csv", "b.csv")
+  expect_true(any(grepl("^dfs <- list\\(\\)$", script)))
+  expect_true(any(grepl("dfs\\$a <- .*read_delim\\(\"a.csv\"", script)))
+  expect_true(any(grepl("dfs\\$b <- .*read_delim\\(\"b.csv\"", script)))
+})
+
+test_that("plot reads a single file into df", {
+  script <- dry_run("plot", "-n", "-x", "wt", "a.csv")
+  expect_true(any(grepl("^df <- .*read_delim\\(\"a.csv\"", script)))
+})
+
+test_that("plot defaults to reading df from stdin", {
+  script <- dry_run("plot", "-n", "-x", "wt")
+  expect_true(any(grepl("^df <- .*stdin", script)))
+})
+
+test_that("plot reads multiple files into a dfs list", {
+  script <- dry_run("plot", "-n", "-x", "wt",
+                    "--pre", "df <- dplyr::bind_rows(dfs)", "a.csv", "b.csv")
+  expect_true(any(grepl("^dfs <- list\\(\\)$", script)))
+  expect_true(any(grepl("dfs\\$a <- .*read_delim\\(\"a.csv\"", script)))
+  expect_true(any(grepl("dfs\\$b <- .*read_delim\\(\"b.csv\"", script)))
+  expect_true(any(grepl("df <- dplyr::bind_rows\\(dfs\\)", script)))
+})
+
 test_that("plot frontmatter injects the terminal-plotting GitHub packages", {
   script <- dry_run("plot", "-n", "-x", "wt", "mtcars.csv")
   expect_true(any(grepl("^#\\|   - github::coolbutuseless/devout$", script)))

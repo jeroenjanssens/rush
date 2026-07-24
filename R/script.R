@@ -41,6 +41,37 @@ clean_names_simple <- function(x) {
   make.unique(x, sep = "_")
 }
 
+# Emit the code that reads the input file(s), shared by `run` and `plot`. A
+# single file is read into a data frame named `df`; multiple files are each
+# read into a named element of a list `dfs`. Use "-" for standard input.
+# Returns the extra packages the emitted read code depends on.
+emit_read_files <- function(con, files, flags) {
+  read_call <- function(path) {
+    if (path == "-") path <- expr(file("stdin", "rb", raw = TRUE))
+    read_expr <- expr(readr::read_delim(!!path, delim = !!flags$delimiter,
+                                        col_names = !!(!flags$no_header)))
+    if (!flags$no_clean_names) read_expr <- expr(janitor::clean_names(!!read_expr))
+    read_expr
+  }
+
+  if (length(files) == 1) {
+    code_expression(con, `<-`(df, !!read_call(files)))
+  } else {
+    df_names <-
+      ifelse(files == "-", "stdin",
+             tools::file_path_sans_ext(basename(files))) |>
+      clean_names_simple()
+
+    code_expression(con, dfs <- list())
+    for (i in seq_along(files)) {
+      df_name <- rlang::parse_expr(paste0("dfs$", df_names[[i]]))
+      code_expression(con, !!rlang::call2("<-", df_name, read_call(files[[i]])))
+    }
+  }
+
+  if (!flags$no_clean_names) "janitor" else character(0)
+}
+
 # Bake the runtime context that the dispatch block needs into an R list
 # literal, so the generated script stays self-contained.
 script_preamble <- function(flags) {
