@@ -25,6 +25,7 @@ Imports:
     dplyr,
     readr,
     janitor,
+    pillar,
     ggplot2,
     tibble,
     cli,

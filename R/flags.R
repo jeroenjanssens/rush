@@ -177,8 +177,6 @@ parse_arguments <- function(...) {
   args[order(names(args))]
 }
 
-extra <- list(a = 1, b = 2)
-
 format_flag <- function(name, value) {
   if (is.list(value)) {
     # value_text <- stringr::str_c(purrr::map_chr(value, rlang::expr_text), collapse = "; ")
@@ -192,5 +190,3 @@ format_flag <- function(name, value) {
              "{cli::style_italic(cli::col_blue('<',pillar::type_sum(value),'>'))} ",
              "{ifelse(is.null(value), '', value_text)}")
 }
-
-format_flag("extra", extra)
