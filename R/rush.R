@@ -2,6 +2,7 @@
 #'
 #' @param ... character vector of parameters
 #'
+#' @importFrom tibble tribble
 #' @export
 rush <- function(...) {
 
@@ -10,11 +11,6 @@ rush <- function(...) {
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   flags <- parse_arguments(...)
-  has_tty <- isatty(stdout())
-
-  if (has_tty) {
-    options(width = flags$width %||% cli::console_width())
-  }
 
   if (flags$verbose) {
     cli::cat_rule("Arguments", file = stderr())
@@ -24,47 +20,55 @@ rush <- function(...) {
   }
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # Create script
+  # Build the body of the script
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  filename <- tempfile()
-  script <- file(filename, open = "w")
-  on.exit(unlink(filename))
+  # The generated script is self-contained: it is executed by `ir run` in a
+  # separate process, so every package it needs is declared in its own `#|`
+  # frontmatter and every helper it uses is inlined. `rush()` itself only
+  # assembles and launches the script.
 
-  code_expression(script, "#!/usr/bin/env Rscript")
+  body_file <- tempfile()
+  body <- file(body_file, open = "w")
+  on.exit(unlink(body_file), add = TRUE)
+
+  # Packages resolved by `ir` (via pak) before the script runs. The output
+  # dispatch at the end of every script relies on cli, tibble, and readr.
+  pkgs <- c("rlang", "cli", "tibble", "readr")
 
   if (is.integer(flags$seed)) {
-    code_expression(script, set.seed(!!flags$seed))
-  }
-
-  if (flags$command == "install") {
-    code_expression(script, utils::install.packages(!!flags$package))
+    code_expression(body, set.seed(!!flags$seed))
   }
 
   if (flags$command == "run") {
     # Load libraries
     if (flags$tidyverse) {
-      code_library(script, "tidyverse")
-      code_library(script, "glue")
+      code_library(body, "tidyverse")
+      code_library(body, "glue")
+      pkgs <- c(pkgs, "tidyverse", "glue")
     }
     if (!is.null(flags$library)) {
-      purrr::walk(flags$library, function(e) code_library(script, e))
+      purrr::walk(flags$library, function(e) code_library(body, e))
+      pkgs <- c(pkgs, as.character(flags$library))
     }
 
     # Read files
+    if (length(flags$file) >= 1) {
+      if (!flags$no_clean_names) pkgs <- c(pkgs, "janitor")
+    }
     if (length(flags$file) == 1) {
       df_file <- flags$file
       if (df_file == "-") df_file <- expr(file("stdin", "rb", raw = TRUE))
       read_expr <- expr(readr::read_delim(!!df_file, delim = !!flags$delimiter, col_names = !!(!flags$no_header)))
       if (!flags$no_clean_names) read_expr <- expr(janitor::clean_names(!!read_expr))
-      code_expression(script, `<-`(df, !!read_expr))
+      code_expression(body, `<-`(df, !!read_expr))
     } else if (length(flags$file) > 1) {
       df_names <-
         ifelse(flags$file == "-", "stdin",
-               fs::path_ext_remove(basename(flags$file))) |>
-        janitor::make_clean_names()
+               tools::file_path_sans_ext(basename(flags$file))) |>
+        clean_names_simple()
 
-      code_expression(script, dfs <- list())
+      code_expression(body, dfs <- list())
       for (i in seq_along(df_names)) {
         df_name <- rlang::parse_expr(paste0("dfs$", df_names[[i]]))
         df_file <- flags$file[[i]]
@@ -72,26 +76,35 @@ rush <- function(...) {
 
         read_expr <- expr(readr::read_delim(!!df_file, delim = !!flags$delimiter, col_names = !!(!flags$no_header)))
         if (!flags$no_clean_names) read_expr <- expr(janitor::clean_names(!!read_expr))
-        code_expression(script, !!rlang::call2("<-", df_name, read_expr))
+        code_expression(body, !!rlang::call2("<-", df_name, read_expr))
       }
     }
 
-    # Add expressions
+    # Add expressions, capturing the value of the last one as `result`. With
+    # no expression and a single file, echo the data frame that was read.
     if (!is.null(flags$expression)) {
-      purrr::walk(flags$expression, function(e) code_expression(script, !!e))
+      emit_result_exprs(body, flags$expression)
+    } else if (length(flags$file) == 1) {
+      code_expression(body, result <- df)
     }
-
   }
 
   if (flags$command == "plot") {
+    pkgs <- c(pkgs, "ggplot2", "fs",
+              "github::coolbutuseless/devout",
+              "github::jeroenjanssens/miniansi",
+              "github::coolbutuseless/devoutansi")
+
     if (flags$tidyverse) {
-      code_library(script, "tidyverse")
-      code_library(script, "glue")
+      code_library(body, "tidyverse")
+      code_library(body, "glue")
+      pkgs <- c(pkgs, "tidyverse", "glue")
     } else {
-      code_library(script, "ggplot2")
+      code_library(body, "ggplot2")
     }
     if (!is.null(flags$library)) {
-      purrr::walk(flags$library, function(e) code_library(script, e))
+      purrr::walk(flags$library, function(e) code_library(body, e))
+      pkgs <- c(pkgs, as.character(flags$library))
     }
 
     if (rlang::is_null(flags$file) || flags$file == "-") {
@@ -101,11 +114,14 @@ rush <- function(...) {
     }
 
     read_expr <- expr(readr::read_delim(!!df_file, delim = !!flags$delimiter, col_names = !!(!flags$no_header)))
-    if (!flags$no_clean_names) read_expr <- expr(janitor::clean_names(!!read_expr))
-    code_expression(script, `<-`(df, !!read_expr))
+    if (!flags$no_clean_names) {
+      read_expr <- expr(janitor::clean_names(!!read_expr))
+      pkgs <- c(pkgs, "janitor")
+    }
+    code_expression(body, `<-`(df, !!read_expr))
 
     if (!is.null(flags$pre)) {
-      purrr::walk(flags$pre, function(e) code_expression(script, !!e))
+      purrr::walk(flags$pre, function(e) code_expression(body, !!e))
     }
 
     # Build the aesthetic mapping from the dedicated aesthetic flags, plus any
@@ -161,128 +177,70 @@ rush <- function(...) {
     }
 
     if (!is.null(flags$post)) {
-      plot_call <- rlang::call2("<-", rlang::sym("p"), plot_call)
+      # Keep the plot in `p` so --post code can extend it, then let the last
+      # --post expression produce the result.
+      code_expression(body, !!rlang::call2("<-", rlang::sym("p"), plot_call))
+      emit_result_exprs(body, flags$post)
+    } else {
+      code_expression(body, !!rlang::call2("<-", rlang::sym("result"), plot_call))
     }
-
-    code_expression(script, !!plot_call)
-
-    if (!is.null(flags$post)) {
-      purrr::walk(flags$post, function(e) code_expression(script, !!e))
-    }
-
   }
 
-  close(script)
+  close(body)
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # Output result
+  # Assemble the self-contained script
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  filename <- tempfile(fileext = ".R")
+  on.exit(unlink(filename), add = TRUE)
+
+  writeLines(c(
+    frontmatter(unique(pkgs)),
+    "",
+    script_preamble(flags),
+    "",
+    readLines(body_file),
+    "",
+    dispatch_block(flags$command)
+  ), filename)
+
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # Run (or, with --dry-run, print) the script
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   if (flags$dry_run) {
     code <- readLines(filename)
-    if (has_tty) code <- prettycode::highlight(code)
+    if (isatty(stdout())) code <- prettycode::highlight(code)
     cat(code, sep = "\n")
-  } else {
-
-    if (!flags$verbose) {
-      dev_null <- file(nullfile(), open = "w")
-      sink(dev_null, type = "message")
-      sink(dev_null, type = "output")
-    } else {
-      sink(stderr(), type = "message")
-      sink(stderr(), type = "output")
-    }
-
-    # Run script and assign output to result
-    e <- rlang::env()
-
-    result <- source(filename, local = e, echo = flags$verbose,
-                     spaced = FALSE, prompt.echo = "#> ",
-                     continue.echo = "#+ ")$value
-    sink()
-
-    if (rlang::is_atomic(result)) {
-      cli::cat_line(result)
-    }
-
-    if (rlang::is_bare_list(result)) {
-      result <- tibble::enframe(result)
-    }
-
-    if (is.data.frame(result)) {
-      if (has_tty && is.null(flags$output)) {
-        options(tibble.width = flags$width %||% cli::console_width())
-        print(tibble::as_tibble(result), n = flags$height)
-      } else {
-        con <- flags$output %||% stdout_binary()
-        readr::write_delim(result, con, delim = flags$delim)
-      }
-    }
-
-    if (ggplot2::is.ggplot(result)) {
-
-      if (is.null(flags$output)) {
-        flags$output <- ifelse(has_tty, "ansi", "png")
-      }
-
-      if (flags$output %in% c("ansi", "ascii")) {
-        if (is.null(flags$width)) flags$width <- cli::console_width()
-        if (requireNamespace("devoutansi", quietly = TRUE)) {
-          devoutansi::ansi(width = flags$width,
-                           height = flags$height,
-                           plain_ascii = TRUE,
-                           char_lookup_table = 2)
-
-          if (is.null(flags$post)) {
-            result <- result +
-            ggplot2::theme_minimal() +
-            ggplot2::theme(panel.grid = ggplot2::element_blank())
-          }
-          print(result)
-          invisible(grDevices::dev.off())
-        } else {
-          cli::cat_line(
-            "Terminal plotting requires the devout, miniansi, and devoutansi ",
-            "packages, which are not on CRAN. Install them from GitHub with:"
-          )
-          cli::cat_line(
-            '  remotes::install_github(c("coolbutuseless/devout", ',
-            '"jeroenjanssens/miniansi", "coolbutuseless/devoutansi"))'
-          )
-          cli::cat_line(
-            "Alternatively, specify --output or redirect the plot to a file."
-          )
-        }
-      } else {
-        if (fs::path_ext(flags$output) == "") {
-          output_filename <- tempfile()
-          on.exit(unlink(output_filename))
-          device <- flags$output
-          cat_output <- TRUE
-        } else {
-          output_filename  <- flags$output
-          device <- NULL
-          cat_output <- FALSE
-        }
-
-        if (is.null(flags$width)) flags$width <- 6
-        if (is.null(flags$height)) flags$height <- 4
-
-        ggplot2::ggsave(output_filename,
-                        result,
-                        device = device,
-                        width = flags$width,
-                        height = flags$height,
-                        units = flags$units,
-                        dpi = flags$dpi)
-
-        if (cat_output) {
-          contents <- readBin(output_filename, raw(), n = 1e8)
-          writeBin(contents, stdout_binary())
-        }
-      }
-    }
+    return(invisible())
   }
+
+  ir <- Sys.which("ir")
+  if (ir == "") {
+    cli::cli_abort(c(
+      "The {.pkg ir} command-line tool could not be found on the {.envvar PATH}.",
+      i = "See {.url https://r-lib.github.io/ir/} for installation instructions."
+    ))
+  }
+
+  # When rush is itself launched as an `ir` tool, the launcher sets
+  # R_DEFAULT_PACKAGES to rush's own default packages and that value would be
+  # inherited by the child. Reset it to R's normal default set so the
+  # self-contained script sees the usual base packages (e.g. datasets).
+  default_pkgs <- "datasets,utils,grDevices,graphics,stats,methods"
+
+  # Inherit the parent's stdin and stdout ("") so that piped standard input
+  # (the `-` file), TTY detection, and binary standard output all work inside
+  # the self-contained script exactly as if it were run directly. Standard
+  # error carries package chatter (e.g. readr's column specs) and is
+  # discarded unless --verbose was given.
+  stderr_to <- if (flags$verbose) "" else NULL
+  proc <- processx::process$new(
+    ir, c("run", filename),
+    stdin = "", stdout = "", stderr = stderr_to, cleanup = TRUE,
+    env = c("current", R_DEFAULT_PACKAGES = default_pkgs)
+  )
+  proc$wait()
+  invisible(proc$get_exit_status())
 }
-
-

@@ -11,6 +11,13 @@ parse_named_exprs <- function(x) {
   rlang::call_args(rlang::parse_expr(paste0("list(", x, ")")))
 }
 
+# Guess whether a flag value is numeric (e.g. --dpi 300) or should stay a
+# string; a lightweight stand-in for readr::parse_guess.
+parse_guess <- function(x) {
+  n <- suppressWarnings(as.numeric(x))
+  if (!anyNA(n)) n else x
+}
+
 flags_df <-
   tibble::tribble(
     ~short , ~long             , ~value      , ~description                  , ~default , ~arg      , ~apply              , ~category ,
@@ -20,7 +27,6 @@ flags_df <-
     "v"    , "verbose"         , NA          , "Be verbose"                  , NA       , NA        , as.logical          , "general" ,
     "q"    , "quiet"           , NA          , "Be quiet"                    , NA       , NA        , as.logical          , "general" ,
     "n"    , "dry-run"         , NA          , "Only print generated script" , NA       , "dry_run" , as.logical          , "general" ,
-    "u"    , "upgrade"         , NA          , "Upgrade packages"            , NA       , NA        , as.logical          , "install" ,
     "d"    , "delimiter"       , "str"       , "Delimiter"                   , ","      , NA        , as.character        , "read"    ,
     "H"    , "no-header"       , NA          , "No header"                   , NA       , NA        , as.logical          , "read"    ,
     "C"    , "no-clean-names"  , NA          , "No clean names"              , NA       , NA        , as.logical          , "read"    ,
@@ -49,7 +55,7 @@ flags_df <-
     "w"    , "width"           , "int"       , "Plot width"                  , NA       , NA        , as.numeric          , "save"    ,
     NA     , "height"          , "int"       , "Plot height"                 , NA       , NA        , as.numeric          , "save"    ,
     NA     , "units"           , "str"       , "Plot size units"             , "in"     , NA        , as.character        , "save"    ,
-    NA     , "dpi"             , "str|int"   , "Plot resolution"             , "300"    , NA        , readr::parse_guess  , "save"    ,
+    NA     , "dpi"             , "str|int"   , "Plot resolution"             , "300"    , NA        , parse_guess         , "save"    ,
     "o"    , "output"          , "str"       , "Output file"                 , NA       , NA        , as.character        , "save"    ,
   ) |>
   dplyr::mutate(arg = dplyr::if_else(is.na(arg), long, arg))
@@ -92,8 +98,7 @@ Options:
 
 Commands:
   plot
-  run
-  install",
+  run",
 
 run = "rush: Run an R expression
 
@@ -108,17 +113,6 @@ Setup options:
 
 Saving options:
 {flags_section(category == 'save')}
-
-General options:
-{flags_section(category == 'general')}",
-
-install = "rush: Install a package
-
-Usage:
-  rush install [options] <package>...
-
-Install options:
-{flags_section(category == 'install')}
 
 General options:
 {flags_section(category == 'general')}",
@@ -186,7 +180,9 @@ format_flag <- function(name, value) {
     value_text <- rlang::expr_text(value)
   }
 
-  glue::glue("{pillar::align(name, 15)} ",
-             "{cli::style_italic(cli::col_blue('<',pillar::type_sum(value),'>'))} ",
+  name <- pillar::align(name, 15)
+  type <- pillar::type_sum(value)
+  glue::glue("{name} ",
+             "{cli::style_italic(cli::col_blue('<', type, '>'))} ",
              "{ifelse(is.null(value), '', value_text)}")
 }

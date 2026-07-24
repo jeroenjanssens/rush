@@ -7,7 +7,10 @@ Authors@R:
            role = c("aut", "cre"),
            email = "jeroen@jeroenjanssens.com",
            comment = c(ORCID = "0000-0002-5878-8924"))
-Description: Run expressions, create plots, and install packages directly from the shell.
+Description: Run R expressions and create plots directly from the shell.
+    Each invocation assembles a self-contained script that is executed with
+    the 'ir' command-line tool, which resolves the script's package
+    dependencies on the fly.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
@@ -24,17 +27,18 @@ Imports:
     stringr,
     purrr,
     dplyr,
-    readr,
-    janitor,
     pillar,
-    ggplot2,
     tibble,
     cli,
-    fs,
+    processx,
+    tools,
     utils
 Suggests:
+    janitor,
+    readr,
     testthat (>= 3.0.0),
     roxygen2
+SystemRequirements: ir (https://r-lib.github.io/ir/)
 Config/testthat/edition: 3
 URL: https://jeroenjanssens.github.io/rush/, https://github.com/jeroenjanssens/rush
 BugReports: https://github.com/jeroenjanssens/rush/issues

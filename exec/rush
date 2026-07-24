@@ -1,2 +1,0 @@
-#!/usr/bin/env Rscript
-rush::rush(commandArgs(trailingOnly = TRUE))

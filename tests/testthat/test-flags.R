@@ -1,17 +1,12 @@
 test_that("commands are recognized", {
   expect_equal(parse_arguments("run", "1 + 1")$command, "run")
   expect_equal(parse_arguments("plot", "mtcars.csv")$command, "plot")
-  expect_equal(parse_arguments("install", "cli")$command, "install")
 })
 
 test_that("logical flags default to FALSE and toggle on", {
   expect_false(parse_arguments("run", "1")$verbose)
   expect_true(parse_arguments("run", "-v", "1")$verbose)
   expect_true(parse_arguments("run", "-n", "1")$dry_run)
-})
-
-test_that("upgrade", {
-  expect_true(parse_arguments("install", "-u", "cli")$upgrade)
 })
 
 test_that("seed is coerced to integer", {

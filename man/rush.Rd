@@ -2,7 +2,7 @@
 % Please edit documentation in R/rush.R
 \name{rush}
 \alias{rush}
-\title{Main entry point}
+\title{Main entry point for rush}
 \usage{
 rush(...)
 }
@@ -10,5 +10,5 @@ rush(...)
 \item{...}{character vector of parameters}
 }
 \description{
-Main entry point
+Main entry point for rush
 }

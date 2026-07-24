@@ -19,14 +19,21 @@ knitr::opts_chunk$set(
 [![R-CMD-check](https://github.com/jeroenjanssens/rush/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/jeroenjanssens/rush/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
-`rush` is an R package that allows you to run expressions, create plots, and install packages directly from the shell.
+`rush` is an R package that lets you run R expressions and create plots
+directly from the shell.
+
+Each invocation assembles a small, self-contained R script and runs it with
+[`ir`](https://r-lib.github.io/ir/), the R interpreter launcher from r-lib.
+`ir` reads the script's `#|` frontmatter and installs whatever packages the
+script needs on the fly, so `rush` itself stays lightweight.
 
 ## Installation
 
-You can install the development version of `rush` with:
+First install [`ir`](https://r-lib.github.io/ir/#installation). Then install
+`rush` as an `ir` tool, which puts a `rush` launcher on your `PATH`:
 
-```r
-remotes::install_github("jeroenjanssens/rush")
+```sh
+ir tool install github::jeroenjanssens/rush
 ```
 
 ## Examples
@@ -35,34 +42,34 @@ remotes::install_github("jeroenjanssens/rush")
 knitr::opts_knit$set(root.dir="exec")
 ```
 
-`rush` should be invoked from the command line. The executable is located in the *exec* sub-directory of the package directory.
+Once installed, invoke `rush` from the command line:
 
 ```{bash}
-./rush run 6*7
+rush run 6*7
 ```
 
 Read from standard input:
 
 ```{bash}
-seq 6 | ./rush run -H '2 * sum(df$x1)' -
+seq 6 | rush run -H '2 * sum(df$x1)' -
 ```
 
 Write to standard output:
 
 ```{bash}
-./rush run 'head(mtcars, 10)' | tee mtcars.csv
+rush run 'head(mtcars, 10)' | tee mtcars.csv
 ```
 
 Show generated script with the `--dry-run` option:
 
 ```{bash}
-< mtcars.csv ./rush plot --dry-run --x mpg --geom density --fill 'factor(cyl)'
+< mtcars.csv rush plot --dry-run --x mpg --geom density --fill 'factor(cyl)'
 ```
 
 Create plots with the `plot` command:
 
 ```{bash}
-< mtcars.csv ./rush plot --x mpg --geom density --fill 'factor(cyl)' > ../man/figures/mtcars.png
+< mtcars.csv rush plot --x mpg --geom density --fill 'factor(cyl)' > ../man/figures/mtcars.png
 ```
 
 ![](man/figures/mtcars.png)
@@ -70,19 +77,15 @@ Create plots with the `plot` command:
 ## Help
 
 ```{bash}
-./rush -h
+rush -h
 ```
 
 ```{bash}
-./rush run -h
+rush run -h
 ```
 
 ```{bash}
-./rush plot -h
-```
-
-```{bash}
-./rush install -h
+rush plot -h
 ```
 
 ```{r, include=FALSE}
@@ -95,21 +98,12 @@ rm exec/mtcars.csv
 
 ## Terminal plotting
 
-`rush plot` can render plots directly in the terminal as ANSI/ASCII art.
-This feature relies on three packages that are not on CRAN, so they are
-not installed automatically. To enable terminal plotting, install them
-from GitHub:
-
-``` r
-remotes::install_github(c(
-  "coolbutuseless/devout",
-  "jeroenjanssens/miniansi",
-  "coolbutuseless/devoutansi"
-))
-```
-
-Without these packages, `rush plot` still works when you write the plot
-to a file (for example with `--output plot.png`) or redirect its output.
+When you run `rush plot` in a terminal (rather than redirecting its output
+to a file), it renders the plot directly as ANSI/ASCII art. This relies on
+three packages that are not on CRAN — `devout`, `miniansi`, and
+`devoutansi` — but you do not need to install them yourself: `rush`
+declares them in the generated script's frontmatter, and `ir` fetches them
+from GitHub the first time they are needed.
 
 ## Code of Conduct
 

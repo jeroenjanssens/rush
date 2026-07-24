@@ -4,12 +4,14 @@ dry_run <- function(...) {
   utils::capture.output(rush(...))
 }
 
-test_that("run generates a shebang and reads the file", {
+test_that("run generates an ir shebang, frontmatter, and reads the file", {
   script <- dry_run("run", "-n", "head(df)", "data.csv")
-  expect_equal(script[[1]], "#!/usr/bin/env Rscript")
+  expect_equal(script[[1]], "#!/usr/bin/env -S ir run")
+  expect_true(any(grepl("^#\\| packages:$", script)))
+  expect_true(any(grepl("^#\\|   - janitor$", script)))
   expect_true(any(grepl("read_delim", script)))
   expect_true(any(grepl("janitor::clean_names", script)))
-  expect_true(any(grepl("^head\\(df\\)$", script)))
+  expect_true(any(grepl("result <- head\\(df\\)", script)))
 })
 
 test_that("--no-clean-names omits the janitor call", {
@@ -44,9 +46,11 @@ test_that("stdin is read from a binary connection", {
   expect_true(any(grepl("stdin", script)))
 })
 
-test_that("install generates an install.packages call", {
-  script <- dry_run("install", "-n", "cli")
-  expect_true(any(grepl("install.packages\\(\"cli\"\\)", script)))
+test_that("plot frontmatter injects the terminal-plotting GitHub packages", {
+  script <- dry_run("plot", "-n", "-x", "wt", "mtcars.csv")
+  expect_true(any(grepl("^#\\|   - github::coolbutuseless/devout$", script)))
+  expect_true(any(grepl("^#\\|   - github::jeroenjanssens/miniansi$", script)))
+  expect_true(any(grepl("^#\\|   - github::coolbutuseless/devoutansi$", script)))
 })
 
 test_that("plot generates a ggplot call with aesthetics", {
