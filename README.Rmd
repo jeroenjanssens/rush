@@ -250,6 +250,11 @@ This is also handy for tweaking: dump a `rush` one-liner to a file, edit the
 generated R to do something `rush` does not express directly, and run it with
 `ir run analysis.R`.
 
+If the [air](https://posit-dev.github.io/air/) formatter is on your `PATH`,
+`rush` runs the `--dry-run` output through it, so the printed script is neatly
+formatted and ready to save. This affects only what `--dry-run` shows; the
+script that actually runs is never reformatted.
+
 ## Running without `ir`
 
 By default `rush` runs each script with `ir`, which resolves the packages

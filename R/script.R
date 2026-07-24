@@ -61,11 +61,18 @@ emit_read_files <- function(con, files, flags) {
       pkgs <<- c(pkgs, "nanoparquet")
       read_expr <- expr(nanoparquet::read_parquet(!!path))
     } else {
-      if (path == "-") path <- expr(file("stdin", "rb", raw = TRUE))
-      read_expr <- expr(readr::read_delim(!!path, delim = !!flags$delimiter,
-                                          col_names = !!(!flags$no_header)))
+      if (path == "-") {
+        path <- expr(file("stdin", "rb", raw = TRUE))
+      }
+      read_expr <- expr(readr::read_delim(
+        !!path,
+        delim = !!flags$delimiter,
+        col_names = !!(!flags$no_header)
+      ))
     }
-    if (!flags$no_clean_names) read_expr <- expr(janitor::clean_names(!!read_expr))
+    if (!flags$no_clean_names) {
+      read_expr <- expr(janitor::clean_names(!!read_expr))
+    }
     read_expr
   }
 
@@ -79,16 +86,22 @@ emit_read_files <- function(con, files, flags) {
     } else {
       "    dfs[[.t]] <<- DBI::dbReadTable(.con, .t)"
     }
-    writeLines(c(
-      "local({",
-      paste0("  .con <- DBI::dbConnect(duckdb::duckdb(), dbdir = ",
-             encodeString(path, quote = "\""), ", read_only = TRUE)"),
-      "  on.exit(DBI::dbDisconnect(.con, shutdown = TRUE))",
-      "  for (.t in DBI::dbListTables(.con)) {",
-      read,
-      "  }",
-      "})"
-    ), con)
+    writeLines(
+      c(
+        "local({",
+        paste0(
+          "  .con <- DBI::dbConnect(duckdb::duckdb(), dbdir = ",
+          encodeString(path, quote = "\""),
+          ", read_only = TRUE)"
+        ),
+        "  on.exit(DBI::dbDisconnect(.con, shutdown = TRUE))",
+        "  for (.t in DBI::dbListTables(.con)) {",
+        read,
+        "  }",
+        "})"
+      ),
+      con
+    )
   }
 
   # A lone delimited or Parquet file reads straight into `df`. Anything else
@@ -97,8 +110,11 @@ emit_read_files <- function(con, files, flags) {
     code_expression(con, `<-`(df, !!read_call(files)))
   } else {
     df_names <-
-      ifelse(files == "-", "stdin",
-             tools::file_path_sans_ext(basename(files))) |>
+      ifelse(
+        files == "-",
+        "stdin",
+        tools::file_path_sans_ext(basename(files))
+      ) |>
       clean_names_simple()
 
     code_expression(con, dfs <- list())
@@ -107,7 +123,10 @@ emit_read_files <- function(con, files, flags) {
         emit_duckdb(files[[i]])
       } else {
         df_name <- rlang::parse_expr(paste0("dfs$", df_names[[i]]))
-        code_expression(con, !!rlang::call2("<-", df_name, read_call(files[[i]])))
+        code_expression(
+          con,
+          !!rlang::call2("<-", df_name, read_call(files[[i]]))
+        )
       }
     }
     # A single database with exactly one table behaves like any other single
@@ -117,7 +136,9 @@ emit_read_files <- function(con, files, flags) {
     }
   }
 
-  if (!flags$no_clean_names) pkgs <- c(pkgs, "janitor")
+  if (!flags$no_clean_names) {
+    pkgs <- c(pkgs, "janitor")
+  }
   unique(pkgs)
 }
 
@@ -132,8 +153,11 @@ emit_sql <- function(con, query, files, flags) {
 
   if (length(files) > 0) {
     names <-
-      ifelse(files == "-", "stdin",
-             tools::file_path_sans_ext(basename(files))) |>
+      ifelse(
+        files == "-",
+        "stdin",
+        tools::file_path_sans_ext(basename(files))
+      ) |>
       clean_names_simple()
 
     for (i in seq_along(files)) {
@@ -141,35 +165,63 @@ emit_sql <- function(con, query, files, flags) {
       nm <- names[[i]]
       ext <- tolower(tools::file_ext(path))
       if (ext %in% c("parquet", "pq")) {
-        stmt <- paste0("CREATE VIEW ", nm, " AS SELECT * FROM read_parquet(",
-                       sql_str(path), ")")
+        stmt <- paste0(
+          "CREATE VIEW ",
+          nm,
+          " AS SELECT * FROM read_parquet(",
+          sql_str(path),
+          ")"
+        )
       } else if (ext %in% c("duckdb", "ddb")) {
         stmt <- paste0("ATTACH ", sql_str(path), " AS ", nm, " (READ_ONLY)")
       } else if (path == "-") {
         # DuckDB's CSV reader seeks to sniff the schema, which a pipe does not
         # support, so buffer standard input to a seekable temporary file first.
-        writeLines(c(
-          ".stdin_tmp <- tempfile(fileext = \".csv\")",
-          "local({",
-          "  .in <- file(\"stdin\", \"rb\"); .out <- file(.stdin_tmp, \"wb\")",
-          "  on.exit({ close(.in); close(.out) })",
-          "  repeat { .b <- readBin(.in, \"raw\", 1048576L); if (length(.b) == 0) break; writeBin(.b, .out) }",
-          "})",
-          paste0("invisible(DBI::dbExecute(con, paste0(\"CREATE VIEW ", nm,
-                 " AS SELECT * FROM read_csv_auto('\", .stdin_tmp, \"')\")))")
-        ), con)
+        writeLines(
+          c(
+            ".stdin_tmp <- tempfile(fileext = \".csv\")",
+            "local({",
+            "  .in <- file(\"stdin\", \"rb\"); .out <- file(.stdin_tmp, \"wb\")",
+            "  on.exit({ close(.in); close(.out) })",
+            "  repeat { .b <- readBin(.in, \"raw\", 1048576L); if (length(.b) == 0) break; writeBin(.b, .out) }",
+            "})",
+            paste0(
+              "invisible(DBI::dbExecute(con, paste0(\"CREATE VIEW ",
+              nm,
+              " AS SELECT * FROM read_csv_auto('\", .stdin_tmp, \"')\")))"
+            )
+          ),
+          con
+        )
         next
       } else {
-        stmt <- paste0("CREATE VIEW ", nm, " AS SELECT * FROM read_csv_auto(",
-                       sql_str(path), ")")
+        stmt <- paste0(
+          "CREATE VIEW ",
+          nm,
+          " AS SELECT * FROM read_csv_auto(",
+          sql_str(path),
+          ")"
+        )
       }
-      writeLines(paste0("invisible(DBI::dbExecute(con, ",
-                        encodeString(stmt, quote = "\""), "))"), con)
+      writeLines(
+        paste0(
+          "invisible(DBI::dbExecute(con, ",
+          encodeString(stmt, quote = "\""),
+          "))"
+        ),
+        con
+      )
     }
   }
 
-  writeLines(paste0("result <- DBI::dbGetQuery(con, ",
-                    encodeString(query, quote = "\""), ")"), con)
+  writeLines(
+    paste0(
+      "result <- DBI::dbGetQuery(con, ",
+      encodeString(query, quote = "\""),
+      ")"
+    ),
+    con
+  )
   writeLines("DBI::dbDisconnect(con, shutdown = TRUE)", con)
 }
 
@@ -177,28 +229,32 @@ emit_sql <- function(con, query, files, flags) {
 # literal, so the generated script stays self-contained.
 script_preamble <- function(flags) {
   output_format <-
-    if (!is.null(flags$output) &&
-        tolower(tools::file_ext(flags$output)) %in% c("parquet", "pq")) {
+    if (
+      !is.null(flags$output) &&
+        tolower(tools::file_ext(flags$output)) %in% c("parquet", "pq")
+    ) {
       "parquet"
     } else {
       "delim"
     }
   ctx <- list(
-    output        = flags$output,
+    output = flags$output,
     output_format = output_format,
-    width         = flags$width,
-    height        = flags$height,
-    units         = flags$units,
-    dpi           = flags$dpi,
-    delimiter     = flags$delimiter %||% ",",
-    has_post      = !is.null(flags$post)
+    width = flags$width,
+    height = flags$height,
+    units = flags$units,
+    dpi = flags$dpi,
+    delimiter = flags$delimiter %||% ",",
+    has_post = !is.null(flags$post)
   )
-  lines <- vapply(names(ctx), function(nm) {
-    paste0("  ", nm, " = ", paste(deparse(ctx[[nm]]), collapse = ""))
-  }, character(1))
-  c(".rush <- list(",
-    paste0(lines, c(rep(",", length(lines) - 1L), "")),
-    ")")
+  lines <- vapply(
+    names(ctx),
+    function(nm) {
+      paste0("  ", nm, " = ", paste(deparse(ctx[[nm]]), collapse = ""))
+    },
+    character(1)
+  )
+  c(".rush <- list(", paste0(lines, c(rep(",", length(lines) - 1L), "")), ")")
 }
 
 # The output-dispatch code appended to every generated script. It runs inside
@@ -209,7 +265,7 @@ dispatch_block <- function(command) {
 }
 
 dispatch_run <- function() {
-'#~~~ Output dispatch (added by rush) ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  '#~~~ Output dispatch (added by rush) ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .has_tty <- isatty(stdout())
 .stdout_binary <- function() {
   if (.Platform$OS.type == "windows") file("stdout", "wb", raw = TRUE)
@@ -238,7 +294,7 @@ if (is.data.frame(result)) {
 }
 
 dispatch_plot <- function() {
-'#~~~ Output dispatch (added by rush) ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  '#~~~ Output dispatch (added by rush) ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .has_tty <- isatty(stdout())
 .stdout_binary <- function() {
   if (.Platform$OS.type == "windows") file("stdout", "wb", raw = TRUE)

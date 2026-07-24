@@ -1,6 +1,14 @@
 # The --dry-run flag prints the generated script instead of executing it,
-# which makes it a convenient way to test script generation end to end.
+# which makes it a convenient way to test script generation end to end. When
+# the `air` formatter is on the PATH, `rush` runs the printed script through
+# it, which reflows long lines and would make these assertions depend on
+# whether air happens to be installed. Mask the PATH so generation tests
+# always see the raw, unformatted script; air integration is covered
+# separately below.
 dry_run <- function(...) {
+  old_path <- Sys.getenv("PATH")
+  Sys.setenv(PATH = "")
+  on.exit(Sys.setenv(PATH = old_path))
   utils::capture.output(rush(...))
 }
 
@@ -17,6 +25,22 @@ test_that("--no-ir parses to no_ir and keeps the frontmatter intact", {
   script <- dry_run("run", "-n", "-I", "1 + 1")
   expect_equal(script[[1]], "#!/usr/bin/env -S ir run")
   expect_true(any(grepl("^#\\| packages:$", script)))
+})
+
+test_that("--dry-run runs the script through air when it is available", {
+  skip_if(Sys.which("air") == "", "air is not installed")
+  # A deliberately dense expression that air will reflow across lines.
+  long <- paste0(
+    "df |> dplyr::mutate(alpha = 1, beta = 2, gamma = 3, delta = 4, ",
+    "epsilon = 5, zeta = 6, eta = 7, theta = 8)"
+  )
+  script <- utils::capture.output(rush("run", "-n", long, "data.csv"))
+  # air keeps the script valid and preserves the ir shebang and frontmatter...
+  expect_equal(script[[1]], "#!/usr/bin/env -S ir run")
+  expect_true(any(grepl("^#\\| packages:$", script)))
+  expect_silent(parse(text = script))
+  # ...and reflows the long call onto multiple lines.
+  expect_true(any(grepl("^\\s+alpha = 1,$", script)))
 })
 
 test_that("run generates an ir shebang, frontmatter, and reads the file", {
@@ -70,7 +94,10 @@ test_that("run reads multiple files into a dfs list", {
 
 test_that("run reads a Parquet file with nanoparquet", {
   script <- dry_run("run", "-n", "head(df)", "data.parquet")
-  expect_true(any(grepl("nanoparquet::read_parquet\\(\"data.parquet\"", script)))
+  expect_true(any(grepl(
+    "nanoparquet::read_parquet\\(\"data.parquet\"",
+    script
+  )))
   expect_true(any(grepl("^#\\|   - nanoparquet$", script)))
   expect_false(any(grepl("read_delim", script)))
 })
@@ -84,10 +111,16 @@ test_that("run writes a Parquet file when --output ends in .parquet", {
 
 test_that("run reads a DuckDB database into a dfs list", {
   script <- dry_run("run", "-n", "nrow(df)", "mydb.duckdb")
-  expect_true(any(grepl("dbConnect\\(duckdb::duckdb\\(\\), dbdir = \"mydb.duckdb\", read_only = TRUE\\)", script)))
+  expect_true(any(grepl(
+    "dbConnect\\(duckdb::duckdb\\(\\), dbdir = \"mydb.duckdb\", read_only = TRUE\\)",
+    script
+  )))
   expect_true(any(grepl("dbListTables", script)))
   expect_true(any(grepl("dbReadTable", script)))
-  expect_true(any(grepl("if \\(length\\(dfs\\) == 1\\) df <- dfs\\[\\[1\\]\\]", script)))
+  expect_true(any(grepl(
+    "if \\(length\\(dfs\\) == 1\\) df <- dfs\\[\\[1\\]\\]",
+    script
+  )))
   expect_true(any(grepl("^#\\|   - duckdb$", script)))
   expect_true(any(grepl("^#\\|   - DBI$", script)))
 })
@@ -97,16 +130,38 @@ test_that("sql without a query errors gracefully", {
 })
 
 test_that("sql registers files as relations and runs the query", {
-  script <- dry_run("sql", "-n", "SELECT * FROM a JOIN b USING (x)",
-                    "a.csv", "b.parquet", "w.duckdb", "-")
-  expect_true(any(grepl("con <- DBI::dbConnect\\(duckdb::duckdb\\(\\)\\)", script)))
-  expect_true(any(grepl("CREATE VIEW a AS SELECT \\* FROM read_csv_auto\\('a.csv'\\)", script)))
-  expect_true(any(grepl("CREATE VIEW b AS SELECT \\* FROM read_parquet\\('b.parquet'\\)", script)))
+  script <- dry_run(
+    "sql",
+    "-n",
+    "SELECT * FROM a JOIN b USING (x)",
+    "a.csv",
+    "b.parquet",
+    "w.duckdb",
+    "-"
+  )
+  expect_true(any(grepl(
+    "con <- DBI::dbConnect\\(duckdb::duckdb\\(\\)\\)",
+    script
+  )))
+  expect_true(any(grepl(
+    "CREATE VIEW a AS SELECT \\* FROM read_csv_auto\\('a.csv'\\)",
+    script
+  )))
+  expect_true(any(grepl(
+    "CREATE VIEW b AS SELECT \\* FROM read_parquet\\('b.parquet'\\)",
+    script
+  )))
   expect_true(any(grepl("ATTACH 'w.duckdb' AS w \\(READ_ONLY\\)", script)))
   # stdin is buffered to a seekable temp file before being read as CSV.
   expect_true(any(grepl("\\.stdin_tmp <- tempfile", script)))
-  expect_true(any(grepl("CREATE VIEW stdin AS SELECT \\* FROM read_csv_auto", script)))
-  expect_true(any(grepl("result <- DBI::dbGetQuery\\(con, \"SELECT \\* FROM a JOIN b USING \\(x\\)\"\\)", script)))
+  expect_true(any(grepl(
+    "CREATE VIEW stdin AS SELECT \\* FROM read_csv_auto",
+    script
+  )))
+  expect_true(any(grepl(
+    "result <- DBI::dbGetQuery\\(con, \"SELECT \\* FROM a JOIN b USING \\(x\\)\"\\)",
+    script
+  )))
 })
 
 test_that("plot reads a single file into df", {
@@ -120,8 +175,16 @@ test_that("plot defaults to reading df from stdin", {
 })
 
 test_that("plot reads multiple files into a dfs list", {
-  script <- dry_run("plot", "-n", "-x", "wt",
-                    "--pre", "df <- dplyr::bind_rows(dfs)", "a.csv", "b.csv")
+  script <- dry_run(
+    "plot",
+    "-n",
+    "-x",
+    "wt",
+    "--pre",
+    "df <- dplyr::bind_rows(dfs)",
+    "a.csv",
+    "b.csv"
+  )
   expect_true(any(grepl("^dfs <- list\\(\\)$", script)))
   expect_true(any(grepl("dfs\\$a <- .*read_delim\\(\"a.csv\"", script)))
   expect_true(any(grepl("dfs\\$b <- .*read_delim\\(\"b.csv\"", script)))
@@ -132,7 +195,10 @@ test_that("plot frontmatter injects the terminal-plotting GitHub packages", {
   script <- dry_run("plot", "-n", "-x", "wt", "mtcars.csv")
   expect_true(any(grepl("^#\\|   - github::coolbutuseless/devout$", script)))
   expect_true(any(grepl("^#\\|   - github::jeroenjanssens/miniansi$", script)))
-  expect_true(any(grepl("^#\\|   - github::coolbutuseless/devoutansi$", script)))
+  expect_true(any(grepl(
+    "^#\\|   - github::coolbutuseless/devoutansi$",
+    script
+  )))
 })
 
 test_that("plot generates a ggplot call with aesthetics", {
@@ -156,30 +222,80 @@ test_that("plot guesses geom_histogram when only x is given", {
 })
 
 test_that("plot --geom overrides the guessed geom", {
-  script <- dry_run("plot", "-n", "-x", "wt", "-y", "mpg", "-g", "line", "mtcars.csv")
+  script <- dry_run(
+    "plot",
+    "-n",
+    "-x",
+    "wt",
+    "-y",
+    "mpg",
+    "-g",
+    "line",
+    "mtcars.csv"
+  )
   expect_true(any(grepl("geom_line\\(\\)", script)))
   expect_false(any(grepl("geom_point", script)))
 })
 
 test_that("plot --log adds log scales for the requested axes", {
-  script <- dry_run("plot", "-n", "-x", "wt", "-y", "mpg", "--log", "xy", "mtcars.csv")
+  script <- dry_run(
+    "plot",
+    "-n",
+    "-x",
+    "wt",
+    "-y",
+    "mpg",
+    "--log",
+    "xy",
+    "mtcars.csv"
+  )
   expect_true(any(grepl("scale_x_log10\\(\\)", script)))
   expect_true(any(grepl("scale_y_log10\\(\\)", script)))
 })
 
 test_that("plot facets: two-sided formula uses facet_grid, one-sided facet_wrap", {
-  grid <- dry_run("plot", "-n", "-x", "wt", "-y", "mpg",
-                  "--facets", "gear ~ cyl", "--margins", "mtcars.csv")
+  grid <- dry_run(
+    "plot",
+    "-n",
+    "-x",
+    "wt",
+    "-y",
+    "mpg",
+    "--facets",
+    "gear ~ cyl",
+    "--margins",
+    "mtcars.csv"
+  )
   expect_true(any(grepl("facet_grid\\(gear ~ cyl, margins = TRUE\\)", grid)))
 
-  wrap <- dry_run("plot", "-n", "-x", "wt", "-y", "mpg",
-                  "--facets", "~ cyl", "mtcars.csv")
+  wrap <- dry_run(
+    "plot",
+    "-n",
+    "-x",
+    "wt",
+    "-y",
+    "mpg",
+    "--facets",
+    "~ cyl",
+    "mtcars.csv"
+  )
   expect_true(any(grepl("facet_wrap\\(~cyl\\)", wrap)))
 })
 
 test_that("plot --title, --xlab, and --ylab become a labs() layer", {
-  script <- dry_run("plot", "-n", "-x", "wt", "--title", "Cars",
-                    "--xlab", "Weight", "--ylab", "MPG", "mtcars.csv")
+  script <- dry_run(
+    "plot",
+    "-n",
+    "-x",
+    "wt",
+    "--title",
+    "Cars",
+    "--xlab",
+    "Weight",
+    "--ylab",
+    "MPG",
+    "mtcars.csv"
+  )
   labs_line <- script[grepl("labs\\(", script)]
   expect_length(labs_line, 1)
   expect_match(labs_line, 'title = "Cars"')
@@ -188,9 +304,17 @@ test_that("plot --title, --xlab, and --ylab become a labs() layer", {
 })
 
 test_that("plot --pre and --post wrap the plot call", {
-  script <- dry_run("plot", "-n", "-x", "wt",
-                    "--pre", "df <- head(df)",
-                    "--post", "p + theme_bw()", "mtcars.csv")
+  script <- dry_run(
+    "plot",
+    "-n",
+    "-x",
+    "wt",
+    "--pre",
+    "df <- head(df)",
+    "--post",
+    "p + theme_bw()",
+    "mtcars.csv"
+  )
   expect_true(any(grepl("p <- ggplot", script)))
   expect_true(any(grepl("theme_bw", script)))
   # pre runs before the plot, post after

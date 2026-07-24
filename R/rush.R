@@ -5,7 +5,6 @@
 #' @importFrom tibble tribble
 #' @export
 rush <- function(...) {
-
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # Parse flags
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -14,8 +13,11 @@ rush <- function(...) {
 
   if (flags$verbose) {
     cli::cat_rule("Arguments", file = stderr())
-    cli::cat_bullet(purrr::map2(names(flags), flags, format_flag),
-                    bullet_col = "yellow", file = stderr())
+    cli::cat_bullet(
+      purrr::map2(names(flags), flags, format_flag),
+      bullet_col = "yellow",
+      file = stderr()
+    )
     cli::cat_rule(file = stderr())
   }
 
@@ -99,10 +101,14 @@ rush <- function(...) {
   }
 
   if (flags$command == "plot") {
-    pkgs <- c(pkgs, "ggplot2", "fs",
-              "github::coolbutuseless/devout",
-              "github::jeroenjanssens/miniansi",
-              "github::coolbutuseless/devoutansi")
+    pkgs <- c(
+      pkgs,
+      "ggplot2",
+      "fs",
+      "github::coolbutuseless/devout",
+      "github::jeroenjanssens/miniansi",
+      "github::coolbutuseless/devoutansi"
+    )
 
     if (flags$tidyverse) {
       code_library(body, "tidyverse")
@@ -120,7 +126,9 @@ rush <- function(...) {
     # into a `dfs` list; combine them into `df` yourself with, e.g.,
     # --pre 'df <- dplyr::bind_rows(dfs)'.
     plot_files <- flags$file %||% "-"
-    if (length(plot_files) == 0) plot_files <- "-"
+    if (length(plot_files) == 0) {
+      plot_files <- "-"
+    }
     pkgs <- c(pkgs, emit_read_files(body, plot_files, flags))
 
     if (!is.null(flags$pre)) {
@@ -129,8 +137,17 @@ rush <- function(...) {
 
     # Build the aesthetic mapping from the dedicated aesthetic flags, plus any
     # extra aesthetics supplied through --aes.
-    aes_names <- c("x", "y", "z", "color", "alpha", "shape", "group", "size",
-                   "fill")
+    aes_names <- c(
+      "x",
+      "y",
+      "z",
+      "color",
+      "alpha",
+      "shape",
+      "group",
+      "size",
+      "fill"
+    )
     aes_call <- rlang::call2("aes", !!!purrr::compact(flags[aes_names]))
     if (!is.null(flags$aes)) {
       aes_call <- rlang::call_modify(aes_call, !!!flags$aes, .homonyms = "last")
@@ -144,8 +161,11 @@ rush <- function(...) {
     if (geom == "auto") {
       geom <- if (!is.null(flags$y)) "point" else "histogram"
     }
-    plot_call <- rlang::call2("+", plot_call,
-                              rlang::call2(paste0("geom_", geom)))
+    plot_call <- rlang::call2(
+      "+",
+      plot_call,
+      rlang::call2(paste0("geom_", geom))
+    )
 
     # Log-transform the requested axes.
     if (!is.null(flags$log)) {
@@ -172,11 +192,17 @@ rush <- function(...) {
     }
 
     # Axis labels and title.
-    labs_args <- purrr::compact(list(x = flags$xlab, y = flags$ylab,
-                                     title = flags$title))
+    labs_args <- purrr::compact(list(
+      x = flags$xlab,
+      y = flags$ylab,
+      title = flags$title
+    ))
     if (length(labs_args) > 0) {
-      plot_call <- rlang::call2("+", plot_call,
-                                rlang::call2("labs", !!!labs_args))
+      plot_call <- rlang::call2(
+        "+",
+        plot_call,
+        rlang::call2("labs", !!!labs_args)
+      )
     }
 
     if (!is.null(flags$post)) {
@@ -185,14 +211,19 @@ rush <- function(...) {
       code_expression(body, !!rlang::call2("<-", rlang::sym("p"), plot_call))
       emit_result_exprs(body, flags$post)
     } else {
-      code_expression(body, !!rlang::call2("<-", rlang::sym("result"), plot_call))
+      code_expression(
+        body,
+        !!rlang::call2("<-", rlang::sym("result"), plot_call)
+      )
     }
   }
 
   # Writing a Parquet result needs nanoparquet in the script's frontmatter,
   # regardless of which command produced the result.
-  if (!is.null(flags$output) &&
-      tolower(tools::file_ext(flags$output)) %in% c("parquet", "pq")) {
+  if (
+    !is.null(flags$output) &&
+      tolower(tools::file_ext(flags$output)) %in% c("parquet", "pq")
+  ) {
     pkgs <- c(pkgs, "nanoparquet")
   }
 
@@ -205,23 +236,40 @@ rush <- function(...) {
   filename <- tempfile(fileext = ".R")
   on.exit(unlink(filename), add = TRUE)
 
-  writeLines(c(
-    frontmatter(unique(pkgs)),
-    "",
-    script_preamble(flags),
-    "",
-    readLines(body_file),
-    "",
-    dispatch_block(flags$command)
-  ), filename)
+  writeLines(
+    c(
+      frontmatter(unique(pkgs)),
+      "",
+      script_preamble(flags),
+      "",
+      readLines(body_file),
+      "",
+      dispatch_block(flags$command)
+    ),
+    filename
+  )
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # Run (or, with --dry-run, print) the script
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   if (flags$dry_run) {
+    # Pretty-print the generated script for human eyes. If the `air` formatter
+    # is on the PATH, run the script through it first so the printed code
+    # follows the same style as the package's own sources; air preserves the
+    # shebang and `#|` frontmatter. This is a dry-run nicety only -- the script
+    # that is actually executed is never reformatted.
+    air <- Sys.which("air")
+    if (air != "") {
+      tryCatch(
+        processx::run(air, c("format", filename)),
+        error = function(e) NULL
+      )
+    }
     code <- readLines(filename)
-    if (isatty(stdout())) code <- prettycode::highlight(code)
+    if (isatty(stdout())) {
+      code <- prettycode::highlight(code)
+    }
     cat(code, sep = "\n")
     return(invisible())
   }
@@ -266,8 +314,12 @@ rush <- function(...) {
   # discarded unless --verbose was given.
   stderr_to <- if (flags$verbose) "" else NULL
   proc <- processx::process$new(
-    exe, exe_args,
-    stdin = "", stdout = "", stderr = stderr_to, cleanup = TRUE,
+    exe,
+    exe_args,
+    stdin = "",
+    stdout = "",
+    stderr = stderr_to,
+    cleanup = TRUE,
     env = c("current", R_DEFAULT_PACKAGES = default_pkgs)
   )
   proc$wait()
