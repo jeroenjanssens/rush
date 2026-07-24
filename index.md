@@ -161,7 +161,15 @@ rush run -h
 #> rush: Run an R expression
 #> 
 #> Usage:
-#>   rush run [options] <expression> [--] [<file>...]
+#>   rush run [options] [<expression>] [--] [<file>...]
+#> 
+#> Arguments:
+#>   <expression>             R expression to evaluate. The value of the last
+#>                            expression is printed or written out.
+#>   <file>                   Data file(s) to read into a data frame named 'df'
+#>                            before the expression runs. Use '-' to read from
+#>                            standard input. With multiple files, each is read
+#>                            into a named element of a list 'dfs'.
 #> 
 #> Reading options:
 #>   -d, --delimiter <str>    Delimiter [default: ,].
@@ -194,6 +202,10 @@ rush plot -h
 #> 
 #> Usage:
 #>   rush plot [options] [--] [<file>|-]
+#> 
+#> Arguments:
+#>   <file>                   Data file to read into a data frame named 'df' and
+#>                            plot. Use '-' or omit to read from standard input.
 #> 
 #> Reading options:
 #>   -d, --delimiter <str>    Delimiter [default: ,].
