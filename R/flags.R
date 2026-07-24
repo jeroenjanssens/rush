@@ -27,6 +27,7 @@ flags_df <-
     "v"    , "verbose"         , NA          , "Be verbose"                  , NA       , NA        , as.logical          , "general" ,
     "q"    , "quiet"           , NA          , "Be quiet"                    , NA       , NA        , as.logical          , "general" ,
     "n"    , "dry-run"         , NA          , "Only print generated script" , NA       , "dry_run" , as.logical          , "general" ,
+    "I"    , "no-ir"           , NA          , "Run with Rscript, not ir"    , NA       , "no_ir"   , as.logical          , "general" ,
     "d"    , "delimiter"       , "str"       , "Delimiter"                   , ","      , NA        , as.character        , "read"    ,
     "H"    , "no-header"       , NA          , "No header"                   , NA       , NA        , as.logical          , "read"    ,
     "C"    , "no-clean-names"  , NA          , "No clean names"              , NA       , NA        , as.logical          , "read"    ,

@@ -8,6 +8,17 @@ test_that("run without an expression or file errors gracefully", {
   expect_error(rush("run"), "No expression to run")
 })
 
+test_that("--no-ir parses to no_ir and keeps the frontmatter intact", {
+  expect_true(parse_arguments("run", "-I", "1 + 1")$no_ir)
+  expect_false(parse_arguments("run", "1 + 1")$no_ir)
+  # The script is identical either way; only the executable that runs it
+  # differs, so --no-ir still emits the ir shebang and package frontmatter,
+  # keeping the saved script portable back to ir.
+  script <- dry_run("run", "-n", "-I", "1 + 1")
+  expect_equal(script[[1]], "#!/usr/bin/env -S ir run")
+  expect_true(any(grepl("^#\\| packages:$", script)))
+})
+
 test_that("run generates an ir shebang, frontmatter, and reads the file", {
   script <- dry_run("run", "-n", "head(df)", "data.csv")
   expect_equal(script[[1]], "#!/usr/bin/env -S ir run")

@@ -226,12 +226,31 @@ rush <- function(...) {
     return(invisible())
   }
 
-  ir <- Sys.which("ir")
-  if (ir == "") {
-    cli::cli_abort(c(
-      "The {.pkg ir} command-line tool could not be found on the {.envvar PATH}.",
-      i = "See {.url https://r-lib.github.io/ir/} for installation instructions."
-    ))
+  # By default the script is run with `ir`, which resolves the packages
+  # declared in its frontmatter on the fly. With --no-ir, run it with plain
+  # `Rscript` instead: the frontmatter becomes inert comments and the script
+  # runs against whatever is already in the user's library, with no dependency
+  # resolution. This is faster and works offline, but any package the script
+  # needs must already be installed.
+  if (flags$no_ir) {
+    exe <- Sys.which("Rscript")
+    if (exe == "") {
+      cli::cli_abort(c(
+        "{.code Rscript} could not be found on the {.envvar PATH}.",
+        i = "It is needed to run the script when {.code --no-ir} is set."
+      ))
+    }
+    exe_args <- filename
+  } else {
+    exe <- Sys.which("ir")
+    if (exe == "") {
+      cli::cli_abort(c(
+        "The {.pkg ir} command-line tool could not be found on the {.envvar PATH}.",
+        i = "See {.url https://r-lib.github.io/ir/} for installation instructions.",
+        i = "Alternatively, run against your installed packages with {.code --no-ir}."
+      ))
+    }
+    exe_args <- c("run", filename)
   }
 
   # When rush is itself launched as an `ir` tool, the launcher sets
@@ -247,7 +266,7 @@ rush <- function(...) {
   # discarded unless --verbose was given.
   stderr_to <- if (flags$verbose) "" else NULL
   proc <- processx::process$new(
-    ir, c("run", filename),
+    exe, exe_args,
     stdin = "", stdout = "", stderr = stderr_to, cleanup = TRUE,
     env = c("current", R_DEFAULT_PACKAGES = default_pkgs)
   )

@@ -359,6 +359,26 @@ This is also handy for tweaking: dump a `rush` one-liner to a file, edit
 the generated R to do something `rush` does not express directly, and
 run it with `ir run analysis.R`.
 
+## Running without `ir`
+
+By default `rush` runs each script with `ir`, which resolves the
+packages declared in the frontmatter on the fly. If you would rather run
+against the packages already installed in your library — for speed, to
+work offline, or in an environment where dependencies are pinned — pass
+`--no-ir` (`-I`) and `rush` runs the script with plain `Rscript`
+instead:
+
+``` bash
+rush run --no-ir '6 * 7'
+#> 42
+```
+
+In this mode the `#|` frontmatter is left as inert comments and nothing
+is installed, so every package the script needs — including the
+GitHub-only packages used for terminal plotting — must already be
+present. The generated script itself is unchanged, so the same file
+still runs under `ir` later.
+
 ## Help
 
 Every command has built-in help. Start with the top level:
@@ -373,6 +393,7 @@ rush -h
 #> Options:
 #>   -n, --dry-run            Only print generated script.
 #>   -h, --help               Show this help.
+#>   -I, --no-ir              Run with Rscript, not ir.
 #>   -q, --quiet              Be quiet.
 #>       --seed <int>         Seed random number generator.
 #>   -v, --verbose            Be verbose.
@@ -424,6 +445,7 @@ rush run -h
 #> General options:
 #>   -n, --dry-run            Only print generated script.
 #>   -h, --help               Show this help.
+#>   -I, --no-ir              Run with Rscript, not ir.
 #>   -q, --quiet              Be quiet.
 #>       --seed <int>         Seed random number generator.
 #>   -v, --verbose            Be verbose.
@@ -461,6 +483,7 @@ rush sql -h
 #> General options:
 #>   -n, --dry-run            Only print generated script.
 #>   -h, --help               Show this help.
+#>   -I, --no-ir              Run with Rscript, not ir.
 #>   -q, --quiet              Be quiet.
 #>       --seed <int>         Seed random number generator.
 #>   -v, --verbose            Be verbose.
@@ -525,6 +548,7 @@ rush plot -h
 #> General options:
 #>   -n, --dry-run            Only print generated script.
 #>   -h, --help               Show this help.
+#>   -I, --no-ir              Run with Rscript, not ir.
 #>   -q, --quiet              Be quiet.
 #>       --seed <int>         Seed random number generator.
 #>   -v, --verbose            Be verbose.
