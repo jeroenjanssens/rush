@@ -224,8 +224,34 @@ Terminal plotting relies on three packages that are not on CRAN — `devout`,
 `rush` declares them in the generated script's frontmatter, and `ir` fetches
 them from GitHub the first time they are needed.
 
+## Saving and reusing scripts
+
+The script that `--dry-run` prints is not a throwaway — it is a complete,
+self-contained `ir` script. Redirect it to a file and you have a reproducible
+artifact you can version, share, or run again later, long after the one-liner
+has scrolled out of your shell history:
+
+```{bash}
+rush run --dry-run 'df |> dplyr::filter(mpg > 21)' mtcars.csv > analysis.R
+head -3 analysis.R
+```
+
+The `#!/usr/bin/env -S ir run` shebang on the first line makes the file
+directly executable. `ir` reads the `#|` frontmatter, installs any packages the
+script declares, and runs it — so the saved script carries its own
+dependencies and needs nothing but `ir` on the target machine:
+
+```{bash}
+chmod +x analysis.R
+./analysis.R 2>/dev/null
+```
+
+This is also handy for tweaking: dump a `rush` one-liner to a file, edit the
+generated R to do something `rush` does not express directly, and run it with
+`ir run analysis.R`.
+
 ```{bash, include=FALSE}
-rm -f mtcars.csv mtcars.parquet shop.duckdb
+rm -f mtcars.csv mtcars.parquet shop.duckdb analysis.R
 ```
 
 ## Help

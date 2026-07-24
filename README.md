@@ -325,6 +325,40 @@ them yourself. `rush` declares them in the generated script’s
 frontmatter, and `ir` fetches them from GitHub the first time they are
 needed.
 
+## Saving and reusing scripts
+
+The script that `--dry-run` prints is not a throwaway — it is a
+complete, self-contained `ir` script. Redirect it to a file and you have
+a reproducible artifact you can version, share, or run again later, long
+after the one-liner has scrolled out of your shell history:
+
+``` bash
+rush run --dry-run 'df |> dplyr::filter(mpg > 21)' mtcars.csv > analysis.R
+head -3 analysis.R
+#> #!/usr/bin/env -S ir run
+#> #| packages:
+#> #|   - rlang
+```
+
+The `#!/usr/bin/env -S ir run` shebang on the first line makes the file
+directly executable. `ir` reads the `#|` frontmatter, installs any
+packages the script declares, and runs it — so the saved script carries
+its own dependencies and needs nothing but `ir` on the target machine:
+
+``` bash
+chmod +x analysis.R
+./analysis.R 2>/dev/null
+#> mpg,cyl,disp,hp,drat,wt,qsec,vs,am,gear,carb
+#> 22.8,4,108,93,3.85,2.32,18.61,1,1,4,1
+#> 21.4,6,258,110,3.08,3.215,19.44,1,0,3,1
+#> 24.4,4,146.7,62,3.69,3.19,20,1,0,4,2
+#> 22.8,4,140.8,95,3.92,3.15,22.9,1,0,4,2
+```
+
+This is also handy for tweaking: dump a `rush` one-liner to a file, edit
+the generated R to do something `rush` does not express directly, and
+run it with `ir run analysis.R`.
+
 ## Help
 
 Every command has built-in help. Start with the top level:
