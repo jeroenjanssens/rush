@@ -1,38 +1,44 @@
 # rush
 
-`rush` is an R package that allows you to run expressions, create plots,
-and install packages directly from the shell.
+`rush` is an R package that lets you run R expressions and create plots
+directly from the shell.
+
+Each invocation assembles a small, self-contained R script and runs it
+with [`ir`](https://r-lib.github.io/ir/), the R interpreter launcher
+from r-lib. `ir` reads the script’s `#|` frontmatter and installs
+whatever packages the script needs on the fly, so `rush` itself stays
+lightweight.
 
 ## Installation
 
-You can install the development version of `rush` with:
+First install [`ir`](https://r-lib.github.io/ir/#installation). Then
+install `rush` as an `ir` tool, which puts a `rush` launcher on your
+`PATH`:
 
-``` r
-
-remotes::install_github("jeroenjanssens/rush")
+``` sh
+ir tool install github::jeroenjanssens/rush
 ```
 
 ## Examples
 
-`rush` should be invoked from the command line. The executable is
-located in the *exec* sub-directory of the package directory.
+Once installed, invoke `rush` from the command line:
 
 ``` bash
-./rush run 6*7
+rush run 6*7
 #> 42
 ```
 
 Read from standard input:
 
 ``` bash
-seq 6 | ./rush run -H '2 * sum(df$x1)' -
+seq 6 | rush run -H '2 * sum(df$x1)' -
 #> 42
 ```
 
 Write to standard output:
 
 ``` bash
-./rush run 'head(mtcars, 10)' | tee mtcars.csv
+rush run 'head(mtcars, 10)' | tee mtcars.csv
 #> mpg,cyl,disp,hp,drat,wt,qsec,vs,am,gear,carb
 #> 21,6,160,110,3.9,2.62,16.46,0,1,4,4
 #> 21,6,160,110,3.9,2.875,17.02,0,1,4,4
@@ -49,17 +55,81 @@ Write to standard output:
 Show generated script with the `--dry-run` option:
 
 ``` bash
-< mtcars.csv ./rush plot --dry-run --x mpg --geom density --fill 'factor(cyl)'
-#> #!/usr/bin/env Rscript
+< mtcars.csv rush plot --dry-run --x mpg --geom density --fill 'factor(cyl)'
+#> #!/usr/bin/env -S ir run
+#> #| packages:
+#> #|   - rlang
+#> #|   - cli
+#> #|   - tibble
+#> #|   - readr
+#> #|   - ggplot2
+#> #|   - fs
+#> #|   - github::coolbutuseless/devout
+#> #|   - github::jeroenjanssens/miniansi
+#> #|   - github::coolbutuseless/devoutansi
+#> #|   - janitor
+#> 
+#> .rush <- list(
+#>   output = NULL,
+#>   width = NULL,
+#>   height = NULL,
+#>   units = "in",
+#>   dpi = 300,
+#>   delimiter = ",",
+#>   has_post = FALSE
+#> )
+#> 
 #> library(ggplot2)
 #> df <- janitor::clean_names(readr::read_delim(file("stdin", "rb", raw = TRUE), delim = ",", col_names = TRUE))
-#> ggplot(df, aes(x = mpg, fill = factor(cyl))) + geom_density()
+#> result <- ggplot(df, aes(x = mpg, fill = factor(cyl))) + geom_density()
+#> 
+#> #~~~ Output dispatch (added by rush) ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#> .has_tty <- isatty(stdout())
+#> .stdout_binary <- function() {
+#>   if (.Platform$OS.type == "windows") file("stdout", "wb", raw = TRUE)
+#>   else file("/dev/stdout", "wb", raw = TRUE)
+#> }
+#> 
+#> out <- .rush$output
+#> w <- .rush$width
+#> h <- .rush$height
+#> if (is.null(out)) out <- if (.has_tty) "ansi" else "png"
+#> 
+#> if (out %in% c("ansi", "ascii")) {
+#>   if (is.null(w)) w <- cli::console_width()
+#>   devoutansi::ansi(width = w, height = h, plain_ascii = TRUE, char_lookup_table = 2)
+#>   if (!.rush$has_post) {
+#>     result <- result +
+#>       ggplot2::theme_minimal() +
+#>       ggplot2::theme(panel.grid = ggplot2::element_blank())
+#>   }
+#>   print(result)
+#>   invisible(grDevices::dev.off())
+#> } else {
+#>   if (fs::path_ext(out) == "") {
+#>     output_filename <- tempfile()
+#>     device <- out
+#>     cat_output <- TRUE
+#>   } else {
+#>     output_filename <- out
+#>     device <- NULL
+#>     cat_output <- FALSE
+#>   }
+#>   if (is.null(w)) w <- 6
+#>   if (is.null(h)) h <- 4
+#>   ggplot2::ggsave(output_filename, result, device = device,
+#>                   width = w, height = h, units = .rush$units, dpi = .rush$dpi)
+#>   if (cat_output) {
+#>     contents <- readBin(output_filename, raw(), n = 1e8)
+#>     writeBin(contents, .stdout_binary())
+#>   }
+#> }
 ```
 
 Create plots with the `plot` command:
 
 ``` bash
-< mtcars.csv ./rush plot --x mpg --geom density --fill 'factor(cyl)' > ../man/figures/mtcars.png
+< mtcars.csv rush plot --x mpg --geom density --fill 'factor(cyl)' > ../man/figures/mtcars.png
 ```
 
 ![](reference/figures/mtcars.png)
@@ -67,7 +137,7 @@ Create plots with the `plot` command:
 ## Help
 
 ``` bash
-./rush -h
+rush -h
 #> rush: R Scripting at the Command Line
 #> 
 #> Usage:
@@ -84,11 +154,10 @@ Create plots with the `plot` command:
 #> Commands:
 #>   plot
 #>   run
-#>   install
 ```
 
 ``` bash
-./rush run -h
+rush run -h
 #> rush: Run an R expression
 #> 
 #> Usage:
@@ -120,7 +189,7 @@ Create plots with the `plot` command:
 ```
 
 ``` bash
-./rush plot -h
+rush plot -h
 #> rush: Quick plot
 #> 
 #> Usage:
@@ -172,43 +241,14 @@ Create plots with the `plot` command:
 #>       --version            Show version.
 ```
 
-``` bash
-./rush install -h
-#> rush: Install a package
-#> 
-#> Usage:
-#>   rush install [options] <package>...
-#> 
-#> Install options:
-#>   -u, --upgrade            Upgrade packages.
-#> 
-#> General options:
-#>   -n, --dry-run            Only print generated script.
-#>   -h, --help               Show this help.
-#>   -q, --quiet              Be quiet.
-#>       --seed <int>         Seed random number generator.
-#>   -v, --verbose            Be verbose.
-#>       --version            Show version.
-```
-
 ## Terminal plotting
 
-`rush plot` can render plots directly in the terminal as ANSI/ASCII art.
-This feature relies on three packages that are not on CRAN, so they are
-not installed automatically. To enable terminal plotting, install them
-from GitHub:
-
-``` r
-
-remotes::install_github(c(
-  "coolbutuseless/devout",
-  "jeroenjanssens/miniansi",
-  "coolbutuseless/devoutansi"
-))
-```
-
-Without these packages, `rush plot` still works when you write the plot
-to a file (for example with `--output plot.png`) or redirect its output.
+When you run `rush plot` in a terminal (rather than redirecting its
+output to a file), it renders the plot directly as ANSI/ASCII art. This
+relies on three packages that are not on CRAN — `devout`, `miniansi`,
+and `devoutansi` — but you do not need to install them yourself: `rush`
+declares them in the generated script’s frontmatter, and `ir` fetches
+them from GitHub the first time they are needed.
 
 ## Code of Conduct
 

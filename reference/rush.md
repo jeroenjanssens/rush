@@ -1,6 +1,6 @@
-# Main entry point
+# Main entry point for rush
 
-Main entry point
+Main entry point for rush
 
 ## Usage
 

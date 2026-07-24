@@ -11,8 +11,8 @@
 <script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="R One-Liners from the Shell">
-<meta name="description" content="Run expressions, create plots, and install packages directly from the shell.">
-<meta property="og:description" content="Run expressions, create plots, and install packages directly from the shell.">
+<meta name="description" content="Run R expressions and create plots directly from the shell. Each invocation assembles a self-contained script that is executed with the ir command-line tool, which resolves the script's package dependencies on the fly.">
+<meta property="og:description" content="Run R expressions and create plots directly from the shell. Each invocation assembles a self-contained script that is executed with the ir command-line tool, which resolves the script's package dependencies on the fly.">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -51,25 +51,25 @@
 </h1></div>
 <!-- badges: start -->
 
-<p><code>rush</code> is an R package that allows you to run expressions, create plots, and install packages directly from the shell.</p>
+<p><code>rush</code> is an R package that lets you run R expressions and create plots directly from the shell.</p>
+<p>Each invocation assembles a small, self-contained R script and runs it with <a href="https://r-lib.github.io/ir/" class="external-link"><code>ir</code></a>, the R interpreter launcher from r-lib. <code>ir</code> reads the script’s <code>#|</code> frontmatter and installs whatever packages the script needs on the fly, so <code>rush</code> itself stays lightweight.</p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
-<p>You can install the development version of <code>rush</code> with:</p>
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"jeroenjanssens/rush"</span><span class="op">)</span></span></code></pre></div>
+<p>First install <a href="https://r-lib.github.io/ir/#installation" class="external-link"><code>ir</code></a>. Then install <code>rush</code> as an <code>ir</code> tool, which puts a <code>rush</code> launcher on your <code>PATH</code>:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="ex">ir</span> tool install github::jeroenjanssens/rush</span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="examples">Examples<a class="anchor" aria-label="anchor" href="#examples"></a>
 </h2>
-<p><code>rush</code> should be invoked from the command line. The executable is located in the <em>exec</em> sub-directory of the package directory.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="ex">./rush</span> run 6<span class="pp">*</span>7</span>
+<p>Once installed, invoke <code>rush</code> from the command line:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="ex">rush</span> run 6<span class="pp">*</span>7</span>
 <span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="co">#&gt; 42</span></span></code></pre></div>
 <p>Read from standard input:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">seq</span> 6 <span class="kw">|</span> <span class="ex">./rush</span> run <span class="at">-H</span> <span class="st">'2 * sum(df$x1)'</span> <span class="at">-</span></span>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">seq</span> 6 <span class="kw">|</span> <span class="ex">rush</span> run <span class="at">-H</span> <span class="st">'2 * sum(df$x1)'</span> <span class="at">-</span></span>
 <span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="co">#&gt; 42</span></span></code></pre></div>
 <p>Write to standard output:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="ex">./rush</span> run <span class="st">'head(mtcars, 10)'</span> <span class="kw">|</span> <span class="fu">tee</span> mtcars.csv</span>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="ex">rush</span> run <span class="st">'head(mtcars, 10)'</span> <span class="kw">|</span> <span class="fu">tee</span> mtcars.csv</span>
 <span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="co">#&gt; mpg,cyl,disp,hp,drat,wt,qsec,vs,am,gear,carb</span></span>
 <span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="co">#&gt; 21,6,160,110,3.9,2.62,16.46,0,1,4,4</span></span>
 <span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="co">#&gt; 21,6,160,110,3.9,2.875,17.02,0,1,4,4</span></span>
@@ -82,19 +82,83 @@
 <span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a><span class="co">#&gt; 22.8,4,140.8,95,3.92,3.15,22.9,1,0,4,2</span></span>
 <span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a><span class="co">#&gt; 19.2,6,167.6,123,3.92,3.44,18.3,1,0,4,4</span></span></code></pre></div>
 <p>Show generated script with the <code>--dry-run</code> option:</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="op">&lt;</span> mtcars.csv <span class="ex">./rush</span> plot <span class="at">--dry-run</span> <span class="at">--x</span> mpg <span class="at">--geom</span> density <span class="at">--fill</span> <span class="st">'factor(cyl)'</span></span>
-<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="co">#&gt; #!/usr/bin/env Rscript</span></span>
-<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a><span class="co">#&gt; library(ggplot2)</span></span>
-<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a><span class="co">#&gt; df &lt;- janitor::clean_names(readr::read_delim(file("stdin", "rb", raw = TRUE), delim = ",", col_names = TRUE))</span></span>
-<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a><span class="co">#&gt; ggplot(df, aes(x = mpg, fill = factor(cyl))) + geom_density()</span></span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="op">&lt;</span> mtcars.csv <span class="ex">rush</span> plot <span class="at">--dry-run</span> <span class="at">--x</span> mpg <span class="at">--geom</span> density <span class="at">--fill</span> <span class="st">'factor(cyl)'</span></span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="co">#&gt; #!/usr/bin/env -S ir run</span></span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a><span class="co">#&gt; #| packages:</span></span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a><span class="co">#&gt; #|   - rlang</span></span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a><span class="co">#&gt; #|   - cli</span></span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a><span class="co">#&gt; #|   - tibble</span></span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a><span class="co">#&gt; #|   - readr</span></span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a><span class="co">#&gt; #|   - ggplot2</span></span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a><span class="co">#&gt; #|   - fs</span></span>
+<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a><span class="co">#&gt; #|   - github::coolbutuseless/devout</span></span>
+<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a><span class="co">#&gt; #|   - github::jeroenjanssens/miniansi</span></span>
+<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a><span class="co">#&gt; #|   - github::coolbutuseless/devoutansi</span></span>
+<span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a><span class="co">#&gt; #|   - janitor</span></span>
+<span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb5-15"><a href="#cb5-15" tabindex="-1"></a><span class="co">#&gt; .rush &lt;- list(</span></span>
+<span id="cb5-16"><a href="#cb5-16" tabindex="-1"></a><span class="co">#&gt;   output = NULL,</span></span>
+<span id="cb5-17"><a href="#cb5-17" tabindex="-1"></a><span class="co">#&gt;   width = NULL,</span></span>
+<span id="cb5-18"><a href="#cb5-18" tabindex="-1"></a><span class="co">#&gt;   height = NULL,</span></span>
+<span id="cb5-19"><a href="#cb5-19" tabindex="-1"></a><span class="co">#&gt;   units = "in",</span></span>
+<span id="cb5-20"><a href="#cb5-20" tabindex="-1"></a><span class="co">#&gt;   dpi = 300,</span></span>
+<span id="cb5-21"><a href="#cb5-21" tabindex="-1"></a><span class="co">#&gt;   delimiter = ",",</span></span>
+<span id="cb5-22"><a href="#cb5-22" tabindex="-1"></a><span class="co">#&gt;   has_post = FALSE</span></span>
+<span id="cb5-23"><a href="#cb5-23" tabindex="-1"></a><span class="co">#&gt; )</span></span>
+<span id="cb5-24"><a href="#cb5-24" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb5-25"><a href="#cb5-25" tabindex="-1"></a><span class="co">#&gt; library(ggplot2)</span></span>
+<span id="cb5-26"><a href="#cb5-26" tabindex="-1"></a><span class="co">#&gt; df &lt;- janitor::clean_names(readr::read_delim(file("stdin", "rb", raw = TRUE), delim = ",", col_names = TRUE))</span></span>
+<span id="cb5-27"><a href="#cb5-27" tabindex="-1"></a><span class="co">#&gt; result &lt;- ggplot(df, aes(x = mpg, fill = factor(cyl))) + geom_density()</span></span>
+<span id="cb5-28"><a href="#cb5-28" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb5-29"><a href="#cb5-29" tabindex="-1"></a><span class="co">#&gt; #~~~ Output dispatch (added by rush) ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span></span>
+<span id="cb5-30"><a href="#cb5-30" tabindex="-1"></a><span class="co">#&gt; .has_tty &lt;- isatty(stdout())</span></span>
+<span id="cb5-31"><a href="#cb5-31" tabindex="-1"></a><span class="co">#&gt; .stdout_binary &lt;- function() {</span></span>
+<span id="cb5-32"><a href="#cb5-32" tabindex="-1"></a><span class="co">#&gt;   if (.Platform$OS.type == "windows") file("stdout", "wb", raw = TRUE)</span></span>
+<span id="cb5-33"><a href="#cb5-33" tabindex="-1"></a><span class="co">#&gt;   else file("/dev/stdout", "wb", raw = TRUE)</span></span>
+<span id="cb5-34"><a href="#cb5-34" tabindex="-1"></a><span class="co">#&gt; }</span></span>
+<span id="cb5-35"><a href="#cb5-35" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb5-36"><a href="#cb5-36" tabindex="-1"></a><span class="co">#&gt; out &lt;- .rush$output</span></span>
+<span id="cb5-37"><a href="#cb5-37" tabindex="-1"></a><span class="co">#&gt; w &lt;- .rush$width</span></span>
+<span id="cb5-38"><a href="#cb5-38" tabindex="-1"></a><span class="co">#&gt; h &lt;- .rush$height</span></span>
+<span id="cb5-39"><a href="#cb5-39" tabindex="-1"></a><span class="co">#&gt; if (is.null(out)) out &lt;- if (.has_tty) "ansi" else "png"</span></span>
+<span id="cb5-40"><a href="#cb5-40" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb5-41"><a href="#cb5-41" tabindex="-1"></a><span class="co">#&gt; if (out %in% c("ansi", "ascii")) {</span></span>
+<span id="cb5-42"><a href="#cb5-42" tabindex="-1"></a><span class="co">#&gt;   if (is.null(w)) w &lt;- cli::console_width()</span></span>
+<span id="cb5-43"><a href="#cb5-43" tabindex="-1"></a><span class="co">#&gt;   devoutansi::ansi(width = w, height = h, plain_ascii = TRUE, char_lookup_table = 2)</span></span>
+<span id="cb5-44"><a href="#cb5-44" tabindex="-1"></a><span class="co">#&gt;   if (!.rush$has_post) {</span></span>
+<span id="cb5-45"><a href="#cb5-45" tabindex="-1"></a><span class="co">#&gt;     result &lt;- result +</span></span>
+<span id="cb5-46"><a href="#cb5-46" tabindex="-1"></a><span class="co">#&gt;       ggplot2::theme_minimal() +</span></span>
+<span id="cb5-47"><a href="#cb5-47" tabindex="-1"></a><span class="co">#&gt;       ggplot2::theme(panel.grid = ggplot2::element_blank())</span></span>
+<span id="cb5-48"><a href="#cb5-48" tabindex="-1"></a><span class="co">#&gt;   }</span></span>
+<span id="cb5-49"><a href="#cb5-49" tabindex="-1"></a><span class="co">#&gt;   print(result)</span></span>
+<span id="cb5-50"><a href="#cb5-50" tabindex="-1"></a><span class="co">#&gt;   invisible(grDevices::dev.off())</span></span>
+<span id="cb5-51"><a href="#cb5-51" tabindex="-1"></a><span class="co">#&gt; } else {</span></span>
+<span id="cb5-52"><a href="#cb5-52" tabindex="-1"></a><span class="co">#&gt;   if (fs::path_ext(out) == "") {</span></span>
+<span id="cb5-53"><a href="#cb5-53" tabindex="-1"></a><span class="co">#&gt;     output_filename &lt;- tempfile()</span></span>
+<span id="cb5-54"><a href="#cb5-54" tabindex="-1"></a><span class="co">#&gt;     device &lt;- out</span></span>
+<span id="cb5-55"><a href="#cb5-55" tabindex="-1"></a><span class="co">#&gt;     cat_output &lt;- TRUE</span></span>
+<span id="cb5-56"><a href="#cb5-56" tabindex="-1"></a><span class="co">#&gt;   } else {</span></span>
+<span id="cb5-57"><a href="#cb5-57" tabindex="-1"></a><span class="co">#&gt;     output_filename &lt;- out</span></span>
+<span id="cb5-58"><a href="#cb5-58" tabindex="-1"></a><span class="co">#&gt;     device &lt;- NULL</span></span>
+<span id="cb5-59"><a href="#cb5-59" tabindex="-1"></a><span class="co">#&gt;     cat_output &lt;- FALSE</span></span>
+<span id="cb5-60"><a href="#cb5-60" tabindex="-1"></a><span class="co">#&gt;   }</span></span>
+<span id="cb5-61"><a href="#cb5-61" tabindex="-1"></a><span class="co">#&gt;   if (is.null(w)) w &lt;- 6</span></span>
+<span id="cb5-62"><a href="#cb5-62" tabindex="-1"></a><span class="co">#&gt;   if (is.null(h)) h &lt;- 4</span></span>
+<span id="cb5-63"><a href="#cb5-63" tabindex="-1"></a><span class="co">#&gt;   ggplot2::ggsave(output_filename, result, device = device,</span></span>
+<span id="cb5-64"><a href="#cb5-64" tabindex="-1"></a><span class="co">#&gt;                   width = w, height = h, units = .rush$units, dpi = .rush$dpi)</span></span>
+<span id="cb5-65"><a href="#cb5-65" tabindex="-1"></a><span class="co">#&gt;   if (cat_output) {</span></span>
+<span id="cb5-66"><a href="#cb5-66" tabindex="-1"></a><span class="co">#&gt;     contents &lt;- readBin(output_filename, raw(), n = 1e8)</span></span>
+<span id="cb5-67"><a href="#cb5-67" tabindex="-1"></a><span class="co">#&gt;     writeBin(contents, .stdout_binary())</span></span>
+<span id="cb5-68"><a href="#cb5-68" tabindex="-1"></a><span class="co">#&gt;   }</span></span>
+<span id="cb5-69"><a href="#cb5-69" tabindex="-1"></a><span class="co">#&gt; }</span></span></code></pre></div>
 <p>Create plots with the <code>plot</code> command:</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="op">&lt;</span> mtcars.csv <span class="ex">./rush</span> plot <span class="at">--x</span> mpg <span class="at">--geom</span> density <span class="at">--fill</span> <span class="st">'factor(cyl)'</span> <span class="op">&gt;</span> ../man/figures/mtcars.png</span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="op">&lt;</span> mtcars.csv <span class="ex">rush</span> plot <span class="at">--x</span> mpg <span class="at">--geom</span> density <span class="at">--fill</span> <span class="st">'factor(cyl)'</span> <span class="op">&gt;</span> ../man/figures/mtcars.png</span></code></pre></div>
 <p><img src="reference/figures/mtcars.png"></p>
 </div>
 <div class="section level2">
 <h2 id="help">Help<a class="anchor" aria-label="anchor" href="#help"></a>
 </h2>
-<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="ex">./rush</span> <span class="at">-h</span></span>
+<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="ex">rush</span> <span class="at">-h</span></span>
 <span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="co">#&gt; rush: R Scripting at the Command Line</span></span>
 <span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a><span class="co">#&gt; Usage:</span></span>
@@ -110,9 +174,8 @@
 <span id="cb7-14"><a href="#cb7-14" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb7-15"><a href="#cb7-15" tabindex="-1"></a><span class="co">#&gt; Commands:</span></span>
 <span id="cb7-16"><a href="#cb7-16" tabindex="-1"></a><span class="co">#&gt;   plot</span></span>
-<span id="cb7-17"><a href="#cb7-17" tabindex="-1"></a><span class="co">#&gt;   run</span></span>
-<span id="cb7-18"><a href="#cb7-18" tabindex="-1"></a><span class="co">#&gt;   install</span></span></code></pre></div>
-<div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="ex">./rush</span> run <span class="at">-h</span></span>
+<span id="cb7-17"><a href="#cb7-17" tabindex="-1"></a><span class="co">#&gt;   run</span></span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="ex">rush</span> run <span class="at">-h</span></span>
 <span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="co">#&gt; rush: Run an R expression</span></span>
 <span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a><span class="co">#&gt; Usage:</span></span>
@@ -141,7 +204,7 @@
 <span id="cb8-27"><a href="#cb8-27" tabindex="-1"></a><span class="co">#&gt;       --seed &lt;int&gt;         Seed random number generator.</span></span>
 <span id="cb8-28"><a href="#cb8-28" tabindex="-1"></a><span class="co">#&gt;   -v, --verbose            Be verbose.</span></span>
 <span id="cb8-29"><a href="#cb8-29" tabindex="-1"></a><span class="co">#&gt;       --version            Show version.</span></span></code></pre></div>
-<div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="ex">./rush</span> plot <span class="at">-h</span></span>
+<div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="ex">rush</span> plot <span class="at">-h</span></span>
 <span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="co">#&gt; rush: Quick plot</span></span>
 <span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a><span class="co">#&gt; Usage:</span></span>
@@ -191,34 +254,11 @@
 <span id="cb9-48"><a href="#cb9-48" tabindex="-1"></a><span class="co">#&gt;       --seed &lt;int&gt;         Seed random number generator.</span></span>
 <span id="cb9-49"><a href="#cb9-49" tabindex="-1"></a><span class="co">#&gt;   -v, --verbose            Be verbose.</span></span>
 <span id="cb9-50"><a href="#cb9-50" tabindex="-1"></a><span class="co">#&gt;       --version            Show version.</span></span></code></pre></div>
-<div class="sourceCode" id="cb10"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="ex">./rush</span> install <span class="at">-h</span></span>
-<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a><span class="co">#&gt; rush: Install a package</span></span>
-<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a><span class="co">#&gt; Usage:</span></span>
-<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a><span class="co">#&gt;   rush install [options] &lt;package&gt;...</span></span>
-<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a><span class="co">#&gt; Install options:</span></span>
-<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a><span class="co">#&gt;   -u, --upgrade            Upgrade packages.</span></span>
-<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a><span class="co">#&gt; General options:</span></span>
-<span id="cb10-11"><a href="#cb10-11" tabindex="-1"></a><span class="co">#&gt;   -n, --dry-run            Only print generated script.</span></span>
-<span id="cb10-12"><a href="#cb10-12" tabindex="-1"></a><span class="co">#&gt;   -h, --help               Show this help.</span></span>
-<span id="cb10-13"><a href="#cb10-13" tabindex="-1"></a><span class="co">#&gt;   -q, --quiet              Be quiet.</span></span>
-<span id="cb10-14"><a href="#cb10-14" tabindex="-1"></a><span class="co">#&gt;       --seed &lt;int&gt;         Seed random number generator.</span></span>
-<span id="cb10-15"><a href="#cb10-15" tabindex="-1"></a><span class="co">#&gt;   -v, --verbose            Be verbose.</span></span>
-<span id="cb10-16"><a href="#cb10-16" tabindex="-1"></a><span class="co">#&gt;       --version            Show version.</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="terminal-plotting">Terminal plotting<a class="anchor" aria-label="anchor" href="#terminal-plotting"></a>
 </h2>
-<p><code>rush plot</code> can render plots directly in the terminal as ANSI/ASCII art. This feature relies on three packages that are not on CRAN, so they are not installed automatically. To enable terminal plotting, install them from GitHub:</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
-<span>  <span class="st">"coolbutuseless/devout"</span>,</span>
-<span>  <span class="st">"jeroenjanssens/miniansi"</span>,</span>
-<span>  <span class="st">"coolbutuseless/devoutansi"</span></span>
-<span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p>Without these packages, <code>rush plot</code> still works when you write the plot to a file (for example with <code>--output plot.png</code>) or redirect its output.</p>
+<p>When you run <code>rush plot</code> in a terminal (rather than redirecting its output to a file), it renders the plot directly as ANSI/ASCII art. This relies on three packages that are not on CRAN — <code>devout</code>, <code>miniansi</code>, and <code>devoutansi</code> — but you do not need to install them yourself: <code>rush</code> declares them in the generated script’s frontmatter, and <code>ir</code> fetches them from GitHub the first time they are needed.</p>
 </div>
 <div class="section level2">
 <h2 id="code-of-conduct">Code of Conduct<a class="anchor" aria-label="anchor" href="#code-of-conduct"></a>
