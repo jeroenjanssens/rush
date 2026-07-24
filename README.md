@@ -5,7 +5,7 @@
 
 <!-- badges: start -->
 
-[![R-CMD-check](https://github.com/jeroenjanssens/rush/workflows/R-CMD-check/badge.svg)](https://github.com/jeroenjanssens/rush/actions)
+[![R-CMD-check](https://github.com/jeroenjanssens/rush/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/jeroenjanssens/rush/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 `rush` is an R package that allows you to run expressions, create plots,
@@ -56,17 +56,17 @@ Write to standard output:
 Show generated script with the `--dry-run` option:
 
 ``` bash
-< mtcars.csv ./rush qplot --dry-run --x mpg --geom density --fill 'factor(cyl)'
+< mtcars.csv ./rush plot --dry-run --x mpg --geom density --fill 'factor(cyl)'
 #> #!/usr/bin/env Rscript
 #> library(ggplot2)
 #> df <- janitor::clean_names(readr::read_delim(file("stdin", "rb", raw = TRUE), delim = ",", col_names = TRUE))
-#> qplot(x = mpg, margins = FALSE, geom = "density", fill = factor(cyl), data = df)
+#> ggplot(df, aes(x = mpg, fill = factor(cyl))) + geom_density()
 ```
 
-Create plots with the `qplot command`:
+Create plots with the `plot` command:
 
 ``` bash
-< mtcars.csv ./rush qplot --x mpg --geom density --fill 'factor(cyl)' > ../man/figures/mtcars.png 
+< mtcars.csv ./rush plot --x mpg --geom density --fill 'factor(cyl)' > ../man/figures/mtcars.png
 ```
 
 ![](man/figures/mtcars.png)
@@ -84,11 +84,12 @@ Create plots with the `qplot command`:
 #>   -n, --dry-run            Only print generated script.
 #>   -h, --help               Show this help.
 #>   -q, --quiet              Be quiet.
+#>       --seed <int>         Seed random number generator.
 #>   -v, --verbose            Be verbose.
 #>       --version            Show version.
 #> 
 #> Commands:
-#>   qplot
+#>   plot
 #>   run
 #>   install
 ```
@@ -105,8 +106,9 @@ Create plots with the `qplot command`:
 #>   -C, --no-clean-names     No clean names.
 #>   -H, --no-header          No header.
 #> 
-#> Run options:
+#> Setup options:
 #>   -l, --library <name>     Libraries to load.
+#>   -t, --tidyverse          Enter the Tidyverse.
 #> 
 #> Saving options:
 #>       --dpi <str|int>      Plot resolution [default: 300].
@@ -119,21 +121,26 @@ Create plots with the `qplot command`:
 #>   -n, --dry-run            Only print generated script.
 #>   -h, --help               Show this help.
 #>   -q, --quiet              Be quiet.
+#>       --seed <int>         Seed random number generator.
 #>   -v, --verbose            Be verbose.
 #>       --version            Show version.
 ```
 
 ``` bash
-./rush qplot -h
+./rush plot -h
 #> rush: Quick plot
 #> 
 #> Usage:
-#>   rush qplot [options] [--] [<file>|-]
+#>   rush plot [options] [--] [<file>|-]
 #> 
 #> Reading options:
 #>   -d, --delimiter <str>    Delimiter [default: ,].
 #>   -C, --no-clean-names     No clean names.
 #>   -H, --no-header          No header.
+#> 
+#> Setup options:
+#>   -l, --library <name>     Libraries to load.
+#>   -t, --tidyverse          Enter the Tidyverse.
 #> 
 #> Plotting options:
 #>       --aes <key=value>    Additional aesthetics.
@@ -144,12 +151,12 @@ Create plots with the `qplot command`:
 #>   -g, --geom <geom>        Geometry [default: auto].
 #>       --group <name>       Group column.
 #>       --log <x|y|xy>       Variables to log transform.
-#>       --main <str>         Plot title.
 #>       --margins            Display marginal facets.
 #>       --post <code>        Code to run after plotting.
 #>       --pre <code>         Code to run before plotting.
 #>       --shape <name>       Shape column.
 #>       --size <name>        Size column.
+#>       --title <str>        Plot title.
 #>   -x, --x <name>           X column.
 #>       --xlab <str>         X axis label.
 #>   -y, --y <name>           Y column.
@@ -167,6 +174,7 @@ Create plots with the `qplot command`:
 #>   -n, --dry-run            Only print generated script.
 #>   -h, --help               Show this help.
 #>   -q, --quiet              Be quiet.
+#>       --seed <int>         Seed random number generator.
 #>   -v, --verbose            Be verbose.
 #>       --version            Show version.
 ```
@@ -185,9 +193,28 @@ Create plots with the `qplot command`:
 #>   -n, --dry-run            Only print generated script.
 #>   -h, --help               Show this help.
 #>   -q, --quiet              Be quiet.
+#>       --seed <int>         Seed random number generator.
 #>   -v, --verbose            Be verbose.
 #>       --version            Show version.
 ```
+
+## Terminal plotting
+
+`rush plot` can render plots directly in the terminal as ANSI/ASCII art.
+This feature relies on three packages that are not on CRAN, so they are
+not installed automatically. To enable terminal plotting, install them
+from GitHub:
+
+``` r
+remotes::install_github(c(
+  "coolbutuseless/devout",
+  "jeroenjanssens/miniansi",
+  "coolbutuseless/devoutansi"
+))
+```
+
+Without these packages, `rush plot` still works when you write the plot
+to a file (for example with `--output plot.png`) or redirect its output.
 
 ## Code of Conduct
 

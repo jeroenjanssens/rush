@@ -33,12 +33,20 @@ rush <- function(...) {
 
   code_expression(script, "#!/usr/bin/env Rscript")
 
+  if (is.integer(flags$seed)) {
+    code_expression(script, set.seed(!!flags$seed))
+  }
+
   if (flags$command == "install") {
     code_expression(script, utils::install.packages(!!flags$package))
   }
 
   if (flags$command == "run") {
     # Load libraries
+    if (flags$tidyverse) {
+      code_library(script, "tidyverse")
+      code_library(script, "glue")
+    }
     if (!is.null(flags$library)) {
       purrr::walk(flags$library, function(e) code_library(script, e))
     }
@@ -53,7 +61,7 @@ rush <- function(...) {
     } else if (length(flags$file) > 1) {
       df_names <-
         ifelse(flags$file == "-", "stdin",
-               fs::path_ext_remove(basename(flags$file))) %>%
+               fs::path_ext_remove(basename(flags$file))) |>
         janitor::make_clean_names()
 
       code_expression(script, dfs <- list())
@@ -75,8 +83,16 @@ rush <- function(...) {
 
   }
 
-  if (flags$command == "qplot") {
-    code_library(script, "ggplot2")
+  if (flags$command == "plot") {
+    if (flags$tidyverse) {
+      code_library(script, "tidyverse")
+      code_library(script, "glue")
+    } else {
+      code_library(script, "ggplot2")
+    }
+    if (!is.null(flags$library)) {
+      purrr::walk(flags$library, function(e) code_library(script, e))
+    }
 
     if (rlang::is_null(flags$file) || flags$file == "-") {
       df_file <- expr(file("stdin", "rb", raw = TRUE))
@@ -92,25 +108,63 @@ rush <- function(...) {
       purrr::walk(flags$pre, function(e) code_expression(script, !!e))
     }
 
-    qplot_args <- purrr::compact(
-      flags[union(methods::formalArgs(ggplot2::qplot),
-                  c("adj", "alpha", "angle", "bg", "cex", "col", "color",
-                    "colour", "fg", "fill", "group", "hjust", "label",
-                    "linetype", "lower", "lty", "lwd", "max", "middle", "min",
-                    "pch", "radius", "sample", "shape", "size", "srt", "upper",
-                    "vjust", "weight", "x", "xend", "xmax", "xmin",
-                    "xintercept", "y", "yend", "ymax", "ymin", "yintercept",
-                    "z"))])
-    qplot_args$data <- rlang::parse_expr("df")
-
-    qplot_call <- rlang::call2("qplot", !!!qplot_args)
-    qplot_call <- rlang::call_modify(qplot_call, !!!flags$aes, .homonyms = "last")
-
-    if (!is.null(flags$post)) {
-      qplot_call <- rlang::call2("<-", rlang::sym("p"), qplot_call)
+    # Build the aesthetic mapping from the dedicated aesthetic flags, plus any
+    # extra aesthetics supplied through --aes.
+    aes_names <- c("x", "y", "z", "color", "alpha", "shape", "group", "size",
+                   "fill")
+    aes_call <- rlang::call2("aes", !!!purrr::compact(flags[aes_names]))
+    if (!is.null(flags$aes)) {
+      aes_call <- rlang::call_modify(aes_call, !!!flags$aes, .homonyms = "last")
     }
 
-    code_expression(script, !!qplot_call)
+    plot_call <- rlang::call2("ggplot", rlang::sym("df"), aes_call)
+
+    # Pick a geom. As qplot did, guess point when a y column is given and a
+    # histogram otherwise; --geom overrides the guess.
+    geom <- flags$geom
+    if (geom == "auto") {
+      geom <- if (!is.null(flags$y)) "point" else "histogram"
+    }
+    plot_call <- rlang::call2("+", plot_call,
+                              rlang::call2(paste0("geom_", geom)))
+
+    # Log-transform the requested axes.
+    if (!is.null(flags$log)) {
+      if (stringr::str_detect(flags$log, "x")) {
+        plot_call <- rlang::call2("+", plot_call, rlang::call2("scale_x_log10"))
+      }
+      if (stringr::str_detect(flags$log, "y")) {
+        plot_call <- rlang::call2("+", plot_call, rlang::call2("scale_y_log10"))
+      }
+    }
+
+    # Facet. A two-sided formula (row ~ col) uses facet_grid, which also
+    # supports marginal facets; a one-sided formula (~ var) uses facet_wrap.
+    if (!is.null(flags$facets)) {
+      if (length(flags$facets) == 3) {
+        facet_call <- rlang::call2("facet_grid", flags$facets)
+        if (isTRUE(flags$margins)) {
+          facet_call <- rlang::call_modify(facet_call, margins = TRUE)
+        }
+      } else {
+        facet_call <- rlang::call2("facet_wrap", flags$facets)
+      }
+      plot_call <- rlang::call2("+", plot_call, facet_call)
+    }
+
+    # Axis labels and title.
+    labs_args <- purrr::compact(list(x = flags$xlab, y = flags$ylab,
+                                     title = flags$title))
+    if (length(labs_args) > 0) {
+      plot_call <- rlang::call2("+", plot_call,
+                                rlang::call2("labs", !!!labs_args))
+    }
+
+    if (!is.null(flags$post)) {
+      plot_call <- rlang::call2("<-", rlang::sym("p"), plot_call)
+    }
+
+    code_expression(script, !!plot_call)
 
     if (!is.null(flags$post)) {
       purrr::walk(flags$post, function(e) code_expression(script, !!e))
@@ -166,32 +220,66 @@ rush <- function(...) {
     }
 
     if (ggplot2::is.ggplot(result)) {
-      if (is.null(flags$output)) flags$output <- "png"
-      if (fs::path_ext(flags$output) == "") {
-        output_filename <- tempfile()
-        on.exit(unlink(output_filename))
-        device <- flags$output
-        cat_output <- TRUE
-      } else {
-        output_filename  <- flags$output
-        device <- NULL
-        cat_output <- FALSE
+
+      if (is.null(flags$output)) {
+        flags$output <- ifelse(has_tty, "ansi", "png")
       }
 
-      if (is.null(flags$width)) flags$width <- 6
-      if (is.null(flags$height)) flags$height <- 4
+      if (flags$output %in% c("ansi", "ascii")) {
+        if (is.null(flags$width)) flags$width <- cli::console_width()
+        if (requireNamespace("devoutansi", quietly = TRUE)) {
+          devoutansi::ansi(width = flags$width,
+                           height = flags$height,
+                           plain_ascii = TRUE,
+                           char_lookup_table = 2)
 
-      ggplot2::ggsave(output_filename,
-                      result,
-                      device = device,
-                      width = flags$width,
-                      height = flags$height,
-                      units = flags$units,
-                      dpi = flags$dpi)
+          if (is.null(flags$post)) {
+            result <- result +
+            ggplot2::theme_minimal() +
+            ggplot2::theme(panel.grid = ggplot2::element_blank())
+          }
+          print(result)
+          invisible(grDevices::dev.off())
+        } else {
+          cli::cat_line(
+            "Terminal plotting requires the devout, miniansi, and devoutansi ",
+            "packages, which are not on CRAN. Install them from GitHub with:"
+          )
+          cli::cat_line(
+            '  remotes::install_github(c("coolbutuseless/devout", ',
+            '"jeroenjanssens/miniansi", "coolbutuseless/devoutansi"))'
+          )
+          cli::cat_line(
+            "Alternatively, specify --output or redirect the plot to a file."
+          )
+        }
+      } else {
+        if (fs::path_ext(flags$output) == "") {
+          output_filename <- tempfile()
+          on.exit(unlink(output_filename))
+          device <- flags$output
+          cat_output <- TRUE
+        } else {
+          output_filename  <- flags$output
+          device <- NULL
+          cat_output <- FALSE
+        }
 
-      if (cat_output) {
-        contents <- readBin(output_filename, raw(), n = 1e8)
-        writeBin(contents, stdout_binary())
+        if (is.null(flags$width)) flags$width <- 6
+        if (is.null(flags$height)) flags$height <- 4
+
+        ggplot2::ggsave(output_filename,
+                        result,
+                        device = device,
+                        width = flags$width,
+                        height = flags$height,
+                        units = flags$units,
+                        dpi = flags$dpi)
+
+        if (cat_output) {
+          contents <- readBin(output_filename, raw(), n = 1e8)
+          writeBin(contents, stdout_binary())
+        }
       }
     }
   }

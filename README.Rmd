@@ -16,7 +16,7 @@ knitr::opts_chunk$set(
 # rush
 
 <!-- badges: start -->
-[![R-CMD-check](https://github.com/jeroenjanssens/rush/workflows/R-CMD-check/badge.svg)](https://github.com/jeroenjanssens/rush/actions)
+[![R-CMD-check](https://github.com/jeroenjanssens/rush/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/jeroenjanssens/rush/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 `rush` is an R package that allows you to run expressions, create plots, and install packages directly from the shell.
@@ -56,13 +56,13 @@ Write to standard output:
 Show generated script with the `--dry-run` option:
 
 ```{bash}
-< mtcars.csv ./rush qplot --dry-run --x mpg --geom density --fill 'factor(cyl)'
+< mtcars.csv ./rush plot --dry-run --x mpg --geom density --fill 'factor(cyl)'
 ```
 
-Create plots with the `qplot command`:
+Create plots with the `plot` command:
 
 ```{bash}
-< mtcars.csv ./rush qplot --x mpg --geom density --fill 'factor(cyl)' > ../man/figures/mtcars.png 
+< mtcars.csv ./rush plot --x mpg --geom density --fill 'factor(cyl)' > ../man/figures/mtcars.png
 ```
 
 ![](man/figures/mtcars.png)
@@ -78,7 +78,7 @@ Create plots with the `qplot command`:
 ```
 
 ```{bash}
-./rush qplot -h
+./rush plot -h
 ```
 
 ```{bash}
@@ -92,6 +92,24 @@ knitr::opts_knit$set(root.dir=".")
 ```{bash, include=FALSE}
 rm exec/mtcars.csv
 ```
+
+## Terminal plotting
+
+`rush plot` can render plots directly in the terminal as ANSI/ASCII art.
+This feature relies on three packages that are not on CRAN, so they are
+not installed automatically. To enable terminal plotting, install them
+from GitHub:
+
+``` r
+remotes::install_github(c(
+  "coolbutuseless/devout",
+  "jeroenjanssens/miniansi",
+  "coolbutuseless/devoutansi"
+))
+```
+
+Without these packages, `rush plot` still works when you write the plot
+to a file (for example with `--output plot.png`) or redirect its output.
 
 ## Code of Conduct
 
