@@ -103,7 +103,7 @@ Commands:
 run = "rush: Run an R expression
 
 Usage:
-  rush run [options] <expression> [--] [<file>...]
+  rush run [options] [<expression>] [--] [<file>...]
 
 Reading options:
 {flags_section(category == 'read')}

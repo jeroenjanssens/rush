@@ -41,6 +41,14 @@ rush <- function(...) {
   }
 
   if (flags$command == "run") {
+    if (is.null(flags$expression) && length(flags$file) == 0) {
+      cli::cli_abort(c(
+        "No expression to run.",
+        i = "Provide an R expression, e.g. {.code rush run '1 + 1'}.",
+        i = "See {.code rush run -h} for usage."
+      ))
+    }
+
     # Load libraries
     if (flags$tidyverse) {
       code_library(body, "tidyverse")

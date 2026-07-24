@@ -4,6 +4,10 @@ dry_run <- function(...) {
   utils::capture.output(rush(...))
 }
 
+test_that("run without an expression or file errors gracefully", {
+  expect_error(rush("run"), "No expression to run")
+})
+
 test_that("run generates an ir shebang, frontmatter, and reads the file", {
   script <- dry_run("run", "-n", "head(df)", "data.csv")
   expect_equal(script[[1]], "#!/usr/bin/env -S ir run")
