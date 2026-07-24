@@ -61,7 +61,7 @@ rush <- function(...) {
     } else if (length(flags$file) > 1) {
       df_names <-
         ifelse(flags$file == "-", "stdin",
-               fs::path_ext_remove(basename(flags$file))) %>%
+               fs::path_ext_remove(basename(flags$file))) |>
         janitor::make_clean_names()
 
       code_expression(script, dfs <- list())
@@ -108,26 +108,63 @@ rush <- function(...) {
       purrr::walk(flags$pre, function(e) code_expression(script, !!e))
     }
 
-    flags$main <- flags$title
-    qplot_args <- purrr::compact(
-      flags[union(methods::formalArgs(ggplot2::qplot),
-                  c("adj", "alpha", "angle", "bg", "cex", "col", "color",
-                    "colour", "fg", "fill", "group", "hjust", "label",
-                    "linetype", "lower", "lty", "lwd", "max", "middle", "min",
-                    "pch", "radius", "sample", "shape", "size", "srt", "upper",
-                    "vjust", "weight", "x", "xend", "xmax", "xmin",
-                    "xintercept", "y", "yend", "ymax", "ymin", "yintercept",
-                    "z"))])
-    qplot_args$data <- rlang::parse_expr("df")
-
-    qplot_call <- rlang::call2("qplot", !!!qplot_args)
-    qplot_call <- rlang::call_modify(qplot_call, !!!flags$aes, .homonyms = "last")
-
-    if (!is.null(flags$post)) {
-      qplot_call <- rlang::call2("<-", rlang::sym("p"), qplot_call)
+    # Build the aesthetic mapping from the dedicated aesthetic flags, plus any
+    # extra aesthetics supplied through --aes.
+    aes_names <- c("x", "y", "z", "color", "alpha", "shape", "group", "size",
+                   "fill")
+    aes_call <- rlang::call2("aes", !!!purrr::compact(flags[aes_names]))
+    if (!is.null(flags$aes)) {
+      aes_call <- rlang::call_modify(aes_call, !!!flags$aes, .homonyms = "last")
     }
 
-    code_expression(script, !!qplot_call)
+    plot_call <- rlang::call2("ggplot", rlang::sym("df"), aes_call)
+
+    # Pick a geom. As qplot did, guess point when a y column is given and a
+    # histogram otherwise; --geom overrides the guess.
+    geom <- flags$geom
+    if (geom == "auto") {
+      geom <- if (!is.null(flags$y)) "point" else "histogram"
+    }
+    plot_call <- rlang::call2("+", plot_call,
+                              rlang::call2(paste0("geom_", geom)))
+
+    # Log-transform the requested axes.
+    if (!is.null(flags$log)) {
+      if (stringr::str_detect(flags$log, "x")) {
+        plot_call <- rlang::call2("+", plot_call, rlang::call2("scale_x_log10"))
+      }
+      if (stringr::str_detect(flags$log, "y")) {
+        plot_call <- rlang::call2("+", plot_call, rlang::call2("scale_y_log10"))
+      }
+    }
+
+    # Facet. A two-sided formula (row ~ col) uses facet_grid, which also
+    # supports marginal facets; a one-sided formula (~ var) uses facet_wrap.
+    if (!is.null(flags$facets)) {
+      if (length(flags$facets) == 3) {
+        facet_call <- rlang::call2("facet_grid", flags$facets)
+        if (isTRUE(flags$margins)) {
+          facet_call <- rlang::call_modify(facet_call, margins = TRUE)
+        }
+      } else {
+        facet_call <- rlang::call2("facet_wrap", flags$facets)
+      }
+      plot_call <- rlang::call2("+", plot_call, facet_call)
+    }
+
+    # Axis labels and title.
+    labs_args <- purrr::compact(list(x = flags$xlab, y = flags$ylab,
+                                     title = flags$title))
+    if (length(labs_args) > 0) {
+      plot_call <- rlang::call2("+", plot_call,
+                                rlang::call2("labs", !!!labs_args))
+    }
+
+    if (!is.null(flags$post)) {
+      plot_call <- rlang::call2("<-", rlang::sym("p"), plot_call)
+    }
+
+    code_expression(script, !!plot_call)
 
     if (!is.null(flags$post)) {
       purrr::walk(flags$post, function(e) code_expression(script, !!e))

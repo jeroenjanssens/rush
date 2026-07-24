@@ -12,14 +12,15 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.1.1
-Imports: 
+RoxygenNote: 7.3.3
+Depends:
+    R (>= 4.1)
+Imports:
     rlang (>= 0.1.2),
     magrittr,
     docopt,
     prettycode,
     glue,
-    methods,
     stringr,
     purrr,
     dplyr,

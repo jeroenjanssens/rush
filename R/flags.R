@@ -51,14 +51,14 @@ flags_df <-
     NA     , "units"           , "str"       , "Plot size units"             , "in"     , NA        , as.character        , "save"    ,
     NA     , "dpi"             , "str|int"   , "Plot resolution"             , "300"    , NA        , readr::parse_guess  , "save"    ,
     "o"    , "output"          , "str"       , "Output file"                 , NA       , NA        , as.character        , "save"    ,
-  ) %>%
+  ) |>
   dplyr::mutate(arg = dplyr::if_else(is.na(arg), long, arg))
 
 utils::globalVariables(c(names(flags_df), "text", "text_left", "text_right"))
 
 flags_section <- function(filter_exp = TRUE) {
-  flags_df %>%
-  dplyr::rowwise() %>%
+  flags_df |>
+  dplyr::rowwise() |>
   dplyr::mutate(
     text_left = glue::glue(
       "  ",
@@ -71,12 +71,12 @@ flags_section <- function(filter_exp = TRUE) {
       dplyr::if_else(!is.na(default), " [default: {default}]", ""),
       "."
     )
-  ) %>%
-  dplyr::ungroup() %>%
-  dplyr::mutate(text = stringr::str_c(str_column(text_left), "  ", text_right)) %>%
-  dplyr::filter({{ filter_exp }}) %>%
-  dplyr::arrange(long) %>%
-  dplyr::pull(text) %>%
+  ) |>
+  dplyr::ungroup() |>
+  dplyr::mutate(text = stringr::str_c(str_column(text_left), "  ", text_right)) |>
+  dplyr::filter({{ filter_exp }}) |>
+  dplyr::arrange(long) |>
+  dplyr::pull(text) |>
   stringr::str_c(collapse = "\n")
 }
 
