@@ -19,13 +19,39 @@ knitr::opts_chunk$set(
 [![R-CMD-check](https://github.com/jeroenjanssens/rush/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/jeroenjanssens/rush/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
-`rush` is an R package that lets you run R expressions and create plots
-directly from the shell.
+**`rush` brings R to the command line.** Run an R expression, wrangle a CSV,
+query a Parquet file with SQL, or draw a plot right in your terminal — all
+without opening an R session or writing a script.
 
-Each invocation assembles a small, self-contained R script and runs it with
-[`ir`](https://r-lib.github.io/ir/), the R interpreter launcher from r-lib.
-`ir` reads the script's `#|` frontmatter and installs whatever packages the
-script needs on the fly, so `rush` itself stays lightweight.
+```sh
+rush run 'mtcars |> dplyr::filter(mpg > 25) |> head()'
+```
+
+R has a wonderful ecosystem for working with data, but reaching for it usually
+means launching R, loading packages, and reading files by hand. `rush` collapses
+that into a single command you can pipe, redirect, and drop into any shell
+pipeline — so R becomes just another Unix tool, at home next to `grep`, `awk`,
+and `jq`.
+
+Under the hood, each invocation assembles a small, self-contained R script and
+runs it with [`ir`](https://r-lib.github.io/ir/), the R interpreter launcher
+from r-lib. The script declares its own package dependencies in `#|`
+frontmatter, and `ir` installs whatever it needs on the fly. That means `rush`
+itself stays lightweight, and you never have to manage a library of packages
+just to run a one-liner.
+
+## Highlights
+
+- **One-liners, not scripts.** Evaluate any R expression straight from the shell.
+- **Pipeline-native.** Reads from standard input and writes to standard output,
+  so it composes with every other command-line tool.
+- **Reads what you have.** CSV and other delimited text, [Parquet](#parquet),
+  and [DuckDB](#duckdb) databases — chosen automatically by file extension.
+- **Query with SQL.** The [`sql`](#querying-with-sql) command runs DuckDB
+  queries directly against your files, no import step required.
+- **Plots in your terminal.** The [`plot`](#plotting) command renders ggplot2
+  graphics as ANSI/ASCII art, or saves them to PNG, PDF, and more.
+- **Zero dependency management.** Packages are resolved on demand by `ir`.
 
 ## Installation
 
@@ -36,52 +62,188 @@ First install [`ir`](https://r-lib.github.io/ir/#installation). Then install
 ir tool install github::jeroenjanssens/rush
 ```
 
-## Examples
+That's it — there's no separate R package to load. The first time a command
+needs a package (say, ggplot2 for a plot), `ir` fetches and caches it for you.
+
+## A quick tour
 
 ```{r, include=FALSE}
 knitr::opts_knit$set(root.dir="exec")
 ```
 
-Once installed, invoke `rush` from the command line:
-
-```{bash}
-rush run 6*7
+```{bash, include=FALSE}
+# Build a small example DuckDB database for the data-file and SQL sections.
+rush run -l duckdb,DBI '{
+  con <- DBI::dbConnect(duckdb::duckdb(), "shop.duckdb")
+  DBI::dbWriteTable(con, "customers", data.frame(id = 1:3, name = c("Alice", "Bob", "Carol")))
+  DBI::dbWriteTable(con, "orders", data.frame(cust = c(1, 1, 2, 3, 3), amount = c(20, 35, 10, 50, 15)))
+  DBI::dbDisconnect(con, shutdown = TRUE)
+  invisible()
+}' 2>/dev/null
 ```
 
-Read from standard input:
+Evaluate an expression — the value of the last expression is printed:
+
+```{bash}
+rush run '6 * 7'
+```
+
+Read from standard input with `-`. Input is read into a data frame called `df`,
+so `seq 6` becomes a one-column table you can compute on:
 
 ```{bash}
 seq 6 | rush run -H '2 * sum(df$x1)' -
 ```
 
-Write to standard output:
+Give `rush run` a file and it is read into `df` before your expression runs.
+With no expression, the data frame is simply printed back out — a handy way to
+peek at a file:
 
 ```{bash}
 rush run 'head(mtcars, 10)' | tee mtcars.csv
 ```
 
-Show generated script with the `--dry-run` option:
+Because `rush` writes plain CSV to standard output, you can keep piping into the
+next command — including another `rush`:
 
 ```{bash}
-< mtcars.csv rush plot --dry-run --x mpg --geom density --fill 'factor(cyl)'
+rush run 'head(mtcars)' | rush run 'df |> dplyr::select(mpg, cyl, hp)' -
 ```
 
-Create plots with the `plot` command:
+Load extra packages with `-l`, or enter the whole Tidyverse with `-t`:
 
 ```{bash}
-< mtcars.csv rush plot --x mpg --geom density --fill 'factor(cyl)' > ../man/figures/mtcars.png
+rush run -t 'starwars |> count(species, sort = TRUE) |> head(3)'
+```
+
+## Working with data files
+
+`rush` picks a reader based on the file extension, so the same commands work
+whatever format your data is in. A single file is read into `df`; pass several
+and each is read into a named element of a list called `dfs`.
+
+### Delimited text
+
+CSV is the default. Use `--delimiter` (`-d`) for other separators and
+`--no-header` (`-H`) for files without a header row:
+
+```{bash}
+rush run 'df |> dplyr::filter(mpg > 22) |> dplyr::select(mpg, cyl, hp)' mtcars.csv
+```
+
+<a id="parquet"></a>
+
+### Parquet
+
+Files ending in `.parquet` or `.pq` are read with
+[nanoparquet](https://nanoparquet.r-lib.org/) — no flags needed. Point
+`--output` (`-o`) at a `.parquet` file to write one, which makes `rush` a quick
+way to convert between formats:
+
+```{bash}
+# Convert CSV to Parquet...
+rush run --output mtcars.parquet 'df' mtcars.csv
+
+# ...then read it straight back
+rush run 'head(df, 3)' mtcars.parquet
+```
+
+<a id="duckdb"></a>
+
+### DuckDB
+
+Point `rush` at a [DuckDB](https://duckdb.org/) database (`.duckdb` or `.ddb`)
+and every table is read into the `dfs` list, keyed by table name:
+
+```{bash}
+rush run 'names(dfs)' shop.duckdb
+```
+
+If a database holds a single table, it is also bound to `df` for convenience,
+so a one-table database behaves just like any other single input.
+
+## Querying with SQL
+
+Sometimes SQL is simply the clearest way to express what you want — especially
+joins and aggregations. The `sql` command runs a [DuckDB](https://duckdb.org/)
+query directly against your files, with no import step. Each file becomes a
+relation named after the file, so you can reference it right in the query:
+
+```{bash}
+rush sql "SELECT cyl, ROUND(AVG(mpg), 1) AS avg_mpg, COUNT(*) AS n
+          FROM mtcars GROUP BY cyl ORDER BY cyl" mtcars.parquet
+```
+
+Because DuckDB reads the file itself, this works on datasets far larger than
+memory — the filtering and aggregation happen inside DuckDB, and only the
+result comes back to R.
+
+CSV files are read with `read_csv_auto`, Parquet with `read_parquet`, and a
+`.duckdb` database is attached so its tables are addressed as `name.table`.
+That makes joins across a whole database natural:
+
+```{bash}
+rush sql "SELECT c.name, SUM(o.amount) AS total
+          FROM shop.customers c JOIN shop.orders o ON c.id = o.cust
+          GROUP BY c.name ORDER BY total DESC" shop.duckdb
+```
+
+The result of a query is an ordinary data frame, so everything else composes as
+usual — pipe it onward, or save it with `--output`, including back to Parquet:
+
+```{bash}
+rush run 'head(mtcars, 5)' | rush sql "SELECT cyl, mpg FROM stdin WHERE mpg > 21" -
+```
+
+<a id="plotting"></a>
+
+## Plotting
+
+The `plot` command builds a [ggplot2](https://ggplot2.tidyverse.org/) graphic
+from your data. Choose columns with `--x`, `--y`, `--color`, and friends, and a
+sensible geom is guessed for you (override it with `--geom`).
+
+Show the generated script with `--dry-run` to see exactly what will run:
+
+```{bash}
+rush plot --dry-run --x mpg --geom density --fill 'factor(cyl)' mtcars.csv
+```
+
+Run it in a terminal and the plot is drawn right there as ANSI/ASCII art.
+Redirect the output to a file instead and `rush` writes an image, picking the
+device from the extension:
+
+```{bash}
+rush plot --x mpg --geom density --fill 'factor(cyl)' mtcars.csv > ../man/figures/mtcars.png
 ```
 
 ![](man/figures/mtcars.png)
 
+Terminal plotting relies on three packages that are not on CRAN — `devout`,
+`miniansi`, and `devoutansi` — but you do not need to install them yourself.
+`rush` declares them in the generated script's frontmatter, and `ir` fetches
+them from GitHub the first time they are needed.
+
+```{bash, include=FALSE}
+rm -f mtcars.csv mtcars.parquet shop.duckdb
+```
+
 ## Help
+
+Every command has built-in help. Start with the top level:
 
 ```{bash}
 rush -h
 ```
 
+Then dig into a specific command:
+
 ```{bash}
 rush run -h
+```
+
+```{bash}
+rush sql -h
 ```
 
 ```{bash}
@@ -91,19 +253,6 @@ rush plot -h
 ```{r, include=FALSE}
 knitr::opts_knit$set(root.dir=".")
 ```
-
-```{bash, include=FALSE}
-rm exec/mtcars.csv
-```
-
-## Terminal plotting
-
-When you run `rush plot` in a terminal (rather than redirecting its output
-to a file), it renders the plot directly as ANSI/ASCII art. This relies on
-three packages that are not on CRAN — `devout`, `miniansi`, and
-`devoutansi` — but you do not need to install them yourself: `rush`
-declares them in the generated script's frontmatter, and `ir` fetches them
-from GitHub the first time they are needed.
 
 ## Code of Conduct
 

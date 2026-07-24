@@ -36,6 +36,9 @@ Imports:
 Suggests:
     janitor,
     readr,
+    nanoparquet,
+    duckdb,
+    DBI,
     testthat (>= 3.0.0),
     roxygen2
 SystemRequirements: ir (https://r-lib.github.io/ir/)

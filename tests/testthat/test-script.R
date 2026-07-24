@@ -57,6 +57,47 @@ test_that("run reads multiple files into a dfs list", {
   expect_true(any(grepl("dfs\\$b <- .*read_delim\\(\"b.csv\"", script)))
 })
 
+test_that("run reads a Parquet file with nanoparquet", {
+  script <- dry_run("run", "-n", "head(df)", "data.parquet")
+  expect_true(any(grepl("nanoparquet::read_parquet\\(\"data.parquet\"", script)))
+  expect_true(any(grepl("^#\\|   - nanoparquet$", script)))
+  expect_false(any(grepl("read_delim", script)))
+})
+
+test_that("run writes a Parquet file when --output ends in .parquet", {
+  script <- dry_run("run", "-n", "-o", "out.parquet", "df", "data.csv")
+  expect_true(any(grepl('output_format = "parquet"', script)))
+  expect_true(any(grepl("nanoparquet::write_parquet", script)))
+  expect_true(any(grepl("^#\\|   - nanoparquet$", script)))
+})
+
+test_that("run reads a DuckDB database into a dfs list", {
+  script <- dry_run("run", "-n", "nrow(df)", "mydb.duckdb")
+  expect_true(any(grepl("dbConnect\\(duckdb::duckdb\\(\\), dbdir = \"mydb.duckdb\", read_only = TRUE\\)", script)))
+  expect_true(any(grepl("dbListTables", script)))
+  expect_true(any(grepl("dbReadTable", script)))
+  expect_true(any(grepl("if \\(length\\(dfs\\) == 1\\) df <- dfs\\[\\[1\\]\\]", script)))
+  expect_true(any(grepl("^#\\|   - duckdb$", script)))
+  expect_true(any(grepl("^#\\|   - DBI$", script)))
+})
+
+test_that("sql without a query errors gracefully", {
+  expect_error(rush("sql"), "No query to run")
+})
+
+test_that("sql registers files as relations and runs the query", {
+  script <- dry_run("sql", "-n", "SELECT * FROM a JOIN b USING (x)",
+                    "a.csv", "b.parquet", "w.duckdb", "-")
+  expect_true(any(grepl("con <- DBI::dbConnect\\(duckdb::duckdb\\(\\)\\)", script)))
+  expect_true(any(grepl("CREATE VIEW a AS SELECT \\* FROM read_csv_auto\\('a.csv'\\)", script)))
+  expect_true(any(grepl("CREATE VIEW b AS SELECT \\* FROM read_parquet\\('b.parquet'\\)", script)))
+  expect_true(any(grepl("ATTACH 'w.duckdb' AS w \\(READ_ONLY\\)", script)))
+  # stdin is buffered to a seekable temp file before being read as CSV.
+  expect_true(any(grepl("\\.stdin_tmp <- tempfile", script)))
+  expect_true(any(grepl("CREATE VIEW stdin AS SELECT \\* FROM read_csv_auto", script)))
+  expect_true(any(grepl("result <- DBI::dbGetQuery\\(con, \"SELECT \\* FROM a JOIN b USING \\(x\\)\"\\)", script)))
+})
+
 test_that("plot reads a single file into df", {
   script <- dry_run("plot", "-n", "-x", "wt", "a.csv")
   expect_true(any(grepl("^df <- .*read_delim\\(\"a.csv\"", script)))

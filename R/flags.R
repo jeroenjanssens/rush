@@ -99,7 +99,8 @@ Options:
 
 Commands:
   plot
-  run",
+  run
+  sql",
 
 run = "rush: Run an R expression
 
@@ -110,9 +111,13 @@ Arguments:
   <expression>             R expression to evaluate. The value of the last
                            expression is printed or written out.
   <file>                   Data file(s) to read into a data frame named 'df'
-                           before the expression runs. Use '-' to read from
-                           standard input. With multiple files, each is read
-                           into a named element of a list 'dfs'.
+                           before the expression runs. The reader is chosen by
+                           extension: '.parquet'/'.pq' via nanoparquet,
+                           '.duckdb'/'.ddb' (each table becomes an element of
+                           'dfs') via DuckDB, everything else as delimited
+                           text. Use '-' to read delimited text from standard
+                           input. With multiple files, each is read into a
+                           named element of a list 'dfs'.
 
 Reading options:
 {flags_section(category == 'read')}
@@ -132,10 +137,13 @@ Usage:
   rush plot [options] [--] [<file>...]
 
 Arguments:
-  <file>                   Data file(s) to read before plotting. A single file
-                           is read into a data frame named 'df'; use '-' or
-                           omit to read from standard input. Multiple files are
-                           each read into a named element of a list 'dfs';
+  <file>                   Data file(s) to read before plotting. The reader is
+                           chosen by extension: '.parquet'/'.pq' via
+                           nanoparquet, '.duckdb'/'.ddb' via DuckDB, everything
+                           else as delimited text. A single file is read into a
+                           data frame named 'df'; use '-' or omit to read
+                           delimited text from standard input. Multiple files
+                           are each read into a named element of a list 'dfs';
                            combine them into 'df' yourself with the --pre
                            option, e.g. 'df <- dplyr::bind_rows(dfs)'.
 
@@ -147,6 +155,30 @@ Setup options:
 
 Plotting options:
 {flags_section(category == 'plot')}
+
+Saving options:
+{flags_section(category == 'save')}
+
+General options:
+{flags_section(category == 'general')}",
+
+sql = "rush: Query files with SQL (DuckDB)
+
+Usage:
+  rush sql [options] [<query>] [--] [<file>...]
+
+Arguments:
+  <query>                  DuckDB SQL query to run. Its result is printed or
+                           written out.
+  <file>                   File(s) to expose to the query, each as a relation
+                           named after the file's base name. CSV files are
+                           read with read_csv_auto, Parquet with read_parquet,
+                           and a '.duckdb' database is attached so its tables
+                           are addressed as name.table. Use '-' to read CSV
+                           from standard input as a relation named 'stdin'.
+
+Setup options:
+{flags_section(category == 'setup')}
 
 Saving options:
 {flags_section(category == 'save')}

@@ -74,6 +74,30 @@ rush <- function(...) {
     }
   }
 
+  if (flags$command == "sql") {
+    if (is.null(flags$query)) {
+      cli::cli_abort(c(
+        "No query to run.",
+        i = "Provide a SQL query, e.g. {.code rush sql 'SELECT 1'}.",
+        i = "See {.code rush sql -h} for usage."
+      ))
+    }
+
+    if (flags$tidyverse) {
+      code_library(body, "tidyverse")
+      code_library(body, "glue")
+      pkgs <- c(pkgs, "tidyverse", "glue")
+    }
+    if (!is.null(flags$library)) {
+      purrr::walk(flags$library, function(e) code_library(body, e))
+      pkgs <- c(pkgs, as.character(flags$library))
+    }
+
+    # The query is a raw string (not parsed as R), unlike `run`'s expression.
+    emit_sql(body, flags$query, flags$file, flags)
+    pkgs <- c(pkgs, "duckdb", "DBI")
+  }
+
   if (flags$command == "plot") {
     pkgs <- c(pkgs, "ggplot2", "fs",
               "github::coolbutuseless/devout",
@@ -163,6 +187,13 @@ rush <- function(...) {
     } else {
       code_expression(body, !!rlang::call2("<-", rlang::sym("result"), plot_call))
     }
+  }
+
+  # Writing a Parquet result needs nanoparquet in the script's frontmatter,
+  # regardless of which command produced the result.
+  if (!is.null(flags$output) &&
+      tolower(tools::file_ext(flags$output)) %in% c("parquet", "pq")) {
+    pkgs <- c(pkgs, "nanoparquet")
   }
 
   close(body)
