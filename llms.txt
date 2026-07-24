@@ -201,11 +201,15 @@ rush plot -h
 #> rush: Quick plot
 #> 
 #> Usage:
-#>   rush plot [options] [--] [<file>|-]
+#>   rush plot [options] [--] [<file>...]
 #> 
 #> Arguments:
-#>   <file>                   Data file to read into a data frame named 'df' and
-#>                            plot. Use '-' or omit to read from standard input.
+#>   <file>                   Data file(s) to read before plotting. A single file
+#>                            is read into a data frame named 'df'; use '-' or
+#>                            omit to read from standard input. Multiple files are
+#>                            each read into a named element of a list 'dfs';
+#>                            combine them into 'df' yourself with the --pre
+#>                            option, e.g. 'df <- dplyr::bind_rows(dfs)'.
 #> 
 #> Reading options:
 #>   -d, --delimiter <str>    Delimiter [default: ,].
