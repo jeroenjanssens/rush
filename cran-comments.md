@@ -2,10 +2,9 @@
 * macOS, local, R 4.5.1
 * macOS, GitHub Actions, R release
 * Windows, GitHub Actions, R release
-* Ubuntu 20.04, GitHub Actions, R release
-* Ubuntu 20.04, GitHub Actions, R devel
-* Windows, win-builder, R release
-* Windows, win-builder, R devel
+* Ubuntu, GitHub Actions, R release
+* Ubuntu, GitHub Actions, R devel
+* Ubuntu, GitHub Actions, R oldrel-1
 
 ## R CMD check results
 
