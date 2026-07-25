@@ -25,7 +25,6 @@ flags_df <-
     NA     , "version"        , NA          , "Show version"                 , NA       , NA        , as.logical         , "general" ,
     NA     , "seed"           , "int"       , "Seed random number generator" , NA       , NA        , as.integer         , "general" ,
     "v"    , "verbose"        , NA          , "Be verbose"                   , NA       , NA        , as.logical         , "general" ,
-    "q"    , "quiet"          , NA          , "Be quiet"                     , NA       , NA        , as.logical         , "general" ,
     "n"    , "dry-run"        , NA          , "Only print generated script"  , NA       , "dry_run" , as.logical         , "general" ,
     "I"    , "no-ir"          , NA          , "Run with Rscript, not ir"     , NA       , "no_ir"   , as.logical         , "general" ,
     "d"    , "delimiter"      , "str"       , "Delimiter"                    , ","      , NA        , as.character       , "read"    ,
@@ -51,7 +50,7 @@ flags_df <-
     NA     , "log"            , "x|y|xy"    , "Variables to log transform"   , NA       , NA        , as.character       , "plot"    ,
     NA     , "xlab"           , "str"       , "X axis label"                 , NA       , NA        , as.character       , "plot"    ,
     NA     , "ylab"           , "str"       , "Y axis label"                 , NA       , NA        , as.character       , "plot"    ,
-    NA     , "title"          , "str"       , "Plot title"                   , NA       , "main"    , as.character       , "plot"    ,
+    NA     , "title"          , "str"       , "Plot title"                   , NA       , NA        , as.character       , "plot"    ,
     NA     , "margins"        , NA          , "Display marginal facets"      , NA       , NA        , as.logical         , "plot"    ,
     "w"    , "width"          , "int"       , "Plot width"                   , NA       , NA        , as.numeric         , "save"    ,
     NA     , "height"         , "int"       , "Plot height"                  , NA       , NA        , as.numeric         , "save"    ,
@@ -235,7 +234,6 @@ parse_arguments <- function(...) {
 
 format_flag <- function(name, value) {
   if (is.list(value)) {
-    # value_text <- stringr::str_c(purrr::map_chr(value, rlang::expr_text), collapse = "; ")
     value_text <- rlang::expr_text(value)
     if (length(value) >= 1) value <- value[[1]]
   } else {

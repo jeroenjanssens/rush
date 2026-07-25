@@ -37,7 +37,7 @@ test_that("plot aesthetics are parsed as symbols", {
   expect_equal(args$y, rlang::sym("mpg"))
 })
 
-test_that("--title maps to the main arg", {
+test_that("--title parses to the title flag", {
   args <- parse_arguments("plot", "--title", "Cars", "mtcars.csv")
   expect_equal(args$title, "Cars")
 })

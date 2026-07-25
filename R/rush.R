@@ -2,7 +2,6 @@
 #'
 #' @param ... character vector of parameters
 #'
-#' @importFrom tibble tribble
 #' @export
 rush <- function(...) {
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
