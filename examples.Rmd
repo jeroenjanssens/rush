@@ -1,0 +1,585 @@
+---
+output: github_document
+---
+
+<!-- examples.md is generated from examples.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+knitr::opts_knit$set(root.dir = "exec")
+```
+
+# rush examples
+
+A comprehensive collection of examples showing what `rush` can do. Each section
+demonstrates a specific argument or capability with real data and realistic
+use cases.
+
+```{r, include=FALSE}
+# Set up example data for later sections.
+system("rush run 'head(mtcars, 20)' > mtcars.csv 2>/dev/null")
+
+system("rush run -d '\t' 'data.frame(city = c(\"Amsterdam\", \"Rotterdam\", \"Utrecht\", \"Den Haag\"), pop = c(921402, 655468, 361924, 552995), province = c(\"Noord-Holland\", \"Zuid-Holland\", \"Utrecht\", \"Zuid-Holland\"))' > cities.tsv 2>/dev/null")
+
+writeLines(c("10", "20", "30", "40", "50"), "numbers.txt")
+
+system("rush run --output flights.parquet 'data.frame(carrier = c(\"UA\",\"AA\",\"DL\",\"UA\",\"AA\",\"DL\",\"UA\",\"AA\",\"DL\",\"WN\"), origin = c(\"EWR\",\"JFK\",\"LGA\",\"EWR\",\"JFK\",\"LGA\",\"EWR\",\"JFK\",\"LGA\",\"EWR\"), dest = c(\"LAX\",\"SFO\",\"ATL\",\"ORD\",\"LAX\",\"DTW\",\"SFO\",\"MIA\",\"ATL\",\"DEN\"), dep_delay = c(-2, 5, 12, -1, 120, 3, 0, -4, 22, 45), arr_delay = c(-10, -2, 8, 5, 115, -5, -8, -12, 18, 50), air_time = c(320, 350, 120, 130, 330, 100, 340, 160, 115, 220), distance = c(2454, 2586, 762, 719, 2475, 502, 2565, 1089, 762, 1605))' 2>/dev/null")
+
+system("rush run -l duckdb,DBI '{con <- DBI::dbConnect(duckdb::duckdb(), \"inventory.duckdb\"); DBI::dbWriteTable(con, \"products\", data.frame(id = 1:6, name = c(\"Widget\", \"Gadget\", \"Doohickey\", \"Thingamajig\", \"Whatsit\", \"Gizmo\"), category = c(\"A\", \"B\", \"A\", \"B\", \"A\", \"B\"), price = c(9.99, 24.50, 4.75, 18.00, 12.30, 31.00))); DBI::dbWriteTable(con, \"sales\", data.frame(product_id = c(1,1,2,3,4,4,5,6,6,6,1,2,3,5), quantity = c(5, 3, 2, 10, 1, 4, 7, 2, 1, 3, 8, 1, 6, 2), date = as.Date(\"2024-01-01\") + c(0,5,3,1,7,12,2,8,15,20,25,18,22,28))); DBI::dbDisconnect(con, shutdown = TRUE); invisible()}' 2>/dev/null")
+```
+
+---
+
+## rush run
+
+### Simple expressions
+
+At its core, `rush run` evaluates any R expression and prints the result.
+
+```{bash}
+rush run '6 * 7'
+```
+
+Multiple semicolon-separated expressions work; the value of the last one is printed:
+
+```{bash}
+rush run 'x <- 1:10; mean(x)'
+```
+
+Strings, vectors, and lists all print naturally:
+
+```{bash}
+rush run 'paste("Hello", "from", "R", sep = ", ")'
+```
+
+```{bash}
+rush run 'rev(LETTERS[1:8])'
+```
+
+### Reading a single file
+
+Pass a file path after the expression, and it's read into a data frame called `df`:
+
+```{bash}
+rush run 'nrow(df)' mtcars.csv
+```
+
+With just a file and no expression, the data is simply printed — a quick way to peek:
+
+```{bash}
+rush run 'head(df, 5)' mtcars.csv
+```
+
+### Reading from standard input (`-`)
+
+Use `-` to read from stdin. This makes `rush` composable in shell pipelines:
+
+```{bash}
+echo "name,score
+Alice,92
+Bob,85
+Carol,97" | rush run 'df |> dplyr::arrange(dplyr::desc(score))' -
+```
+
+You can pipe the output of one `rush` into another:
+
+```{bash}
+rush run 'head(mtcars, 5)' | rush run 'dplyr::select(df, mpg, hp, wt)' -
+```
+
+### Reading multiple files
+
+When you pass multiple files, each is read into a list called `dfs`, keyed by the file's base name:
+
+```{bash}
+rush run 'names(dfs)' mtcars.csv cities.tsv
+```
+
+```{bash}
+rush run 'nrow(dfs[["mtcars"]])' mtcars.csv cities.tsv
+```
+
+### `--delimiter` (`-d`)
+
+Override the delimiter for both reading and writing. Here we read a tab-separated file:
+
+```{bash}
+rush run -d "\t" 'head(df, 3)' cities.tsv
+```
+
+And write tab-separated output:
+
+```{bash}
+rush run -d "\t" 'head(mtcars, 3)' | cat
+```
+
+### `--no-header` (`-H`)
+
+Read a file that has no header row. Columns are auto-named `x1`, `x2`, ...:
+
+```{bash}
+rush run -H 'sum(df$x1)' numbers.txt
+```
+
+```{bash}
+seq 5 | rush run -H 'cumsum(df$x1)' -
+```
+
+### `--no-clean-names` (`-C`)
+
+By default, `rush` passes data frames through `janitor::clean_names()` to
+normalize column names (lowercase, underscores). Disable this with `-C` to
+preserve the original names exactly:
+
+```{bash}
+echo "First Name,Last Name,Score (%)
+Alice,Smith,92" | rush run 'names(df)' -
+```
+
+```{bash}
+echo "First Name,Last Name,Score (%)
+Alice,Smith,92" | rush run -C 'names(df)' -
+```
+
+### `--tidyverse` (`-t`)
+
+Load the entire Tidyverse (plus glue) so you can use dplyr, tidyr, stringr, etc.
+without qualifying names:
+
+```{bash}
+rush run -t 'mtcars |> group_by(cyl) |> summarise(mean_mpg = mean(mpg)) |> arrange(cyl)' mtcars.csv
+```
+
+### `--library` (`-l`)
+
+Load specific packages. Comma-separate multiple packages:
+
+```{bash}
+rush run -l stringr 'stringr::str_to_title("hello world")'
+```
+
+```{bash}
+rush run -l dplyr,tidyr 'df |>
+  tidyr::pivot_longer(cols = c(mpg, hp), names_to = "metric") |>
+  dplyr::slice_head(n = 4)' mtcars.csv
+```
+
+### `--seed`
+
+Set the random seed for reproducible results:
+
+```{bash}
+rush run --seed 42 'sample(1:100, 5)'
+```
+
+Run it again — same seed, same result:
+
+```{bash}
+rush run --seed 42 'sample(1:100, 5)'
+```
+
+### `--output` (`-o`)
+
+Write the result to a file instead of stdout. The output format is inferred from
+the extension:
+
+```{bash}
+rush run -o summary.csv 'data.frame(stat = c("min", "mean", "max"),
+                                     mpg = c(min(df$mpg), mean(df$mpg), max(df$mpg)))' mtcars.csv
+cat summary.csv
+```
+
+Write to Parquet:
+
+```{bash}
+rush run -o subset.parquet 'dplyr::filter(df, mpg > 25)' mtcars.csv
+rush run 'df' subset.parquet
+```
+
+### `--dry-run` (`-n`)
+
+Print the generated script instead of running it. This is great for learning
+what `rush` does under the hood, or for saving the script to a file:
+
+```{bash}
+rush run -n 'df |> dplyr::filter(mpg > 25)' mtcars.csv
+```
+
+### `--no-ir` (`-I`)
+
+Run the generated script with plain `Rscript` instead of `ir`. No package
+resolution happens — everything must already be installed:
+
+```{bash}
+rush run -I '2 + 2'
+```
+
+### `--verbose` (`-v`)
+
+Show the parsed arguments before running. Useful for debugging complex
+invocations:
+
+```{bash}
+rush run -v --seed 7 'sum(1:10)' 2>&1
+```
+
+### Reading Parquet files
+
+Files ending in `.parquet` or `.pq` are read with nanoparquet automatically:
+
+```{bash}
+rush run 'df |> dplyr::filter(dep_delay > 10) |> dplyr::select(carrier, origin, dest, dep_delay)' flights.parquet
+```
+
+### Reading DuckDB databases
+
+Point `rush` at a `.duckdb` file and all tables are loaded into `dfs`:
+
+```{bash}
+rush run 'lapply(dfs, head, 3)' inventory.duckdb
+```
+
+---
+
+## rush sql
+
+### Basic queries
+
+Run a SQL query against one or more files. Each file becomes a DuckDB relation:
+
+```{bash}
+rush sql "SELECT mpg, cyl, hp FROM mtcars WHERE mpg > 25 ORDER BY mpg DESC" mtcars.csv
+```
+
+### Aggregations
+
+DuckDB's full SQL is available — aggregations, window functions, CTEs:
+
+```{bash}
+rush sql "SELECT cyl,
+                 COUNT(*) AS n,
+                 ROUND(AVG(mpg), 1) AS avg_mpg,
+                 MIN(hp) AS min_hp,
+                 MAX(hp) AS max_hp
+          FROM mtcars
+          GROUP BY cyl
+          ORDER BY cyl" mtcars.csv
+```
+
+### Querying Parquet files
+
+Parquet files are registered via DuckDB's `read_parquet`, so large-file queries
+run without loading everything into memory:
+
+```{bash}
+rush sql "SELECT carrier, COUNT(*) AS flights, ROUND(AVG(arr_delay), 1) AS avg_delay
+          FROM flights
+          GROUP BY carrier
+          ORDER BY avg_delay DESC" flights.parquet
+```
+
+### Querying DuckDB databases
+
+A `.duckdb` file is attached as a schema, and its tables are accessible as
+`schema.table`:
+
+```{bash}
+rush sql "SELECT p.name, p.category, SUM(s.quantity) AS total_sold
+          FROM inventory.products p
+          JOIN inventory.sales s ON p.id = s.product_id
+          GROUP BY p.name, p.category
+          ORDER BY total_sold DESC" inventory.duckdb
+```
+
+### Querying standard input
+
+Use `-` to read CSV from stdin as a relation named `stdin`:
+
+```{bash}
+echo "item,price,qty
+apple,1.20,10
+banana,0.80,25
+cherry,3.50,5" | rush sql "SELECT item, price * qty AS total FROM stdin ORDER BY total DESC" -
+```
+
+### Joining multiple files
+
+Pass multiple files and each becomes a relation you can join:
+
+```{bash}
+echo "cyl,fuel_type
+4,regular
+6,premium
+8,premium" > fuel.csv
+rush sql "SELECT m.cyl, f.fuel_type, ROUND(AVG(m.mpg), 1) AS avg_mpg
+          FROM mtcars m JOIN fuel f ON m.cyl = f.cyl
+          GROUP BY m.cyl, f.fuel_type
+          ORDER BY m.cyl" mtcars.csv fuel.csv
+```
+
+### SQL with `--output`
+
+Pipe a SQL result to Parquet or another file:
+
+```{bash}
+rush sql -o efficient.parquet "SELECT * FROM mtcars WHERE mpg > 20" mtcars.csv
+rush run 'nrow(df)' efficient.parquet
+```
+
+### SQL with `--tidyverse`
+
+Load tidyverse packages alongside the SQL query — useful when you want to
+post-process the result with `--library` or pipe it into further R:
+
+```{bash}
+rush sql -t "SELECT cyl, AVG(mpg) as avg_mpg FROM mtcars GROUP BY cyl" mtcars.csv
+```
+
+### SQL `--dry-run`
+
+See the generated script that runs the query:
+
+```{bash}
+rush sql -n "SELECT COUNT(*) FROM mtcars" mtcars.csv
+```
+
+---
+
+## rush plot
+
+### Scatter plot (default with x and y)
+
+When both `--x` and `--y` are given, `rush` guesses `geom_point`:
+
+```{bash}
+rush plot -n -x wt -y mpg mtcars.csv
+```
+
+### Histogram (default with x only)
+
+When only `--x` is given, `rush` guesses `geom_histogram`:
+
+```{bash}
+rush plot -n -x mpg mtcars.csv
+```
+
+### `--geom` (`-g`)
+
+Override the guessed geom. Any ggplot2 geom suffix works:
+
+```{bash}
+rush plot -n -x mpg -g density mtcars.csv
+```
+
+```{bash}
+rush plot -n -x cyl -y mpg -g boxplot mtcars.csv
+```
+
+```{bash}
+rush plot -n -x wt -y mpg -g smooth mtcars.csv
+```
+
+### `--color` (`-c`)
+
+Map a column to the color aesthetic:
+
+```{bash}
+rush plot -n -x wt -y mpg -c 'factor(cyl)' mtcars.csv
+```
+
+### `--fill` (`-f`)
+
+Map a column to fill (useful for histograms, bar charts, density plots):
+
+```{bash}
+rush plot -n -x mpg -g density -f 'factor(cyl)' --alpha 0.5 mtcars.csv
+```
+
+### `--alpha` (`-a`)
+
+Map a column to transparency, or use a constant for semi-transparent geoms:
+
+```{bash}
+rush plot -n -x wt -y mpg --size hp --alpha 0.6 mtcars.csv
+```
+
+### `--size`
+
+Map a column to point size — great for bubble charts:
+
+```{bash}
+rush plot -n -x wt -y mpg --size hp -c 'factor(cyl)' mtcars.csv
+```
+
+### `--shape`
+
+Map a column to point shape:
+
+```{bash}
+rush plot -n -x wt -y mpg --shape 'factor(vs)' mtcars.csv
+```
+
+### `--group`
+
+Group observations for geoms like `geom_line` that connect points:
+
+```{bash}
+rush plot -n -x wt -y mpg --group 'factor(cyl)' -g line mtcars.csv
+```
+
+### `--aes`
+
+Pass additional aesthetics as `key=value` pairs for anything not covered by
+the dedicated flags:
+
+```{bash}
+rush plot -n -x wt -y mpg --aes "label=rownames(df)" -g text mtcars.csv
+```
+
+### `--log`
+
+Log-transform axes. Accepts `x`, `y`, or `xy`:
+
+```{bash}
+rush plot -n -x hp -y mpg --log xy mtcars.csv
+```
+
+```{bash}
+rush plot -n -x hp -y mpg --log x mtcars.csv
+```
+
+### `--facets` (one-sided: facet_wrap)
+
+A one-sided formula uses `facet_wrap`:
+
+```{bash}
+rush plot -n -x wt -y mpg --facets '~ cyl' mtcars.csv
+```
+
+### `--facets` (two-sided: facet_grid) + `--margins`
+
+A two-sided formula uses `facet_grid`. Add `--margins` to show marginal panels:
+
+```{bash}
+rush plot -n -x wt -y mpg --facets 'vs ~ cyl' --margins mtcars.csv
+```
+
+### `--title`, `--xlab`, `--ylab`
+
+Add axis labels and a title:
+
+```{bash}
+rush plot -n -x wt -y mpg --title "Fuel Efficiency vs Weight" --xlab "Weight (1000 lbs)" --ylab "Miles per Gallon" mtcars.csv
+```
+
+### `--pre`
+
+Run code before the plot is built. Useful for data transformations:
+
+```{bash}
+rush plot -n -x cyl -y mean_mpg --pre 'df <- df |> dplyr::summarise(mean_mpg = mean(mpg), .by = cyl)' -g col mtcars.csv
+```
+
+### `--post`
+
+Run code after the plot is built. The plot object is available as `p`, and
+the value of the last `--post` expression becomes the result. Use this to
+add custom layers, themes, or annotations:
+
+```{bash}
+rush plot -n -x wt -y mpg --post 'p + ggplot2::theme_minimal() + ggplot2::geom_smooth(method = "lm")' mtcars.csv
+```
+
+### Saving to a file (`--output`)
+
+When `--output` points to a file, the plot is saved (device inferred from extension):
+
+```{bash}
+rush plot -x wt -y mpg -o scatter.png mtcars.csv 2>/dev/null
+ls -la scatter.png
+```
+
+### `--width`, `--height`, `--units`, `--dpi`
+
+Control the saved image dimensions and resolution:
+
+```{bash}
+rush plot -x wt -y mpg -o hires.png --width 10 --height 6 --units in --dpi 150 mtcars.csv 2>/dev/null
+ls -la hires.png
+```
+
+### Reading from stdin for plots
+
+Without a file argument, `plot` reads from standard input:
+
+```{bash}
+rush run 'head(mtcars, 10)' | rush plot -n -x wt -y mpg -
+```
+
+### Plotting multiple files
+
+With multiple files, each is read into `dfs`. Use `--pre` to combine them
+into `df` before plotting:
+
+```{bash}
+echo "src,x,y
+A,1,2
+A,2,4
+A,3,5" > a.csv
+echo "src,x,y
+B,1,3
+B,2,2
+B,3,6" > b.csv
+rush plot -n -x x -y y -c src --pre 'df <- dplyr::bind_rows(dfs)' a.csv b.csv
+```
+
+### Plotting Parquet data
+
+Parquet files work seamlessly:
+
+```{bash}
+rush plot -n -x distance -y air_time -c carrier flights.parquet
+```
+
+### `--tidyverse` with plot
+
+Load the tidyverse for richer transformations in `--pre` or `--post`:
+
+```{bash}
+rush plot -n -t -x cyl -y n --pre 'df <- count(df, cyl)' -g col mtcars.csv
+```
+
+### `--seed` with plot
+
+Set the random seed when your plot involves sampling or jitter:
+
+```{bash}
+rush plot -n --seed 123 -x cyl -y mpg -g jitter mtcars.csv
+```
+
+---
+
+## Combining commands in pipelines
+
+The real power of `rush` is combining commands in Unix pipelines:
+
+```{bash}
+# Query with SQL, then plot the result
+rush sql "SELECT cyl, COUNT(*) as n, AVG(mpg) as avg_mpg FROM mtcars GROUP BY cyl" mtcars.csv | \
+  rush plot -n -x cyl -y avg_mpg --size n -g point -
+```
+
+```{bash}
+# Filter with rush run, convert to Parquet, query the Parquet
+rush run 'dplyr::filter(df, mpg > 15)' mtcars.csv | \
+  rush sql "SELECT cyl, ROUND(AVG(mpg),1) as avg FROM stdin GROUP BY cyl ORDER BY cyl" -
+```
+
+```{r, include=FALSE}
+unlink(c("mtcars.csv", "cities.tsv", "numbers.txt", "flights.parquet",
+         "inventory.duckdb", "fuel.csv", "a.csv", "b.csv", "summary.csv",
+         "subset.parquet", "efficient.parquet", "scatter.png", "hires.png"))
+```

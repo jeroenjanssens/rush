@@ -9,3 +9,5 @@
 ^\.github$
 ^cran-comments\.md$
 ^air\.toml$
+^examples\.Rmd$
+^examples\.md$
