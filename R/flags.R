@@ -125,7 +125,13 @@ Arguments:
                            'dfs') via DuckDB, everything else as delimited
                            text. Use '-' to read delimited text from standard
                            input. With multiple files, each is read into a
-                           named element of a list 'dfs'.
+                           named element of a list 'dfs', keyed by each file's
+                           base name (lowercased, with non-alphanumeric chars
+                           replaced by underscores; names starting with a digit
+                           are prefixed with 'x'). Files with the same base
+                           name in different directories collide.
+
+Note: --delimiter affects both reading and writing delimited data.
 
 Reading options:
 {flags_section(category == 'read')}
@@ -178,12 +184,17 @@ Usage:
 Arguments:
   <query>                  DuckDB SQL query to run. Its result is printed or
                            written out.
-  <file>                   File(s) to expose to the query, each as a relation
-                           named after the file's base name. CSV files are
-                           read with read_csv_auto, Parquet with read_parquet,
-                           and a '.duckdb' database is attached so its tables
-                           are addressed as name.table. Use '-' to read CSV
-                           from standard input as a relation named 'stdin'.
+  <file>                   File(s) to expose to the query, each as a DuckDB
+                           relation named after the file's base name (lowercased,
+                           non-alphanumeric chars become underscores; names
+                           starting with a digit are prefixed with 'x'). The
+                           relation is double-quoted in the generated SQL, so
+                           refer to it as e.g. SELECT * FROM \"x2024\". CSV files
+                           are read with read_csv_auto, Parquet with read_parquet,
+                           and a '.duckdb' database is attached so its tables are
+                           addressed as name.table. Use '-' to read CSV from
+                           standard input as a relation named 'stdin'. Files with
+                           the same base name in different directories collide.
 
 Setup options:
 {flags_section(category == 'setup')}
