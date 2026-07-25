@@ -218,12 +218,7 @@ rush <- function(...) {
     }
   }
 
-  # Writing a Parquet result needs nanoparquet in the script's frontmatter,
-  # regardless of which command produced the result.
-  if (
-    !is.null(flags$output) &&
-      tolower(tools::file_ext(flags$output)) %in% c("parquet", "pq")
-  ) {
+  if (is_parquet_output(flags$output)) {
     pkgs <- c(pkgs, "nanoparquet")
   }
 

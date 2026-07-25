@@ -88,8 +88,8 @@ test_that("stdin is read from a binary connection", {
 test_that("run reads multiple files into a dfs list", {
   script <- dry_run("run", "-n", "nrow(dfs$a)", "a.csv", "b.csv")
   expect_true(any(grepl("^dfs <- list\\(\\)$", script)))
-  expect_true(any(grepl("dfs\\$a <- .*read_delim\\(\"a.csv\"", script)))
-  expect_true(any(grepl("dfs\\$b <- .*read_delim\\(\"b.csv\"", script)))
+  expect_true(any(grepl('dfs\\[\\["a"\\]\\] <- .*read_delim\\("a.csv"', script)))
+  expect_true(any(grepl('dfs\\[\\["b"\\]\\] <- .*read_delim\\("b.csv"', script)))
 })
 
 test_that("run reads a Parquet file with nanoparquet", {
@@ -144,24 +144,46 @@ test_that("sql registers files as relations and runs the query", {
     script
   )))
   expect_true(any(grepl(
-    "CREATE VIEW a AS SELECT \\* FROM read_csv_auto\\('a.csv'\\)",
+    "CREATE VIEW ..a.. AS SELECT .* FROM read_csv_auto",
     script
   )))
   expect_true(any(grepl(
-    "CREATE VIEW b AS SELECT \\* FROM read_parquet\\('b.parquet'\\)",
+    "CREATE VIEW ..b.. AS SELECT .* FROM read_parquet",
     script
   )))
-  expect_true(any(grepl("ATTACH 'w.duckdb' AS w \\(READ_ONLY\\)", script)))
-  # stdin is buffered to a seekable temp file before being read as CSV.
+  expect_true(any(grepl("ATTACH .* AS ..w.. .READ_ONLY.", script)))
   expect_true(any(grepl("\\.stdin_tmp <- tempfile", script)))
   expect_true(any(grepl(
-    "CREATE VIEW stdin AS SELECT \\* FROM read_csv_auto",
+    "CREATE VIEW .stdin. AS SELECT .* FROM read_csv_auto",
     script
   )))
   expect_true(any(grepl(
     "result <- DBI::dbGetQuery\\(con, \"SELECT \\* FROM a JOIN b USING \\(x\\)\"\\)",
     script
   )))
+})
+
+test_that("run with digit-prefixed file names generates parseable code", {
+  script <- dry_run("run", "-n", "head(df)", "2024.csv")
+  expect_silent(parse(text = script))
+})
+
+test_that("multi-file digit-prefixed names use valid dfs[[]] indexing", {
+  script <- dry_run("run", "-n", "nrow(dfs)", "2024.csv", "2025.csv")
+  expect_true(any(grepl('dfs\\[\\["x2024"\\]\\]', script)))
+  expect_true(any(grepl('dfs\\[\\["x2025"\\]\\]', script)))
+  expect_silent(parse(text = script))
+})
+
+test_that("sql with digit-prefixed file emits a quoted relation", {
+  script <- dry_run("sql", "-n", "SELECT 1", "2024.csv")
+  expect_true(any(grepl("CREATE VIEW ..x2024..", script)))
+  expect_silent(parse(text = script))
+})
+
+test_that("sql emits on.exit disconnect", {
+  script <- dry_run("sql", "-n", "SELECT 1", "a.csv")
+  expect_true(any(grepl("on\\.exit\\(DBI::dbDisconnect", script)))
 })
 
 test_that("plot reads a single file into df", {
@@ -186,8 +208,8 @@ test_that("plot reads multiple files into a dfs list", {
     "b.csv"
   )
   expect_true(any(grepl("^dfs <- list\\(\\)$", script)))
-  expect_true(any(grepl("dfs\\$a <- .*read_delim\\(\"a.csv\"", script)))
-  expect_true(any(grepl("dfs\\$b <- .*read_delim\\(\"b.csv\"", script)))
+  expect_true(any(grepl('dfs\\[\\["a"\\]\\] <- .*read_delim\\("a.csv"', script)))
+  expect_true(any(grepl('dfs\\[\\["b"\\]\\] <- .*read_delim\\("b.csv"', script)))
   expect_true(any(grepl("df <- dplyr::bind_rows\\(dfs\\)", script)))
 })
 

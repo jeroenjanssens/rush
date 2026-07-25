@@ -41,24 +41,39 @@ clean_names_simple <- function(x) {
   make.unique(x, sep = "_")
 }
 
-# Emit the code that reads the input file(s), shared by `run` and `plot`. A
-# single file is read into a data frame named `df`; multiple files are each
-# read into a named element of a list `dfs`. Use "-" for standard input.
-# The reader is chosen by file extension: `.parquet`/`.pq` via nanoparquet,
-# `.duckdb`/`.ddb` (a database file, whose tables each become an element of
-# `dfs`) via DuckDB, and everything else as delimited text. Returns the extra
-# packages the emitted read code depends on.
+file_kind <- function(path) {
+  if (path == "-") return("stdin")
+  ext <- tolower(tools::file_ext(path))
+  if (ext %in% c("parquet", "pq")) return("parquet")
+  if (ext %in% c("duckdb", "ddb")) return("duckdb")
+  "delim"
+}
+
+is_parquet_output <- function(output) {
+  !is.null(output) && tolower(tools::file_ext(output)) %in% c("parquet", "pq")
+}
+
+input_names <- function(files) {
+  nms <- ifelse(
+    files == "-",
+    "stdin",
+    tools::file_path_sans_ext(basename(files))
+  ) |>
+    clean_names_simple()
+  # Prefix with "x" if name starts with a digit to ensure valid R identifier
+  needs_prefix <- grepl("^[0-9]", nms)
+  nms[needs_prefix] <- paste0("x", nms[needs_prefix])
+  make.unique(nms, sep = "_")
+}
+
 emit_read_files <- function(con, files, flags) {
   pkgs <- character(0)
 
-  is_duckdb <- function(path) {
-    tolower(tools::file_ext(path)) %in% c("duckdb", "ddb")
-  }
-
-  # A read expression for a single delimited or Parquet file (not a database).
   read_call <- function(path) {
-    if (tolower(tools::file_ext(path)) %in% c("parquet", "pq")) {
-      pkgs <<- c(pkgs, "nanoparquet")
+    read_pkgs <- character(0)
+    kind <- file_kind(path)
+    if (kind == "parquet") {
+      read_pkgs <- "nanoparquet"
       read_expr <- expr(nanoparquet::read_parquet(!!path))
     } else {
       if (path == "-") {
@@ -73,14 +88,10 @@ emit_read_files <- function(con, files, flags) {
     if (!flags$no_clean_names) {
       read_expr <- expr(janitor::clean_names(!!read_expr))
     }
-    read_expr
+    list(expr = read_expr, packages = read_pkgs)
   }
 
-  # A DuckDB database holds any number of tables, so read each of them into a
-  # named element of `dfs`. The table count is only known at run time, so this
-  # is emitted as a small runtime loop rather than resolved here.
   emit_duckdb <- function(path) {
-    pkgs <<- c(pkgs, "duckdb", "DBI")
     read <- if (!flags$no_clean_names) {
       "    dfs[[.t]] <<- janitor::clean_names(DBI::dbReadTable(.con, .t))"
     } else {
@@ -102,35 +113,31 @@ emit_read_files <- function(con, files, flags) {
       ),
       con
     )
+    c("duckdb", "DBI")
   }
 
-  # A lone delimited or Parquet file reads straight into `df`. Anything else
-  # (a database, or several files) populates the `dfs` list.
-  if (length(files) == 1 && !is_duckdb(files[[1]])) {
-    code_expression(con, `<-`(df, !!read_call(files)))
+  if (length(files) == 1 && file_kind(files[[1]]) != "duckdb") {
+    rc <- read_call(files)
+    pkgs <- c(pkgs, rc$packages)
+    code_expression(con, `<-`(df, !!rc$expr))
   } else {
-    df_names <-
-      ifelse(
-        files == "-",
-        "stdin",
-        tools::file_path_sans_ext(basename(files))
-      ) |>
-      clean_names_simple()
+    df_names <- input_names(files)
 
     code_expression(con, dfs <- list())
     for (i in seq_along(files)) {
-      if (is_duckdb(files[[i]])) {
-        emit_duckdb(files[[i]])
+      if (file_kind(files[[i]]) == "duckdb") {
+        pkgs <- c(pkgs, emit_duckdb(files[[i]]))
       } else {
-        df_name <- rlang::parse_expr(paste0("dfs$", df_names[[i]]))
-        code_expression(
-          con,
-          !!rlang::call2("<-", df_name, read_call(files[[i]]))
+        rc <- read_call(files[[i]])
+        pkgs <- c(pkgs, rc$packages)
+        assign_expr <- rlang::call2(
+          "<-",
+          rlang::call2("[[", rlang::sym("dfs"), df_names[[i]]),
+          rc$expr
         )
+        code_expression(con, !!assign_expr)
       }
     }
-    # A single database with exactly one table behaves like any other single
-    # input, so also expose that table as `df`.
     if (length(files) == 1) {
       code_expression(con, if (length(dfs) == 1) df <- dfs[[1]])
     }
@@ -142,41 +149,37 @@ emit_read_files <- function(con, files, flags) {
   unique(pkgs)
 }
 
-# Emit the code for the `sql` command: register each input file as a DuckDB
-# view (or attach a database) named after its base name, run the query, and
-# leave the result in `result` for the output dispatch. Use "-" for a `stdin`
-# view reading CSV from standard input.
 emit_sql <- function(con, query, files, flags) {
   sql_str <- function(x) paste0("'", gsub("'", "''", x, fixed = TRUE), "'")
+  sql_id <- function(x) paste0('"', gsub('"', '""', x, fixed = TRUE), '"')
 
   writeLines("con <- DBI::dbConnect(duckdb::duckdb())", con)
+  writeLines("on.exit(DBI::dbDisconnect(con, shutdown = TRUE), add = TRUE)", con)
 
   if (length(files) > 0) {
-    names <-
-      ifelse(
-        files == "-",
-        "stdin",
-        tools::file_path_sans_ext(basename(files))
-      ) |>
-      clean_names_simple()
+    names <- input_names(files)
 
     for (i in seq_along(files)) {
       path <- files[[i]]
       nm <- names[[i]]
-      ext <- tolower(tools::file_ext(path))
-      if (ext %in% c("parquet", "pq")) {
+      kind <- file_kind(path)
+      if (kind == "parquet") {
         stmt <- paste0(
           "CREATE VIEW ",
-          nm,
+          sql_id(nm),
           " AS SELECT * FROM read_parquet(",
           sql_str(path),
           ")"
         )
-      } else if (ext %in% c("duckdb", "ddb")) {
-        stmt <- paste0("ATTACH ", sql_str(path), " AS ", nm, " (READ_ONLY)")
-      } else if (path == "-") {
-        # DuckDB's CSV reader seeks to sniff the schema, which a pipe does not
-        # support, so buffer standard input to a seekable temporary file first.
+      } else if (kind == "duckdb") {
+        stmt <- paste0(
+          "ATTACH ",
+          sql_str(path),
+          " AS ",
+          sql_id(nm),
+          " (READ_ONLY)"
+        )
+      } else if (kind == "stdin") {
         writeLines(
           c(
             ".stdin_tmp <- tempfile(fileext = \".csv\")",
@@ -187,7 +190,7 @@ emit_sql <- function(con, query, files, flags) {
             "})",
             paste0(
               "invisible(DBI::dbExecute(con, paste0(\"CREATE VIEW ",
-              nm,
+              sql_id(nm),
               " AS SELECT * FROM read_csv_auto('\", .stdin_tmp, \"')\")))"
             )
           ),
@@ -197,7 +200,7 @@ emit_sql <- function(con, query, files, flags) {
       } else {
         stmt <- paste0(
           "CREATE VIEW ",
-          nm,
+          sql_id(nm),
           " AS SELECT * FROM read_csv_auto(",
           sql_str(path),
           ")"
@@ -222,21 +225,10 @@ emit_sql <- function(con, query, files, flags) {
     ),
     con
   )
-  writeLines("DBI::dbDisconnect(con, shutdown = TRUE)", con)
 }
 
-# Bake the runtime context that the dispatch block needs into an R list
-# literal, so the generated script stays self-contained.
 script_preamble <- function(flags) {
-  output_format <-
-    if (
-      !is.null(flags$output) &&
-        tolower(tools::file_ext(flags$output)) %in% c("parquet", "pq")
-    ) {
-      "parquet"
-    } else {
-      "delim"
-    }
+  output_format <- if (is_parquet_output(flags$output)) "parquet" else "delim"
   ctx <- list(
     output = flags$output,
     output_format = output_format,
