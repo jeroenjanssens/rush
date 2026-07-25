@@ -139,12 +139,17 @@ rush <- function(...) {
       rlang::call2(paste0("geom_", geom))
     )
 
-    # Log-transform the requested axes.
     if (!is.null(flags$log)) {
-      if (stringr::str_detect(flags$log, "x")) {
+      if (!flags$log %in% c("x", "y", "xy")) {
+        cli::cli_abort(c(
+          "{.arg --log} must be one of {.val x}, {.val y}, or {.val xy}.",
+          x = "Got {.val {flags$log}}."
+        ))
+      }
+      if (grepl("x", flags$log, fixed = TRUE)) {
         plot_call <- rlang::call2("+", plot_call, rlang::call2("scale_x_log10"))
       }
-      if (stringr::str_detect(flags$log, "y")) {
+      if (grepl("y", flags$log, fixed = TRUE)) {
         plot_call <- rlang::call2("+", plot_call, rlang::call2("scale_y_log10"))
       }
     }

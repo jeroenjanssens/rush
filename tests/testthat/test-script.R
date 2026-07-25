@@ -259,6 +259,13 @@ test_that("plot --geom overrides the guessed geom", {
   expect_false(any(grepl("geom_point", script)))
 })
 
+test_that("plot --log rejects invalid values", {
+  expect_error(
+    rush("plot", "-n", "-x", "wt", "--log", "z", "mtcars.csv"),
+    "--log.*must be one of"
+  )
+})
+
 test_that("plot --log adds log scales for the requested axes", {
   script <- dry_run(
     "plot",
