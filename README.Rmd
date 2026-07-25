@@ -222,7 +222,9 @@ rush plot --x mpg --geom density --fill 'factor(cyl)' mtcars.csv > ../man/figure
 Terminal plotting relies on three packages that are not on CRAN — `devout`,
 `miniansi`, and `devoutansi` — but you do not need to install them yourself.
 `rush` declares them in the generated script's frontmatter, and `ir` fetches
-them from GitHub the first time they are needed.
+them from GitHub the first time they are needed. These references are unpinned
+(they track the default branch of each repository); if you need reproducibility,
+pin them to specific commit SHAs in the generated script.
 
 ## Saving and reusing scripts
 
