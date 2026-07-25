@@ -50,16 +50,7 @@ rush <- function(...) {
       ))
     }
 
-    # Load libraries
-    if (flags$tidyverse) {
-      code_library(body, "tidyverse")
-      code_library(body, "glue")
-      pkgs <- c(pkgs, "tidyverse", "glue")
-    }
-    if (!is.null(flags$library)) {
-      purrr::walk(flags$library, function(e) code_library(body, e))
-      pkgs <- c(pkgs, as.character(flags$library))
-    }
+    pkgs <- c(pkgs, emit_setup_libraries(body, flags))
 
     # Read files
     if (length(flags$file) >= 1) {
@@ -84,15 +75,7 @@ rush <- function(...) {
       ))
     }
 
-    if (flags$tidyverse) {
-      code_library(body, "tidyverse")
-      code_library(body, "glue")
-      pkgs <- c(pkgs, "tidyverse", "glue")
-    }
-    if (!is.null(flags$library)) {
-      purrr::walk(flags$library, function(e) code_library(body, e))
-      pkgs <- c(pkgs, as.character(flags$library))
-    }
+    pkgs <- c(pkgs, emit_setup_libraries(body, flags))
 
     # The query is a raw string (not parsed as R), unlike `run`'s expression.
     emit_sql(body, flags$query, flags$file, flags)
@@ -109,17 +92,7 @@ rush <- function(...) {
       "github::coolbutuseless/devoutansi"
     )
 
-    if (flags$tidyverse) {
-      code_library(body, "tidyverse")
-      code_library(body, "glue")
-      pkgs <- c(pkgs, "tidyverse", "glue")
-    } else {
-      code_library(body, "ggplot2")
-    }
-    if (!is.null(flags$library)) {
-      purrr::walk(flags$library, function(e) code_library(body, e))
-      pkgs <- c(pkgs, as.character(flags$library))
-    }
+    pkgs <- c(pkgs, emit_setup_libraries(body, flags, default = "ggplot2"))
 
     # Default to standard input when no file is given. Multiple files are read
     # into a `dfs` list; combine them into `df` yourself with, e.g.,

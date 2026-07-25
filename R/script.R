@@ -32,6 +32,22 @@ frontmatter <- function(packages) {
   )
 }
 
+emit_setup_libraries <- function(con, flags, default = character()) {
+  pkgs <- character(0)
+  if (flags$tidyverse) {
+    code_library(con, "tidyverse")
+    code_library(con, "glue")
+    pkgs <- c(pkgs, "tidyverse", "glue")
+  } else if (length(default) > 0) {
+    purrr::walk(default, function(e) code_library(con, e))
+  }
+  if (!is.null(flags$library)) {
+    purrr::walk(flags$library, function(e) code_library(con, e))
+    pkgs <- c(pkgs, as.character(flags$library))
+  }
+  pkgs
+}
+
 # A minimal, dependency-free version of janitor::make_clean_names, used only
 # to turn multiple input file names into distinct data-frame names.
 clean_names_simple <- function(x) {
