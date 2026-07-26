@@ -40,7 +40,8 @@ rush <- function(...) {
   result <- switch(flags$command,
     run = build_run_body(body, flags),
     sql = build_sql_body(body, flags),
-    plot = build_plot_body(body, flags)
+    plot = build_plot_body(body, flags),
+    convert = build_convert_body(body, flags)
   )
   pkgs <- c(pkgs, result)
 
@@ -149,6 +150,35 @@ build_plot_body <- function(con, flags) {
       con,
       !!rlang::call2("<-", rlang::sym("result"), plot_call)
     )
+  }
+
+  pkgs
+}
+
+build_convert_body <- function(con, flags) {
+  if (length(flags$file) == 0) {
+    cli::cli_abort(c(
+      "No input file to convert.",
+      i = "Provide at least one file, e.g. {.code rush convert data.csv -o data.parquet}.",
+      i = "See {.code rush convert -h} for usage."
+    ))
+  }
+  if (is.null(flags$output)) {
+    cli::cli_abort(c(
+      "No output file specified.",
+      i = "Use {.code -o <file>} to specify the output file.",
+      i = "See {.code rush convert -h} for usage."
+    ))
+  }
+
+  pkgs <- emit_setup_libraries(con, flags)
+  pkgs <- c(pkgs, emit_read_files(con, flags$file, flags))
+
+  if (length(flags$file) > 1) {
+    code_expression(con, result <- dplyr::bind_rows(dfs))
+    pkgs <- c(pkgs, "dplyr")
+  } else {
+    code_expression(con, result <- df)
   }
 
   pkgs

@@ -530,6 +530,57 @@ test_that("sql reads JSONL files via read_json_auto", {
   expect_true(any(grepl("read_json_auto", script)))
 })
 
+test_that("convert without input errors", {
+  expect_error(rush("convert", "-o", "out.parquet"), "No input file to convert")
+})
+
+test_that("convert without output errors", {
+  expect_error(rush("convert", "data.csv"), "No output file specified")
+})
+
+test_that("convert csv to parquet generates correct script", {
+  script <- dry_run("convert", "-n", "-o", "out.parquet", "data.csv")
+  expect_true(any(grepl("read_delim\\(\"data.csv\"", script)))
+  expect_true(any(grepl("result <- df", script)))
+  expect_true(any(grepl('output_format = "parquet"', script)))
+  expect_true(any(grepl("nanoparquet::write_parquet", script)))
+})
+
+test_that("convert json to csv generates correct script", {
+  script <- dry_run("convert", "-n", "-o", "out.csv", "data.json")
+  expect_true(any(grepl("jsonlite::fromJSON", script)))
+  expect_true(any(grepl("result <- df", script)))
+  expect_true(any(grepl("readr::write_delim", script)))
+})
+
+test_that("convert with multiple input files uses bind_rows", {
+  script <- dry_run("convert", "-n", "-o", "out.parquet", "a.csv", "b.csv")
+  expect_true(any(grepl("dfs <- list", script)))
+  expect_true(any(grepl("dplyr::bind_rows\\(dfs\\)", script)))
+})
+
+test_that("convert respects -F for input format override", {
+  script <- dry_run("convert", "-n", "-F", "json", "-o", "out.csv", "data.txt")
+  expect_true(any(grepl("jsonlite::fromJSON", script)))
+})
+
+test_that("convert respects -O for output format override", {
+  script <- dry_run("convert", "-n", "-O", "jsonl", "-o", "out.txt", "data.csv")
+  expect_true(any(grepl('output_format = "jsonl"', script)))
+  expect_true(any(grepl("jsonlite::stream_out", script)))
+})
+
+test_that("convert parquet to xlsx", {
+  script <- dry_run("convert", "-n", "-o", "out.xlsx", "data.parquet")
+  expect_true(any(grepl("nanoparquet::read_parquet", script)))
+  expect_true(any(grepl("writexl::write_xlsx", script)))
+})
+
+test_that("convert applies --head to limit rows", {
+  script <- dry_run("convert", "-n", "--head", "10", "-o", "out.csv", "data.parquet")
+  expect_true(any(grepl("head = 10L", script)))
+})
+
 test_that("plot --pre and --post wrap the plot call", {
   script <- dry_run(
     "plot",

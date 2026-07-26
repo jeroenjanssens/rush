@@ -112,6 +112,7 @@ Options:
 {flags_section(category == 'general')}
 
 Commands:
+  convert
   plot
   run
   sql",
@@ -176,6 +177,30 @@ Setup options:
 
 Plotting options:
 {flags_section(category == 'plot')}
+
+Saving options:
+{flags_section(category == 'save')}
+
+General options:
+{flags_section(category == 'general')}",
+
+  convert = "rush: Convert between file formats
+
+Usage:
+  rush convert [options] [<file>...]
+
+Arguments:
+  <file>                   Input file(s) to convert. The reader is chosen by
+                           extension (or overridden with -F). Use '-' to read
+                           from standard input. Output file is specified with
+                           --output (-o); its format is inferred from extension
+                           (or overridden with -O).
+
+Reading options:
+{flags_section(category == 'read')}
+
+Setup options:
+{flags_section(category == 'setup')}
 
 Saving options:
 {flags_section(category == 'save')}
