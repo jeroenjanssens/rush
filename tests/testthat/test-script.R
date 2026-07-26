@@ -534,8 +534,16 @@ test_that("convert without input errors", {
   expect_error(rush("convert", "-o", "out.parquet"), "No input file to convert")
 })
 
-test_that("convert without output errors", {
-  expect_error(rush("convert", "data.csv"), "No output file specified")
+test_that("convert without output or format errors", {
+  expect_error(rush("convert", "data.csv"), "No output format specified")
+})
+
+test_that("convert to stdout with -O works", {
+  script <- dry_run("convert", "-n", "-O", "json", "data.csv")
+  expect_true(any(grepl("read_delim", script)))
+  expect_true(any(grepl("result <- df", script)))
+  expect_true(any(grepl('output_format = "json"', script)))
+  expect_true(any(grepl("jsonlite::toJSON", script)))
 })
 
 test_that("convert csv to parquet generates correct script", {

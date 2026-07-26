@@ -163,10 +163,10 @@ build_convert_body <- function(con, flags) {
       i = "See {.code rush convert -h} for usage."
     ))
   }
-  if (is.null(flags$output)) {
+  if (is.null(flags$output) && identical(flags$output_format, "auto")) {
     cli::cli_abort(c(
-      "No output file specified.",
-      i = "Use {.code -o <file>} to specify the output file.",
+      "No output format specified.",
+      i = "Use {.code -o <file>} to write to a file, or {.code -O <format>} to write to stdout.",
       i = "See {.code rush convert -h} for usage."
     ))
   }
