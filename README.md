@@ -36,8 +36,11 @@ to manage a library of packages just to run a one-liner.
 - **Pipeline-native.** Reads from standard input and writes to standard
   output, so it composes with every other command-line tool.
 - **Reads what you have.** CSV and other delimited text,
-  [Parquet](#parquet), and [DuckDB](#duckdb) databases — chosen
+  [Parquet](#parquet), [JSON/JSONL](#json), [Excel](#excel),
+  [Arrow IPC](#arrow), and [DuckDB](#duckdb) databases — chosen
   automatically by file extension.
+- **Converts between formats.** The [`convert`](#format-conversion)
+  command converts files directly between any supported format.
 - **Query with SQL.** The [`sql`](#querying-with-sql) command runs
   DuckDB queries directly against your files, no import step required.
 - **Plots in your terminal.** The [`plot`](#plotting) command renders
@@ -130,7 +133,10 @@ pass several and each is read into a named element of a list called
 ### Delimited text
 
 CSV is the default. Use `--delimiter` (`-d`) for other separators and
-`--no-header` (`-H`) for files without a header row:
+`--no-header` (`-H`) for files without a header row. For finer control,
+use `--input-delimiter` and `--output-delimiter` (`-D`) to set them
+independently, or `-F`/`-O` to force a specific format regardless of
+extension:
 
 ``` bash
 rush run 'df |> dplyr::filter(mpg > 22) |> dplyr::select(mpg, cyl, hp)' mtcars.csv
@@ -179,6 +185,85 @@ If a database holds a single table, it is also bound to `df` for
 convenience, so a one-table database behaves just like any other single
 input.
 
+<a id="json"></a>
+
+### JSON and JSONL
+
+Files ending in `.json` are read with `jsonlite::fromJSON`; `.jsonl` and
+`.ndjson` files are read line-by-line with `jsonlite::stream_in`. Write
+JSON output with `-O json` or by naming the output file `.json`:
+
+``` bash
+rush run -O json 'head(mtcars, 3)' mtcars.csv
+#> [{"mpg":21,"cyl":6,...},{"mpg":21,"cyl":6,...},{"mpg":22.8,"cyl":4,...}]
+```
+
+JSONL (newline-delimited JSON) streams one object per line — ideal for
+large datasets or append-only logs:
+
+``` bash
+rush run -O jsonl 'head(mtcars, 2)' mtcars.csv
+#> {"mpg":21,"cyl":6,"disp":160,...}
+#> {"mpg":21,"cyl":6,"disp":160,...}
+```
+
+<a id="excel"></a>
+
+### Excel
+
+Files ending in `.xlsx` or `.xls` are read with
+[readxl](https://readxl.tidyverse.org/). Use `--sheet` to select a
+specific sheet by name or index:
+
+``` bash
+rush run --sheet Sales 'head(df)' report.xlsx
+rush run --sheet 2 'head(df)' report.xlsx
+```
+
+Write Excel files with `-O xlsx` or by naming the output `.xlsx`:
+
+``` bash
+rush run -o summary.xlsx 'data.frame(x = 1:3, y = letters[1:3])'
+```
+
+<a id="arrow"></a>
+
+### Arrow IPC / Feather
+
+Files ending in `.arrow`, `.ipc`, or `.feather` are read with
+[arrow](https://arrow.apache.org/docs/r/). Write Arrow IPC output with
+`-O arrow` or by naming the output accordingly:
+
+``` bash
+rush run -o mtcars.arrow 'head(mtcars, 5)'
+rush run 'nrow(df)' mtcars.arrow
+#> 5
+```
+
+## Format conversion
+
+The `convert` command converts between formats without writing an
+expression. It reads the input, infers the output format from the file
+extension (or `-O`), and writes the result:
+
+``` bash
+rush convert -o mtcars.parquet mtcars.csv
+rush convert -o mtcars.json mtcars.parquet
+rush convert -o mtcars.xlsx mtcars.csv
+```
+
+Convert multiple files at once — they are stacked with `bind_rows`:
+
+``` bash
+rush convert -o combined.parquet part1.csv part2.csv
+```
+
+Use `--head` to limit the number of rows written:
+
+``` bash
+rush convert --head 100 -o sample.csv large.parquet
+```
+
 ## Querying with SQL
 
 Sometimes SQL is simply the clearest way to express what you want —
@@ -201,8 +286,9 @@ than memory — the filtering and aggregation happen inside DuckDB, and
 only the result comes back to R.
 
 CSV files are read with `read_csv_auto`, Parquet with `read_parquet`,
-and a `.duckdb` database is attached so its tables are addressed as
-`name.table`. That makes joins across a whole database natural:
+JSON/JSONL with `read_json_auto`, and a `.duckdb` database is attached
+so its tables are addressed as `name.table`. That makes joins across a
+whole database natural:
 
 ``` bash
 rush sql "SELECT c.name, SUM(o.amount) AS total
