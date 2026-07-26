@@ -114,9 +114,15 @@ emit_read_files <- function(con, files, flags) {
     } else if (kind == "json") {
       read_pkgs <- "jsonlite"
       read_expr <- expr(jsonlite::fromJSON(!!path))
+      if (flags$resolved_output_format == "delim") {
+        read_expr <- expr(jsonlite::flatten(!!read_expr))
+      }
     } else if (kind == "jsonl") {
       read_pkgs <- "jsonlite"
       read_expr <- expr(jsonlite::stream_in(file(!!path), verbose = FALSE))
+      if (flags$resolved_output_format == "delim") {
+        read_expr <- expr(jsonlite::flatten(!!read_expr))
+      }
     } else if (kind == "xlsx") {
       read_pkgs <- "readxl"
       read_expr <- if (!is.null(flags$sheet)) {

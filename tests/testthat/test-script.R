@@ -387,22 +387,30 @@ test_that("-O parquet works like --output ending in .parquet", {
   expect_true(any(grepl("^#\\|   - nanoparquet$", script)))
 })
 
-test_that("run reads a JSON file with jsonlite", {
+test_that("run reads a JSON file with jsonlite and flattens for CSV output", {
   script <- dry_run("run", "-n", "head(df)", "data.json")
   expect_true(any(grepl("jsonlite::fromJSON\\(\"data.json\"\\)", script)))
+  expect_true(any(grepl("jsonlite::flatten", script)))
   expect_true(any(grepl("^#\\|   - jsonlite$", script)))
   expect_false(any(grepl("read_delim", script)))
 })
 
-test_that("run reads a JSONL file with jsonlite stream_in", {
+test_that("run reads a JSONL file with jsonlite stream_in and flattens for CSV", {
   script <- dry_run("run", "-n", "head(df)", "data.jsonl")
   expect_true(any(grepl("jsonlite::stream_in\\(file\\(\"data.jsonl\"\\)", script)))
+  expect_true(any(grepl("jsonlite::flatten", script)))
   expect_true(any(grepl("^#\\|   - jsonlite$", script)))
 })
 
 test_that("run reads an .ndjson file as JSONL", {
   script <- dry_run("run", "-n", "head(df)", "data.ndjson")
   expect_true(any(grepl("jsonlite::stream_in\\(file\\(\"data.ndjson\"\\)", script)))
+})
+
+test_that("JSON input does not flatten when output is JSON", {
+  script <- dry_run("run", "-n", "-O", "json", "head(df)", "data.json")
+  expect_true(any(grepl("jsonlite::fromJSON", script)))
+  expect_false(any(grepl("jsonlite::flatten", script)))
 })
 
 test_that("-F json forces JSON reading regardless of extension", {
