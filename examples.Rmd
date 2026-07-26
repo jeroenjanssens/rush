@@ -695,6 +695,45 @@ Streaming one JSON object per line — great for log pipelines:
 rush run -O jsonl 'head(df, 3)' mtcars.csv
 ```
 
+### Nested JSON/JSONL to CSV
+
+When outputting to CSV or TSV, nested JSON objects are automatically flattened
+using `jsonlite::flatten()`. Nested field names become dot-separated (then
+normalized to underscores by `clean_names`):
+
+```{bash}
+printf '{"user":"alice","event":"login","meta":{"ip":"192.168.1.1","browser":"firefox"}}\n{"user":"bob","event":"purchase","meta":{"ip":"10.0.0.5","browser":"chrome"}}\n{"user":"carol","event":"logout","meta":{"ip":"172.16.0.1","browser":"safari"}}\n' > logs.jsonl
+rush run 'df' logs.jsonl
+```
+
+Deeper nesting is flattened recursively:
+
+```{bash}
+printf '{"id":1,"info":{"name":"Widget","dims":{"w":10,"h":5,"d":3}}}\n{"id":2,"info":{"name":"Gadget","dims":{"w":8,"h":4,"d":2}}}\n' > products.jsonl
+rush run 'df' products.jsonl
+```
+
+When outputting to JSON, nesting is preserved as-is — no flattening occurs:
+
+```{bash}
+rush run -O json 'df' logs.jsonl
+```
+
+This also works seamlessly with `rush convert`:
+
+```{bash}
+rush convert -o logs.csv logs.jsonl 2>/dev/null
+cat logs.csv
+```
+
+And when the data has colliding names at different levels, the prefix
+disambiguates them:
+
+```{bash}
+printf '{"city":"Home","address":{"city":"Amsterdam","zip":"1012"}}\n{"city":"Work","address":{"city":"Rotterdam","zip":"3011"}}\n' > places.jsonl
+rush run 'df' places.jsonl
+```
+
 ### JSON with SQL
 
 DuckDB reads JSON/JSONL with `read_json_auto`:
@@ -939,5 +978,6 @@ unlink(c("mtcars.csv", "cities.tsv", "numbers.txt", "flights.parquet",
          "sample.arrow", "mtcars_conv.parquet", "flights_sample.json",
          "mtcars.jsonl", "people.csv", "mtcars_conv.xlsx", "flights_conv.arrow",
          "chunk1.csv", "chunk2.csv", "chunk3.csv", "stacked.parquet",
-         "top5.csv", "result.json", "cities_semi.csv"))
+         "top5.csv", "result.json", "cities_semi.csv",
+         "logs.jsonl", "logs.csv", "products.jsonl", "places.jsonl"))
 ```

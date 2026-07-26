@@ -207,6 +207,21 @@ rush run -O jsonl 'head(mtcars, 2)' mtcars.csv
 #> {"mpg":21,"cyl":6,"disp":160,...}
 ```
 
+When outputting to CSV/TSV, nested JSON objects are automatically
+flattened using `jsonlite::flatten()` — nested fields become
+dot-separated column names (normalized to underscores by
+`clean_names`). When outputting back to JSON, nesting is preserved:
+
+``` bash
+rush run 'df' events.jsonl
+#> user,event,meta_ip,meta_browser
+#> alice,login,192.168.1.1,firefox
+#> bob,purchase,10.0.0.5,chrome
+
+rush run -O json 'df' events.jsonl
+#> [{"user":"alice","event":"login","meta":{"ip":"192.168.1.1","browser":"firefox"}},...]
+```
+
 <a id="excel"></a>
 
 ### Excel
