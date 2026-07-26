@@ -57,7 +57,11 @@ clean_names_simple <- function(x) {
   make.unique(x, sep = "_")
 }
 
-file_kind <- function(path) {
+file_kind <- function(path, input_format = "auto") {
+  if (!identical(input_format, "auto")) {
+    if (input_format %in% c("csv", "tsv")) return("delim")
+    return(input_format)
+  }
   if (path == "-") return("stdin")
   ext <- tolower(tools::file_ext(path))
   if (ext %in% c("parquet", "pq")) return("parquet")
@@ -65,8 +69,20 @@ file_kind <- function(path) {
   "delim"
 }
 
-is_parquet_output <- function(output) {
-  !is.null(output) && tolower(tools::file_ext(output)) %in% c("parquet", "pq")
+resolve_output_format <- function(output, output_format) {
+  if (!identical(output_format, "auto")) {
+    if (output_format %in% c("csv", "tsv")) return("delim")
+    return(output_format)
+  }
+  if (!is.null(output)) {
+    ext <- tolower(tools::file_ext(output))
+    if (ext %in% c("parquet", "pq")) return("parquet")
+    if (ext == "json") return("json")
+    if (ext %in% c("jsonl", "ndjson")) return("jsonl")
+    if (ext %in% c("arrow", "ipc", "feather")) return("arrow")
+    if (ext == "xlsx") return("xlsx")
+  }
+  "delim"
 }
 
 input_names <- function(files) {
@@ -87,7 +103,7 @@ emit_read_files <- function(con, files, flags) {
 
   read_call <- function(path) {
     read_pkgs <- character(0)
-    kind <- file_kind(path)
+    kind <- file_kind(path, flags$input_format %||% "auto")
     if (kind == "parquet") {
       read_pkgs <- "nanoparquet"
       read_expr <- expr(nanoparquet::read_parquet(!!path))
@@ -97,7 +113,7 @@ emit_read_files <- function(con, files, flags) {
       }
       read_expr <- expr(readr::read_delim(
         !!path,
-        delim = !!flags$delimiter,
+        delim = !!flags$resolved_input_delimiter,
         col_names = !!(!flags$no_header)
       ))
     }
@@ -132,7 +148,7 @@ emit_read_files <- function(con, files, flags) {
     c("duckdb", "DBI")
   }
 
-  if (length(files) == 1 && file_kind(files[[1]]) != "duckdb") {
+  if (length(files) == 1 && file_kind(files[[1]], flags$input_format %||% "auto") != "duckdb") {
     rc <- read_call(files)
     pkgs <- c(pkgs, rc$packages)
     code_expression(con, `<-`(df, !!rc$expr))
@@ -141,7 +157,7 @@ emit_read_files <- function(con, files, flags) {
 
     code_expression(con, dfs <- list())
     for (i in seq_along(files)) {
-      if (file_kind(files[[i]]) == "duckdb") {
+      if (file_kind(files[[i]], flags$input_format %||% "auto") == "duckdb") {
         pkgs <- c(pkgs, emit_duckdb(files[[i]]))
       } else {
         rc <- read_call(files[[i]])
@@ -244,15 +260,15 @@ emit_sql <- function(con, query, files, flags) {
 }
 
 script_preamble <- function(flags) {
-  output_format <- if (is_parquet_output(flags$output)) "parquet" else "delim"
   ctx <- list(
     output = flags$output,
-    output_format = output_format,
+    output_format = flags$resolved_output_format,
     width = flags$width,
     height = flags$height,
     units = flags$units,
     dpi = flags$dpi,
-    delimiter = flags$delimiter %||% ",",
+    delimiter = flags$resolved_output_delimiter,
+    head = flags$head,
     has_post = !is.null(flags$post)
   )
   lines <- vapply(
@@ -288,11 +304,24 @@ if (rlang::is_atomic(result)) {
 }
 
 if (is.data.frame(result)) {
+  if (!is.null(.rush$head)) result <- head(result, .rush$head)
   if (.has_tty && is.null(.rush$output)) {
     options(tibble.width = if (is.null(.rush$width)) cli::console_width() else .rush$width)
     print(tibble::as_tibble(result), n = .rush$height)
   } else if (identical(.rush$output_format, "parquet")) {
     nanoparquet::write_parquet(result, .rush$output)
+  } else if (identical(.rush$output_format, "json")) {
+    # TODO: Phase 2 - implement JSON output via jsonlite
+    stop("JSON output is not yet implemented")
+  } else if (identical(.rush$output_format, "jsonl")) {
+    # TODO: Phase 2 - implement JSONL output via jsonlite
+    stop("JSONL output is not yet implemented")
+  } else if (identical(.rush$output_format, "arrow")) {
+    # TODO: Phase 2 - implement Arrow output via arrow
+    stop("Arrow output is not yet implemented")
+  } else if (identical(.rush$output_format, "xlsx")) {
+    # TODO: Phase 2 - implement XLSX output via writexl or openxlsx
+    stop("XLSX output is not yet implemented")
   } else {
     con <- if (is.null(.rush$output)) .stdout_binary() else .rush$output
     readr::write_delim(result, con, delim = .rush$delimiter)

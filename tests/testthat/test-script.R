@@ -332,6 +332,61 @@ test_that("plot --title, --xlab, and --ylab become a labs() layer", {
   expect_match(labs_line, 'y = "MPG"')
 })
 
+test_that("-d sets both input and output delimiters", {
+  script <- dry_run("run", "-n", "-d", "\t", "head(df)", "data.csv")
+  # Input side: read_delim uses tab
+  expect_true(any(grepl('delim = "\\\\t"', script)))
+  # Output side: .rush$delimiter is tab
+  expect_true(any(grepl('delimiter = "\\\\t"', script)))
+})
+
+test_that("--output-delimiter overrides only the output delimiter", {
+  script <- dry_run("run", "-n", "-D", "\t", "head(df)", "data.csv")
+  # Input side still uses comma (default delimiter)
+  read_line <- script[grepl("read_delim", script)]
+  expect_true(any(grepl('delim = ","', read_line)))
+  # Output side uses tab
+  expect_true(any(grepl('delimiter = "\\\\t"', script)))
+})
+
+test_that("--input-delimiter overrides only the input delimiter", {
+  script <- dry_run("run", "-n", "--input-delimiter", "\t", "head(df)", "data.csv")
+  # Input side uses tab
+  read_line <- script[grepl("read_delim", script)]
+  expect_true(any(grepl('delim = "\\\\t"', read_line)))
+  # Output side uses default comma
+  expect_true(any(grepl('delimiter = ","', script)))
+})
+
+test_that("-F tsv implies tab as input delimiter", {
+  script <- dry_run("run", "-n", "-F", "tsv", "head(df)", "data.tsv")
+  read_line <- script[grepl("read_delim", script)]
+  expect_true(any(grepl('delim = "\\\\t"', read_line)))
+})
+
+test_that("-O tsv implies tab as output delimiter", {
+  script <- dry_run("run", "-n", "-O", "tsv", "head(df)", "data.csv")
+  expect_true(any(grepl('delimiter = "\\\\t"', script)))
+})
+
+test_that("--head adds a head() call in the dispatch block", {
+  script <- dry_run("run", "-n", "--head", "3", "head(df)", "data.csv")
+  expect_true(any(grepl('\\.rush\\$head', script)))
+  expect_true(any(grepl('head = 3L', script)))
+})
+
+test_that("-O json sets output_format to json in preamble", {
+  script <- dry_run("run", "-n", "-O", "json", "df", "data.csv")
+  expect_true(any(grepl('output_format = "json"', script)))
+})
+
+test_that("-O parquet works like --output ending in .parquet", {
+  script <- dry_run("run", "-n", "-O", "parquet", "-o", "out.parquet", "df", "data.csv")
+  expect_true(any(grepl('output_format = "parquet"', script)))
+  expect_true(any(grepl("nanoparquet::write_parquet", script)))
+  expect_true(any(grepl("^#\\|   - nanoparquet$", script)))
+})
+
 test_that("plot --pre and --post wrap the plot call", {
   script <- dry_run(
     "plot",

@@ -6,6 +6,17 @@
 rush <- function(...) {
   flags <- parse_arguments(...)
 
+  # Resolve computed delimiter and format flags
+  flags$resolved_input_delimiter <- flags$input_delimiter %||% flags$delimiter
+  flags$resolved_output_delimiter <- flags$output_delimiter %||% flags$delimiter
+  if (identical(flags$input_format, "tsv") && is.null(flags$input_delimiter)) {
+    flags$resolved_input_delimiter <- "\t"
+  }
+  if (identical(flags$output_format, "tsv") && is.null(flags$output_delimiter)) {
+    flags$resolved_output_delimiter <- "\t"
+  }
+  flags$resolved_output_format <- resolve_output_format(flags$output, flags$output_format)
+
   if (flags$verbose) {
     cli::cat_rule("Arguments", file = stderr())
     cli::cat_bullet(
@@ -33,7 +44,7 @@ rush <- function(...) {
   )
   pkgs <- c(pkgs, result)
 
-  if (is_parquet_output(flags$output)) {
+  if (identical(flags$resolved_output_format, "parquet")) {
     pkgs <- c(pkgs, "nanoparquet")
   }
 

@@ -50,3 +50,30 @@ test_that("convert_flag leaves logicals and NULL untouched", {
   expect_null(convert_flag(NULL, "seed"))
   expect_true(convert_flag(TRUE, "verbose"))
 })
+
+test_that("--input-format parses to input_format", {
+  expect_equal(parse_arguments("run", "-F", "csv", "1")$input_format, "csv")
+  expect_equal(parse_arguments("run", "--input-format", "tsv", "1")$input_format, "tsv")
+  expect_equal(parse_arguments("run", "1")$input_format, "auto")
+})
+
+test_that("--output-format parses to output_format", {
+  expect_equal(parse_arguments("run", "-O", "csv", "1")$output_format, "csv")
+  expect_equal(parse_arguments("run", "--output-format", "parquet", "1")$output_format, "parquet")
+  expect_equal(parse_arguments("run", "1")$output_format, "auto")
+})
+
+test_that("--head is coerced to integer", {
+  head_val <- parse_arguments("run", "--head", "5", "1")$head
+  expect_type(head_val, "integer")
+  expect_equal(head_val, 5L)
+})
+
+test_that("--input-delimiter and --output-delimiter parse correctly", {
+  expect_equal(parse_arguments("run", "--input-delimiter", "\t", "1")$input_delimiter, "\t")
+  expect_equal(parse_arguments("run", "-D", "|", "1")$output_delimiter, "|")
+})
+
+test_that("-d still works as a shorthand for delimiter", {
+  expect_equal(parse_arguments("run", "-d", "|", "1")$delimiter, "|")
+})

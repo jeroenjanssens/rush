@@ -27,7 +27,9 @@ flags_df <-
     "v"    , "verbose"        , NA          , "Be verbose"                   , NA       , NA        , as.logical         , "general" ,
     "n"    , "dry-run"        , NA          , "Only print generated script"  , NA       , "dry_run" , as.logical         , "general" ,
     "I"    , "no-ir"          , NA          , "Run with Rscript, not ir"     , NA       , "no_ir"   , as.logical         , "general" ,
-    "d"    , "delimiter"      , "str"       , "Delimiter"                    , ","      , NA        , as.character       , "read"    ,
+    "d"    , "delimiter"      , "str"       , "Delimiter (input and output)" , ","      , NA        , as.character       , "read"    ,
+    NA     , "input-delimiter", "str"       , "Input delimiter (overrides -d)", NA      , "input_delimiter", as.character , "read"    ,
+    "F"    , "input-format"   , "format"    , "Input format"                 , "auto"   , "input_format"   , as.character , "read"    ,
     "H"    , "no-header"      , NA          , "No header"                    , NA       , NA        , as.logical         , "read"    ,
     "C"    , "no-clean-names" , NA          , "No clean names"               , NA       , NA        , as.logical         , "read"    ,
     "t"    , "tidyverse"      , NA          , "Enter the Tidyverse"          , NA       , NA        , as.logical         , "setup"   ,
@@ -52,6 +54,9 @@ flags_df <-
     NA     , "ylab"           , "str"       , "Y axis label"                 , NA       , NA        , as.character       , "plot"    ,
     NA     , "title"          , "str"       , "Plot title"                   , NA       , NA        , as.character       , "plot"    ,
     NA     , "margins"        , NA          , "Display marginal facets"      , NA       , NA        , as.logical         , "plot"    ,
+    "D"    , "output-delimiter", "str"      , "Output delimiter (overrides -d)", NA     , "output_delimiter", as.character , "save"    ,
+    "O"    , "output-format"  , "format"    , "Output format"                , "auto"   , "output_format"  , as.character , "save"    ,
+    NA     , "head"           , "int"       , "Limit output rows"            , NA       , NA        , as.integer         , "save"    ,
     "w"    , "width"          , "int"       , "Plot width"                   , NA       , NA        , as.numeric         , "save"    ,
     NA     , "height"         , "int"       , "Plot height"                  , NA       , NA        , as.numeric         , "save"    ,
     NA     , "units"          , "str"       , "Plot size units"              , "in"     , NA        , as.character       , "save"    ,
@@ -131,7 +136,8 @@ Arguments:
                            are prefixed with 'x'). Files with the same base
                            name in different directories collide.
 
-Note: --delimiter affects both reading and writing delimited data.
+Note: -d/--delimiter sets both input and output delimiter. Use -F, -D, or -O
+to override format and delimiter for each side independently.
 
 Reading options:
 {flags_section(category == 'read')}
