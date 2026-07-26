@@ -387,6 +387,149 @@ test_that("-O parquet works like --output ending in .parquet", {
   expect_true(any(grepl("^#\\|   - nanoparquet$", script)))
 })
 
+test_that("run reads a JSON file with jsonlite", {
+  script <- dry_run("run", "-n", "head(df)", "data.json")
+  expect_true(any(grepl("jsonlite::fromJSON\\(\"data.json\"\\)", script)))
+  expect_true(any(grepl("^#\\|   - jsonlite$", script)))
+  expect_false(any(grepl("read_delim", script)))
+})
+
+test_that("run reads a JSONL file with jsonlite stream_in", {
+  script <- dry_run("run", "-n", "head(df)", "data.jsonl")
+  expect_true(any(grepl("jsonlite::stream_in\\(file\\(\"data.jsonl\"\\)", script)))
+  expect_true(any(grepl("^#\\|   - jsonlite$", script)))
+})
+
+test_that("run reads an .ndjson file as JSONL", {
+  script <- dry_run("run", "-n", "head(df)", "data.ndjson")
+  expect_true(any(grepl("jsonlite::stream_in\\(file\\(\"data.ndjson\"\\)", script)))
+})
+
+test_that("-F json forces JSON reading regardless of extension", {
+  script <- dry_run("run", "-n", "-F", "json", "head(df)", "data.csv")
+  expect_true(any(grepl("jsonlite::fromJSON", script)))
+  expect_false(any(grepl("read_delim", script)))
+})
+
+test_that("-F jsonl forces JSONL reading", {
+  script <- dry_run("run", "-n", "-F", "jsonl", "head(df)", "data.csv")
+  expect_true(any(grepl("jsonlite::stream_in", script)))
+})
+
+test_that("-O json emits JSON output via jsonlite", {
+  script <- dry_run("run", "-n", "-O", "json", "df", "data.csv")
+  expect_true(any(grepl('output_format = "json"', script)))
+  expect_true(any(grepl("jsonlite::toJSON", script)))
+  expect_true(any(grepl("^#\\|   - jsonlite$", script)))
+})
+
+test_that("-O jsonl emits JSONL streaming output", {
+  script <- dry_run("run", "-n", "-O", "jsonl", "df", "data.csv")
+  expect_true(any(grepl('output_format = "jsonl"', script)))
+  expect_true(any(grepl("jsonlite::stream_out", script)))
+  expect_true(any(grepl("^#\\|   - jsonlite$", script)))
+})
+
+test_that("--output data.json infers JSON format", {
+  script <- dry_run("run", "-n", "-o", "data.json", "df", "data.csv")
+  expect_true(any(grepl('output_format = "json"', script)))
+  expect_true(any(grepl("jsonlite::toJSON", script)))
+})
+
+test_that("--output data.jsonl infers JSONL format", {
+  script <- dry_run("run", "-n", "-o", "data.jsonl", "df", "data.csv")
+  expect_true(any(grepl('output_format = "jsonl"', script)))
+  expect_true(any(grepl("jsonlite::stream_out", script)))
+})
+
+test_that("run reads an Excel file with readxl", {
+  script <- dry_run("run", "-n", "head(df)", "data.xlsx")
+  expect_true(any(grepl("readxl::read_excel\\(\"data.xlsx\"\\)", script)))
+  expect_true(any(grepl("^#\\|   - readxl$", script)))
+  expect_false(any(grepl("read_delim", script)))
+})
+
+test_that("run reads .xls files with readxl", {
+  script <- dry_run("run", "-n", "head(df)", "data.xls")
+  expect_true(any(grepl("readxl::read_excel\\(\"data.xls\"\\)", script)))
+  expect_true(any(grepl("^#\\|   - readxl$", script)))
+})
+
+test_that("--sheet selects a specific Excel sheet", {
+  script <- dry_run("run", "-n", "--sheet", "Sales", "head(df)", "data.xlsx")
+  expect_true(any(grepl('readxl::read_excel\\("data.xlsx", sheet = "Sales"\\)', script)))
+})
+
+test_that("--sheet with numeric index works", {
+  script <- dry_run("run", "-n", "--sheet", "2", "head(df)", "data.xlsx")
+  expect_true(any(grepl('readxl::read_excel\\("data.xlsx", sheet = 2\\)', script)))
+})
+
+test_that("-F xlsx forces Excel reading", {
+  script <- dry_run("run", "-n", "-F", "xlsx", "head(df)", "data.csv")
+  expect_true(any(grepl("readxl::read_excel", script)))
+  expect_false(any(grepl("read_delim", script)))
+})
+
+test_that("-O xlsx emits Excel output via writexl", {
+  script <- dry_run("run", "-n", "-O", "xlsx", "-o", "out.xlsx", "df", "data.csv")
+  expect_true(any(grepl('output_format = "xlsx"', script)))
+  expect_true(any(grepl("writexl::write_xlsx", script)))
+  expect_true(any(grepl("^#\\|   - writexl$", script)))
+})
+
+test_that("--output out.xlsx infers Excel format", {
+  script <- dry_run("run", "-n", "-o", "out.xlsx", "df", "data.csv")
+  expect_true(any(grepl('output_format = "xlsx"', script)))
+  expect_true(any(grepl("writexl::write_xlsx", script)))
+})
+
+test_that("run reads Arrow IPC file with arrow package", {
+  script <- dry_run("run", "-n", "head(df)", "data.arrow")
+  expect_true(any(grepl("arrow::read_ipc_file\\(\"data.arrow\"\\)", script)))
+  expect_true(any(grepl("^#\\|   - arrow$", script)))
+  expect_false(any(grepl("read_delim", script)))
+})
+
+test_that("run reads .feather files as Arrow IPC", {
+  script <- dry_run("run", "-n", "head(df)", "data.feather")
+  expect_true(any(grepl("arrow::read_ipc_file\\(\"data.feather\"\\)", script)))
+})
+
+test_that("run reads .ipc files as Arrow IPC", {
+  script <- dry_run("run", "-n", "head(df)", "data.ipc")
+  expect_true(any(grepl("arrow::read_ipc_file\\(\"data.ipc\"\\)", script)))
+})
+
+test_that("-F arrow forces Arrow reading", {
+  script <- dry_run("run", "-n", "-F", "arrow", "head(df)", "data.csv")
+  expect_true(any(grepl("arrow::read_ipc_file", script)))
+  expect_false(any(grepl("read_delim", script)))
+})
+
+test_that("-O arrow emits Arrow IPC output", {
+  script <- dry_run("run", "-n", "-O", "arrow", "-o", "out.arrow", "df", "data.csv")
+  expect_true(any(grepl('output_format = "arrow"', script)))
+  expect_true(any(grepl("arrow::write_ipc_file", script)))
+  expect_true(any(grepl("^#\\|   - arrow$", script)))
+})
+
+test_that("--output out.feather infers Arrow format", {
+  script <- dry_run("run", "-n", "-o", "out.feather", "df", "data.csv")
+  expect_true(any(grepl('output_format = "arrow"', script)))
+  expect_true(any(grepl("arrow::write_ipc_file", script)))
+})
+
+test_that("sql reads JSON files via read_json_auto", {
+  script <- dry_run("sql", "-n", "SELECT * FROM data", "data.json")
+  expect_true(any(grepl("read_json_auto", script)))
+})
+
+test_that("sql reads JSONL files via read_json_auto", {
+  script <- dry_run("sql", "-n", "SELECT * FROM data", "data.jsonl")
+  expect_true(any(grepl("read_json_auto", script)))
+})
+
 test_that("plot --pre and --post wrap the plot call", {
   script <- dry_run(
     "plot",

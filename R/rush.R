@@ -46,6 +46,12 @@ rush <- function(...) {
 
   if (identical(flags$resolved_output_format, "parquet")) {
     pkgs <- c(pkgs, "nanoparquet")
+  } else if (flags$resolved_output_format %in% c("json", "jsonl")) {
+    pkgs <- c(pkgs, "jsonlite")
+  } else if (identical(flags$resolved_output_format, "arrow")) {
+    pkgs <- c(pkgs, "arrow")
+  } else if (identical(flags$resolved_output_format, "xlsx")) {
+    pkgs <- c(pkgs, "writexl")
   }
 
   close(body)

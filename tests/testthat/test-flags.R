@@ -77,3 +77,11 @@ test_that("--input-delimiter and --output-delimiter parse correctly", {
 test_that("-d still works as a shorthand for delimiter", {
   expect_equal(parse_arguments("run", "-d", "|", "1")$delimiter, "|")
 })
+
+test_that("--sheet parses string sheet name", {
+  expect_equal(parse_arguments("run", "--sheet", "Sales", "1", "data.xlsx")$sheet, "Sales")
+})
+
+test_that("--sheet parses numeric sheet index", {
+  expect_equal(parse_arguments("run", "--sheet", "2", "1", "data.xlsx")$sheet, 2)
+})

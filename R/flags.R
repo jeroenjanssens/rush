@@ -30,6 +30,7 @@ flags_df <-
     "d"    , "delimiter"      , "str"       , "Delimiter (input and output)" , ","      , NA        , as.character       , "read"    ,
     NA     , "input-delimiter", "str"       , "Input delimiter (overrides -d)", NA      , "input_delimiter", as.character , "read"    ,
     "F"    , "input-format"   , "format"    , "Input format"                 , "auto"   , "input_format"   , as.character , "read"    ,
+    NA     , "sheet"          , "name|int"  , "Excel sheet to read"          , NA       , NA        , parse_guess        , "read"    ,
     "H"    , "no-header"      , NA          , "No header"                    , NA       , NA        , as.logical         , "read"    ,
     "C"    , "no-clean-names" , NA          , "No clean names"               , NA       , NA        , as.logical         , "read"    ,
     "t"    , "tidyverse"      , NA          , "Enter the Tidyverse"          , NA       , NA        , as.logical         , "setup"   ,

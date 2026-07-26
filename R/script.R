@@ -66,6 +66,10 @@ file_kind <- function(path, input_format = "auto") {
   ext <- tolower(tools::file_ext(path))
   if (ext %in% c("parquet", "pq")) return("parquet")
   if (ext %in% c("duckdb", "ddb")) return("duckdb")
+  if (ext == "json") return("json")
+  if (ext %in% c("jsonl", "ndjson")) return("jsonl")
+  if (ext %in% c("xlsx", "xls")) return("xlsx")
+  if (ext %in% c("arrow", "ipc", "feather")) return("arrow")
   "delim"
 }
 
@@ -107,6 +111,22 @@ emit_read_files <- function(con, files, flags) {
     if (kind == "parquet") {
       read_pkgs <- "nanoparquet"
       read_expr <- expr(nanoparquet::read_parquet(!!path))
+    } else if (kind == "json") {
+      read_pkgs <- "jsonlite"
+      read_expr <- expr(jsonlite::fromJSON(!!path))
+    } else if (kind == "jsonl") {
+      read_pkgs <- "jsonlite"
+      read_expr <- expr(jsonlite::stream_in(file(!!path), verbose = FALSE))
+    } else if (kind == "xlsx") {
+      read_pkgs <- "readxl"
+      read_expr <- if (!is.null(flags$sheet)) {
+        expr(readxl::read_excel(!!path, sheet = !!flags$sheet))
+      } else {
+        expr(readxl::read_excel(!!path))
+      }
+    } else if (kind == "arrow") {
+      read_pkgs <- "arrow"
+      read_expr <- expr(arrow::read_ipc_file(!!path))
     } else {
       if (path == "-") {
         path <- expr(file("stdin", "rb", raw = TRUE))
@@ -200,6 +220,14 @@ emit_sql <- function(con, query, files, flags) {
           "CREATE VIEW ",
           sql_id(nm),
           " AS SELECT * FROM read_parquet(",
+          sql_str(path),
+          ")"
+        )
+      } else if (kind %in% c("json", "jsonl")) {
+        stmt <- paste0(
+          "CREATE VIEW ",
+          sql_id(nm),
+          " AS SELECT * FROM read_json_auto(",
           sql_str(path),
           ")"
         )
@@ -311,17 +339,16 @@ if (is.data.frame(result)) {
   } else if (identical(.rush$output_format, "parquet")) {
     nanoparquet::write_parquet(result, .rush$output)
   } else if (identical(.rush$output_format, "json")) {
-    # TODO: Phase 2 - implement JSON output via jsonlite
-    stop("JSON output is not yet implemented")
+    json <- jsonlite::toJSON(result, dataframe = "rows", pretty = TRUE, auto_unbox = TRUE)
+    if (is.null(.rush$output)) cat(json, "\n") else writeLines(json, .rush$output)
   } else if (identical(.rush$output_format, "jsonl")) {
-    # TODO: Phase 2 - implement JSONL output via jsonlite
-    stop("JSONL output is not yet implemented")
+    con_out <- if (is.null(.rush$output)) stdout() else file(.rush$output, "w")
+    jsonlite::stream_out(result, con_out, verbose = FALSE)
+    if (!is.null(.rush$output)) close(con_out)
   } else if (identical(.rush$output_format, "arrow")) {
-    # TODO: Phase 2 - implement Arrow output via arrow
-    stop("Arrow output is not yet implemented")
+    arrow::write_ipc_file(result, .rush$output)
   } else if (identical(.rush$output_format, "xlsx")) {
-    # TODO: Phase 2 - implement XLSX output via writexl or openxlsx
-    stop("XLSX output is not yet implemented")
+    writexl::write_xlsx(result, .rush$output)
   } else {
     con <- if (is.null(.rush$output)) .stdout_binary() else .rush$output
     readr::write_delim(result, con, delim = .rush$delimiter)
