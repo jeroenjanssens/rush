@@ -64,7 +64,9 @@
 <li>
 <strong>Pipeline-native.</strong> Reads from standard input and writes to standard output, so it composes with every other command-line tool.</li>
 <li>
-<strong>Reads what you have.</strong> CSV and other delimited text, <a href="#parquet">Parquet</a>, and <a href="#duckdb">DuckDB</a> databases — chosen automatically by file extension.</li>
+<strong>Reads what you have.</strong> CSV and other delimited text, <a href="#parquet">Parquet</a>, <a href="#json">JSON/JSONL</a>, <a href="#excel">Excel</a>, <a href="#arrow">Arrow IPC</a>, and <a href="#duckdb">DuckDB</a> databases — chosen automatically by file extension.</li>
+<li>
+<strong>Converts between formats.</strong> The <a href="#format-conversion"><code>convert</code></a> command converts files directly between any supported format.</li>
 <li>
 <strong>Query with SQL.</strong> The <a href="#querying-with-sql"><code>sql</code></a> command runs DuckDB queries directly against your files, no import step required.</li>
 <li>
@@ -125,7 +127,7 @@
 <div class="section level3">
 <h3 id="delimited-text">Delimited text<a class="anchor" aria-label="anchor" href="#delimited-text"></a>
 </h3>
-<p>CSV is the default. Use <code>--delimiter</code> (<code>-d</code>) for other separators and <code>--no-header</code> (<code>-H</code>) for files without a header row:</p>
+<p>CSV is the default. Use <code>--delimiter</code> (<code>-d</code>) for other separators and <code>--no-header</code> (<code>-H</code>) for files without a header row. For finer control, use <code>--input-delimiter</code> and <code>--output-delimiter</code> (<code>-D</code>) to set them independently, or <code>-F</code>/<code>-O</code> to force a specific format regardless of extension:</p>
 <div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="ex">rush</span> run <span class="st">'df |&gt; dplyr::filter(mpg &gt; 22) |&gt; dplyr::select(mpg, cyl, hp)'</span> mtcars.csv</span>
 <span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="co">#&gt; mpg,cyl,hp</span></span>
 <span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="co">#&gt; 22.8,4,93</span></span>
@@ -156,32 +158,83 @@
 <span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a><span class="co">#&gt; customers</span></span>
 <span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a><span class="co">#&gt; orders</span></span></code></pre></div>
 <p>If a database holds a single table, it is also bound to <code>df</code> for convenience, so a one-table database behaves just like any other single input.</p>
+<p><a id="json"></a></p>
 </div>
+<div class="section level3">
+<h3 id="json-and-jsonl">JSON and JSONL<a class="anchor" aria-label="anchor" href="#json-and-jsonl"></a>
+</h3>
+<p>Files ending in <code>.json</code> are read with <code><a href="https://jeroen.r-universe.dev/jsonlite/reference/fromJSON.html" class="external-link">jsonlite::fromJSON</a></code>; <code>.jsonl</code> and <code>.ndjson</code> files are read line-by-line with <code><a href="https://jeroen.r-universe.dev/jsonlite/reference/stream_in.html" class="external-link">jsonlite::stream_in</a></code>. Write JSON output with <code>-O json</code> or by naming the output file <code>.json</code>:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="ex">rush</span> run <span class="at">-O</span> json <span class="st">'head(mtcars, 3)'</span> mtcars.csv</span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a><span class="co">#&gt; [{"mpg":21,"cyl":6,...},{"mpg":21,"cyl":6,...},{"mpg":22.8,"cyl":4,...}]</span></span></code></pre></div>
+<p>JSONL (newline-delimited JSON) streams one object per line — ideal for large datasets or append-only logs:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="ex">rush</span> run <span class="at">-O</span> jsonl <span class="st">'head(mtcars, 2)'</span> mtcars.csv</span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a><span class="co">#&gt; {"mpg":21,"cyl":6,"disp":160,...}</span></span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a><span class="co">#&gt; {"mpg":21,"cyl":6,"disp":160,...}</span></span></code></pre></div>
+<p>When outputting to CSV/TSV, nested JSON objects are automatically flattened using <code><a href="https://jeroen.r-universe.dev/jsonlite/reference/flatten.html" class="external-link">jsonlite::flatten()</a></code> — nested fields become dot-separated column names (normalized to underscores by <code>clean_names</code>). When outputting back to JSON, nesting is preserved:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="ex">rush</span> run <span class="st">'df'</span> events.jsonl</span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a><span class="co">#&gt; user,event,meta_ip,meta_browser</span></span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a><span class="co">#&gt; alice,login,192.168.1.1,firefox</span></span>
+<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a><span class="co">#&gt; bob,purchase,10.0.0.5,chrome</span></span>
+<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a></span>
+<span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a><span class="ex">rush</span> run <span class="at">-O</span> json <span class="st">'df'</span> events.jsonl</span>
+<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a><span class="co">#&gt; [{"user":"alice","event":"login","meta":{"ip":"192.168.1.1","browser":"firefox"}},...]</span></span></code></pre></div>
+<p><a id="excel"></a></p>
+</div>
+<div class="section level3">
+<h3 id="excel">Excel<a class="anchor" aria-label="anchor" href="#excel"></a>
+</h3>
+<p>Files ending in <code>.xlsx</code> or <code>.xls</code> are read with <a href="https://readxl.tidyverse.org/" class="external-link">readxl</a>. Use <code>--sheet</code> to select a specific sheet by name or index:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="ex">rush</span> run <span class="at">--sheet</span> Sales <span class="st">'head(df)'</span> report.xlsx</span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a><span class="ex">rush</span> run <span class="at">--sheet</span> 2 <span class="st">'head(df)'</span> report.xlsx</span></code></pre></div>
+<p>Write Excel files with <code>-O xlsx</code> or by naming the output <code>.xlsx</code>:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a><span class="ex">rush</span> run <span class="at">-o</span> summary.xlsx <span class="st">'data.frame(x = 1:3, y = letters[1:3])'</span></span></code></pre></div>
+<p><a id="arrow"></a></p>
+</div>
+<div class="section level3">
+<h3 id="arrow-ipc--feather">Arrow IPC / Feather<a class="anchor" aria-label="anchor" href="#arrow-ipc--feather"></a>
+</h3>
+<p>Files ending in <code>.arrow</code>, <code>.ipc</code>, or <code>.feather</code> are read with <a href="https://arrow.apache.org/docs/r/" class="external-link">arrow</a>. Write Arrow IPC output with <code>-O arrow</code> or by naming the output accordingly:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a><span class="ex">rush</span> run <span class="at">-o</span> mtcars.arrow <span class="st">'head(mtcars, 5)'</span></span>
+<span id="cb16-2"><a href="#cb16-2" tabindex="-1"></a><span class="ex">rush</span> run <span class="st">'nrow(df)'</span> mtcars.arrow</span>
+<span id="cb16-3"><a href="#cb16-3" tabindex="-1"></a><span class="co">#&gt; 5</span></span></code></pre></div>
+</div>
+</div>
+<div class="section level2">
+<h2 id="format-conversion">Format conversion<a class="anchor" aria-label="anchor" href="#format-conversion"></a>
+</h2>
+<p>The <code>convert</code> command converts between formats without writing an expression. It reads the input, infers the output format from the file extension (or <code>-O</code>), and writes the result:</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a><span class="ex">rush</span> convert <span class="at">-o</span> mtcars.parquet mtcars.csv</span>
+<span id="cb17-2"><a href="#cb17-2" tabindex="-1"></a><span class="ex">rush</span> convert <span class="at">-o</span> mtcars.json mtcars.parquet</span>
+<span id="cb17-3"><a href="#cb17-3" tabindex="-1"></a><span class="ex">rush</span> convert <span class="at">-o</span> mtcars.xlsx mtcars.csv</span></code></pre></div>
+<p>Convert multiple files at once — they are stacked with <code>bind_rows</code>:</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a><span class="ex">rush</span> convert <span class="at">-o</span> combined.parquet part1.csv part2.csv</span></code></pre></div>
+<p>Use <code>--head</code> to limit the number of rows written:</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a><span class="ex">rush</span> convert <span class="at">--head</span> 100 <span class="at">-o</span> sample.csv large.parquet</span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="querying-with-sql">Querying with SQL<a class="anchor" aria-label="anchor" href="#querying-with-sql"></a>
 </h2>
 <p>Sometimes SQL is simply the clearest way to express what you want — especially joins and aggregations. The <code>sql</code> command runs a <a href="https://duckdb.org/" class="external-link">DuckDB</a> query directly against your files, with no import step. Each file becomes a relation named after the file, so you can reference it right in the query:</p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="ex">rush</span> sql <span class="st">"SELECT cyl, ROUND(AVG(mpg), 1) AS avg_mpg, COUNT(*) AS n</span></span>
-<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a><span class="st">          FROM mtcars GROUP BY cyl ORDER BY cyl"</span> mtcars.parquet</span>
-<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a><span class="co">#&gt; cyl,avg_mpg,n</span></span>
-<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a><span class="co">#&gt; 4,23.3,3</span></span>
-<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a><span class="co">#&gt; 6,20.1,5</span></span>
-<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a><span class="co">#&gt; 8,16.5,2</span></span></code></pre></div>
+<div class="sourceCode" id="cb20"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb20-1"><a href="#cb20-1" tabindex="-1"></a><span class="ex">rush</span> sql <span class="st">"SELECT cyl, ROUND(AVG(mpg), 1) AS avg_mpg, COUNT(*) AS n</span></span>
+<span id="cb20-2"><a href="#cb20-2" tabindex="-1"></a><span class="st">          FROM mtcars GROUP BY cyl ORDER BY cyl"</span> mtcars.parquet</span>
+<span id="cb20-3"><a href="#cb20-3" tabindex="-1"></a><span class="co">#&gt; cyl,avg_mpg,n</span></span>
+<span id="cb20-4"><a href="#cb20-4" tabindex="-1"></a><span class="co">#&gt; 4,23.3,3</span></span>
+<span id="cb20-5"><a href="#cb20-5" tabindex="-1"></a><span class="co">#&gt; 6,20.1,5</span></span>
+<span id="cb20-6"><a href="#cb20-6" tabindex="-1"></a><span class="co">#&gt; 8,16.5,2</span></span></code></pre></div>
 <p>Because DuckDB reads the file itself, this works on datasets far larger than memory — the filtering and aggregation happen inside DuckDB, and only the result comes back to R.</p>
-<p>CSV files are read with <code>read_csv_auto</code>, Parquet with <code>read_parquet</code>, and a <code>.duckdb</code> database is attached so its tables are addressed as <code>name.table</code>. That makes joins across a whole database natural:</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="ex">rush</span> sql <span class="st">"SELECT c.name, SUM(o.amount) AS total</span></span>
-<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a><span class="st">          FROM shop.customers c JOIN shop.orders o ON c.id = o.cust</span></span>
-<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a><span class="st">          GROUP BY c.name ORDER BY total DESC"</span> shop.duckdb</span>
-<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a><span class="co">#&gt; name,total</span></span>
-<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a><span class="co">#&gt; Carol,65</span></span>
-<span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a><span class="co">#&gt; Alice,55</span></span>
-<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a><span class="co">#&gt; Bob,10</span></span></code></pre></div>
+<p>CSV files are read with <code>read_csv_auto</code>, Parquet with <code>read_parquet</code>, JSON/JSONL with <code>read_json_auto</code>, and a <code>.duckdb</code> database is attached so its tables are addressed as <code>name.table</code>. That makes joins across a whole database natural:</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb21-1"><a href="#cb21-1" tabindex="-1"></a><span class="ex">rush</span> sql <span class="st">"SELECT c.name, SUM(o.amount) AS total</span></span>
+<span id="cb21-2"><a href="#cb21-2" tabindex="-1"></a><span class="st">          FROM shop.customers c JOIN shop.orders o ON c.id = o.cust</span></span>
+<span id="cb21-3"><a href="#cb21-3" tabindex="-1"></a><span class="st">          GROUP BY c.name ORDER BY total DESC"</span> shop.duckdb</span>
+<span id="cb21-4"><a href="#cb21-4" tabindex="-1"></a><span class="co">#&gt; name,total</span></span>
+<span id="cb21-5"><a href="#cb21-5" tabindex="-1"></a><span class="co">#&gt; Carol,65</span></span>
+<span id="cb21-6"><a href="#cb21-6" tabindex="-1"></a><span class="co">#&gt; Alice,55</span></span>
+<span id="cb21-7"><a href="#cb21-7" tabindex="-1"></a><span class="co">#&gt; Bob,10</span></span></code></pre></div>
 <p>The result of a query is an ordinary data frame, so everything else composes as usual — pipe it onward, or save it with <code>--output</code>, including back to Parquet:</p>
-<div class="sourceCode" id="cb13"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="ex">rush</span> run <span class="st">'head(mtcars, 5)'</span> <span class="kw">|</span> <span class="ex">rush</span> sql <span class="st">"SELECT cyl, mpg FROM stdin WHERE mpg &gt; 21"</span> <span class="at">-</span></span>
-<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a><span class="co">#&gt; cyl,mpg</span></span>
-<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a><span class="co">#&gt; 4,22.8</span></span>
-<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a><span class="co">#&gt; 6,21.4</span></span></code></pre></div>
+<div class="sourceCode" id="cb22"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb22-1"><a href="#cb22-1" tabindex="-1"></a><span class="ex">rush</span> run <span class="st">'head(mtcars, 5)'</span> <span class="kw">|</span> <span class="ex">rush</span> sql <span class="st">"SELECT cyl, mpg FROM stdin WHERE mpg &gt; 21"</span> <span class="at">-</span></span>
+<span id="cb22-2"><a href="#cb22-2" tabindex="-1"></a><span class="co">#&gt; cyl,mpg</span></span>
+<span id="cb22-3"><a href="#cb22-3" tabindex="-1"></a><span class="co">#&gt; 4,22.8</span></span>
+<span id="cb22-4"><a href="#cb22-4" tabindex="-1"></a><span class="co">#&gt; 6,21.4</span></span></code></pre></div>
 <p><a id="plotting"></a></p>
 </div>
 <div class="section level2">
@@ -189,105 +242,105 @@
 </h2>
 <p>The <code>plot</code> command builds a <a href="https://ggplot2.tidyverse.org/" class="external-link">ggplot2</a> graphic from your data. Choose columns with <code>--x</code>, <code>--y</code>, <code>--color</code>, and friends, and a sensible geom is guessed for you (override it with <code>--geom</code>).</p>
 <p>Show the generated script with <code>--dry-run</code> to see exactly what will run:</p>
-<div class="sourceCode" id="cb14"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="ex">rush</span> plot <span class="at">--dry-run</span> <span class="at">--x</span> mpg <span class="at">--geom</span> density <span class="at">--fill</span> <span class="st">'factor(cyl)'</span> mtcars.csv</span>
-<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a><span class="co">#&gt; #!/usr/bin/env -S ir run</span></span>
-<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a><span class="co">#&gt; #| packages:</span></span>
-<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a><span class="co">#&gt; #|   - rlang</span></span>
-<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a><span class="co">#&gt; #|   - cli</span></span>
-<span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a><span class="co">#&gt; #|   - tibble</span></span>
-<span id="cb14-7"><a href="#cb14-7" tabindex="-1"></a><span class="co">#&gt; #|   - readr</span></span>
-<span id="cb14-8"><a href="#cb14-8" tabindex="-1"></a><span class="co">#&gt; #|   - ggplot2</span></span>
-<span id="cb14-9"><a href="#cb14-9" tabindex="-1"></a><span class="co">#&gt; #|   - fs</span></span>
-<span id="cb14-10"><a href="#cb14-10" tabindex="-1"></a><span class="co">#&gt; #|   - github::coolbutuseless/devout</span></span>
-<span id="cb14-11"><a href="#cb14-11" tabindex="-1"></a><span class="co">#&gt; #|   - github::jeroenjanssens/miniansi</span></span>
-<span id="cb14-12"><a href="#cb14-12" tabindex="-1"></a><span class="co">#&gt; #|   - github::coolbutuseless/devoutansi</span></span>
-<span id="cb14-13"><a href="#cb14-13" tabindex="-1"></a><span class="co">#&gt; #|   - janitor</span></span>
-<span id="cb14-14"><a href="#cb14-14" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb14-15"><a href="#cb14-15" tabindex="-1"></a><span class="co">#&gt; .rush &lt;- list(</span></span>
-<span id="cb14-16"><a href="#cb14-16" tabindex="-1"></a><span class="co">#&gt;   output = NULL,</span></span>
-<span id="cb14-17"><a href="#cb14-17" tabindex="-1"></a><span class="co">#&gt;   output_format = "delim",</span></span>
-<span id="cb14-18"><a href="#cb14-18" tabindex="-1"></a><span class="co">#&gt;   width = NULL,</span></span>
-<span id="cb14-19"><a href="#cb14-19" tabindex="-1"></a><span class="co">#&gt;   height = NULL,</span></span>
-<span id="cb14-20"><a href="#cb14-20" tabindex="-1"></a><span class="co">#&gt;   units = "in",</span></span>
-<span id="cb14-21"><a href="#cb14-21" tabindex="-1"></a><span class="co">#&gt;   dpi = 300,</span></span>
-<span id="cb14-22"><a href="#cb14-22" tabindex="-1"></a><span class="co">#&gt;   delimiter = ",",</span></span>
-<span id="cb14-23"><a href="#cb14-23" tabindex="-1"></a><span class="co">#&gt;   has_post = FALSE</span></span>
-<span id="cb14-24"><a href="#cb14-24" tabindex="-1"></a><span class="co">#&gt; )</span></span>
-<span id="cb14-25"><a href="#cb14-25" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb14-26"><a href="#cb14-26" tabindex="-1"></a><span class="co">#&gt; library(ggplot2)</span></span>
-<span id="cb14-27"><a href="#cb14-27" tabindex="-1"></a><span class="co">#&gt; df &lt;- janitor::clean_names(readr::read_delim(</span></span>
-<span id="cb14-28"><a href="#cb14-28" tabindex="-1"></a><span class="co">#&gt;   "mtcars.csv",</span></span>
-<span id="cb14-29"><a href="#cb14-29" tabindex="-1"></a><span class="co">#&gt;   delim = ",",</span></span>
-<span id="cb14-30"><a href="#cb14-30" tabindex="-1"></a><span class="co">#&gt;   col_names = TRUE</span></span>
-<span id="cb14-31"><a href="#cb14-31" tabindex="-1"></a><span class="co">#&gt; ))</span></span>
-<span id="cb14-32"><a href="#cb14-32" tabindex="-1"></a><span class="co">#&gt; result &lt;- ggplot(df, aes(x = mpg, fill = factor(cyl))) + geom_density()</span></span>
-<span id="cb14-33"><a href="#cb14-33" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb14-34"><a href="#cb14-34" tabindex="-1"></a><span class="co">#&gt; #~~~ Output dispatch (added by rush) ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span></span>
-<span id="cb14-35"><a href="#cb14-35" tabindex="-1"></a><span class="co">#&gt; .has_tty &lt;- isatty(stdout())</span></span>
-<span id="cb14-36"><a href="#cb14-36" tabindex="-1"></a><span class="co">#&gt; .stdout_binary &lt;- function() {</span></span>
-<span id="cb14-37"><a href="#cb14-37" tabindex="-1"></a><span class="co">#&gt;   if (.Platform$OS.type == "windows") {</span></span>
-<span id="cb14-38"><a href="#cb14-38" tabindex="-1"></a><span class="co">#&gt;     file("stdout", "wb", raw = TRUE)</span></span>
-<span id="cb14-39"><a href="#cb14-39" tabindex="-1"></a><span class="co">#&gt;   } else {</span></span>
-<span id="cb14-40"><a href="#cb14-40" tabindex="-1"></a><span class="co">#&gt;     file("/dev/stdout", "wb", raw = TRUE)</span></span>
-<span id="cb14-41"><a href="#cb14-41" tabindex="-1"></a><span class="co">#&gt;   }</span></span>
-<span id="cb14-42"><a href="#cb14-42" tabindex="-1"></a><span class="co">#&gt; }</span></span>
-<span id="cb14-43"><a href="#cb14-43" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb14-44"><a href="#cb14-44" tabindex="-1"></a><span class="co">#&gt; out &lt;- .rush$output</span></span>
-<span id="cb14-45"><a href="#cb14-45" tabindex="-1"></a><span class="co">#&gt; w &lt;- .rush$width</span></span>
-<span id="cb14-46"><a href="#cb14-46" tabindex="-1"></a><span class="co">#&gt; h &lt;- .rush$height</span></span>
-<span id="cb14-47"><a href="#cb14-47" tabindex="-1"></a><span class="co">#&gt; if (is.null(out)) {</span></span>
-<span id="cb14-48"><a href="#cb14-48" tabindex="-1"></a><span class="co">#&gt;   out &lt;- if (.has_tty) "ansi" else "png"</span></span>
-<span id="cb14-49"><a href="#cb14-49" tabindex="-1"></a><span class="co">#&gt; }</span></span>
-<span id="cb14-50"><a href="#cb14-50" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb14-51"><a href="#cb14-51" tabindex="-1"></a><span class="co">#&gt; if (out %in% c("ansi", "ascii")) {</span></span>
-<span id="cb14-52"><a href="#cb14-52" tabindex="-1"></a><span class="co">#&gt;   if (is.null(w)) {</span></span>
-<span id="cb14-53"><a href="#cb14-53" tabindex="-1"></a><span class="co">#&gt;     w &lt;- cli::console_width()</span></span>
-<span id="cb14-54"><a href="#cb14-54" tabindex="-1"></a><span class="co">#&gt;   }</span></span>
-<span id="cb14-55"><a href="#cb14-55" tabindex="-1"></a><span class="co">#&gt;   devoutansi::ansi(</span></span>
-<span id="cb14-56"><a href="#cb14-56" tabindex="-1"></a><span class="co">#&gt;     width = w,</span></span>
-<span id="cb14-57"><a href="#cb14-57" tabindex="-1"></a><span class="co">#&gt;     height = h,</span></span>
-<span id="cb14-58"><a href="#cb14-58" tabindex="-1"></a><span class="co">#&gt;     plain_ascii = TRUE,</span></span>
-<span id="cb14-59"><a href="#cb14-59" tabindex="-1"></a><span class="co">#&gt;     char_lookup_table = 2</span></span>
-<span id="cb14-60"><a href="#cb14-60" tabindex="-1"></a><span class="co">#&gt;   )</span></span>
-<span id="cb14-61"><a href="#cb14-61" tabindex="-1"></a><span class="co">#&gt;   if (!.rush$has_post) {</span></span>
-<span id="cb14-62"><a href="#cb14-62" tabindex="-1"></a><span class="co">#&gt;     result &lt;- result +</span></span>
-<span id="cb14-63"><a href="#cb14-63" tabindex="-1"></a><span class="co">#&gt;       ggplot2::theme_minimal() +</span></span>
-<span id="cb14-64"><a href="#cb14-64" tabindex="-1"></a><span class="co">#&gt;       ggplot2::theme(panel.grid = ggplot2::element_blank())</span></span>
-<span id="cb14-65"><a href="#cb14-65" tabindex="-1"></a><span class="co">#&gt;   }</span></span>
-<span id="cb14-66"><a href="#cb14-66" tabindex="-1"></a><span class="co">#&gt;   print(result)</span></span>
-<span id="cb14-67"><a href="#cb14-67" tabindex="-1"></a><span class="co">#&gt;   invisible(grDevices::dev.off())</span></span>
-<span id="cb14-68"><a href="#cb14-68" tabindex="-1"></a><span class="co">#&gt; } else {</span></span>
-<span id="cb14-69"><a href="#cb14-69" tabindex="-1"></a><span class="co">#&gt;   if (fs::path_ext(out) == "") {</span></span>
-<span id="cb14-70"><a href="#cb14-70" tabindex="-1"></a><span class="co">#&gt;     output_filename &lt;- tempfile()</span></span>
-<span id="cb14-71"><a href="#cb14-71" tabindex="-1"></a><span class="co">#&gt;     device &lt;- out</span></span>
-<span id="cb14-72"><a href="#cb14-72" tabindex="-1"></a><span class="co">#&gt;     cat_output &lt;- TRUE</span></span>
-<span id="cb14-73"><a href="#cb14-73" tabindex="-1"></a><span class="co">#&gt;   } else {</span></span>
-<span id="cb14-74"><a href="#cb14-74" tabindex="-1"></a><span class="co">#&gt;     output_filename &lt;- out</span></span>
-<span id="cb14-75"><a href="#cb14-75" tabindex="-1"></a><span class="co">#&gt;     device &lt;- NULL</span></span>
-<span id="cb14-76"><a href="#cb14-76" tabindex="-1"></a><span class="co">#&gt;     cat_output &lt;- FALSE</span></span>
-<span id="cb14-77"><a href="#cb14-77" tabindex="-1"></a><span class="co">#&gt;   }</span></span>
-<span id="cb14-78"><a href="#cb14-78" tabindex="-1"></a><span class="co">#&gt;   if (is.null(w)) {</span></span>
-<span id="cb14-79"><a href="#cb14-79" tabindex="-1"></a><span class="co">#&gt;     w &lt;- 6</span></span>
-<span id="cb14-80"><a href="#cb14-80" tabindex="-1"></a><span class="co">#&gt;   }</span></span>
-<span id="cb14-81"><a href="#cb14-81" tabindex="-1"></a><span class="co">#&gt;   if (is.null(h)) {</span></span>
-<span id="cb14-82"><a href="#cb14-82" tabindex="-1"></a><span class="co">#&gt;     h &lt;- 4</span></span>
-<span id="cb14-83"><a href="#cb14-83" tabindex="-1"></a><span class="co">#&gt;   }</span></span>
-<span id="cb14-84"><a href="#cb14-84" tabindex="-1"></a><span class="co">#&gt;   ggplot2::ggsave(</span></span>
-<span id="cb14-85"><a href="#cb14-85" tabindex="-1"></a><span class="co">#&gt;     output_filename,</span></span>
-<span id="cb14-86"><a href="#cb14-86" tabindex="-1"></a><span class="co">#&gt;     result,</span></span>
-<span id="cb14-87"><a href="#cb14-87" tabindex="-1"></a><span class="co">#&gt;     device = device,</span></span>
-<span id="cb14-88"><a href="#cb14-88" tabindex="-1"></a><span class="co">#&gt;     width = w,</span></span>
-<span id="cb14-89"><a href="#cb14-89" tabindex="-1"></a><span class="co">#&gt;     height = h,</span></span>
-<span id="cb14-90"><a href="#cb14-90" tabindex="-1"></a><span class="co">#&gt;     units = .rush$units,</span></span>
-<span id="cb14-91"><a href="#cb14-91" tabindex="-1"></a><span class="co">#&gt;     dpi = .rush$dpi</span></span>
-<span id="cb14-92"><a href="#cb14-92" tabindex="-1"></a><span class="co">#&gt;   )</span></span>
-<span id="cb14-93"><a href="#cb14-93" tabindex="-1"></a><span class="co">#&gt;   if (cat_output) {</span></span>
-<span id="cb14-94"><a href="#cb14-94" tabindex="-1"></a><span class="co">#&gt;     contents &lt;- readBin(output_filename, raw(), n = 1e8)</span></span>
-<span id="cb14-95"><a href="#cb14-95" tabindex="-1"></a><span class="co">#&gt;     writeBin(contents, .stdout_binary())</span></span>
-<span id="cb14-96"><a href="#cb14-96" tabindex="-1"></a><span class="co">#&gt;   }</span></span>
-<span id="cb14-97"><a href="#cb14-97" tabindex="-1"></a><span class="co">#&gt; }</span></span></code></pre></div>
+<div class="sourceCode" id="cb23"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb23-1"><a href="#cb23-1" tabindex="-1"></a><span class="ex">rush</span> plot <span class="at">--dry-run</span> <span class="at">--x</span> mpg <span class="at">--geom</span> density <span class="at">--fill</span> <span class="st">'factor(cyl)'</span> mtcars.csv</span>
+<span id="cb23-2"><a href="#cb23-2" tabindex="-1"></a><span class="co">#&gt; #!/usr/bin/env -S ir run</span></span>
+<span id="cb23-3"><a href="#cb23-3" tabindex="-1"></a><span class="co">#&gt; #| packages:</span></span>
+<span id="cb23-4"><a href="#cb23-4" tabindex="-1"></a><span class="co">#&gt; #|   - rlang</span></span>
+<span id="cb23-5"><a href="#cb23-5" tabindex="-1"></a><span class="co">#&gt; #|   - cli</span></span>
+<span id="cb23-6"><a href="#cb23-6" tabindex="-1"></a><span class="co">#&gt; #|   - tibble</span></span>
+<span id="cb23-7"><a href="#cb23-7" tabindex="-1"></a><span class="co">#&gt; #|   - readr</span></span>
+<span id="cb23-8"><a href="#cb23-8" tabindex="-1"></a><span class="co">#&gt; #|   - ggplot2</span></span>
+<span id="cb23-9"><a href="#cb23-9" tabindex="-1"></a><span class="co">#&gt; #|   - fs</span></span>
+<span id="cb23-10"><a href="#cb23-10" tabindex="-1"></a><span class="co">#&gt; #|   - github::coolbutuseless/devout</span></span>
+<span id="cb23-11"><a href="#cb23-11" tabindex="-1"></a><span class="co">#&gt; #|   - github::jeroenjanssens/miniansi</span></span>
+<span id="cb23-12"><a href="#cb23-12" tabindex="-1"></a><span class="co">#&gt; #|   - github::coolbutuseless/devoutansi</span></span>
+<span id="cb23-13"><a href="#cb23-13" tabindex="-1"></a><span class="co">#&gt; #|   - janitor</span></span>
+<span id="cb23-14"><a href="#cb23-14" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb23-15"><a href="#cb23-15" tabindex="-1"></a><span class="co">#&gt; .rush &lt;- list(</span></span>
+<span id="cb23-16"><a href="#cb23-16" tabindex="-1"></a><span class="co">#&gt;   output = NULL,</span></span>
+<span id="cb23-17"><a href="#cb23-17" tabindex="-1"></a><span class="co">#&gt;   output_format = "delim",</span></span>
+<span id="cb23-18"><a href="#cb23-18" tabindex="-1"></a><span class="co">#&gt;   width = NULL,</span></span>
+<span id="cb23-19"><a href="#cb23-19" tabindex="-1"></a><span class="co">#&gt;   height = NULL,</span></span>
+<span id="cb23-20"><a href="#cb23-20" tabindex="-1"></a><span class="co">#&gt;   units = "in",</span></span>
+<span id="cb23-21"><a href="#cb23-21" tabindex="-1"></a><span class="co">#&gt;   dpi = 300,</span></span>
+<span id="cb23-22"><a href="#cb23-22" tabindex="-1"></a><span class="co">#&gt;   delimiter = ",",</span></span>
+<span id="cb23-23"><a href="#cb23-23" tabindex="-1"></a><span class="co">#&gt;   has_post = FALSE</span></span>
+<span id="cb23-24"><a href="#cb23-24" tabindex="-1"></a><span class="co">#&gt; )</span></span>
+<span id="cb23-25"><a href="#cb23-25" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb23-26"><a href="#cb23-26" tabindex="-1"></a><span class="co">#&gt; library(ggplot2)</span></span>
+<span id="cb23-27"><a href="#cb23-27" tabindex="-1"></a><span class="co">#&gt; df &lt;- janitor::clean_names(readr::read_delim(</span></span>
+<span id="cb23-28"><a href="#cb23-28" tabindex="-1"></a><span class="co">#&gt;   "mtcars.csv",</span></span>
+<span id="cb23-29"><a href="#cb23-29" tabindex="-1"></a><span class="co">#&gt;   delim = ",",</span></span>
+<span id="cb23-30"><a href="#cb23-30" tabindex="-1"></a><span class="co">#&gt;   col_names = TRUE</span></span>
+<span id="cb23-31"><a href="#cb23-31" tabindex="-1"></a><span class="co">#&gt; ))</span></span>
+<span id="cb23-32"><a href="#cb23-32" tabindex="-1"></a><span class="co">#&gt; result &lt;- ggplot(df, aes(x = mpg, fill = factor(cyl))) + geom_density()</span></span>
+<span id="cb23-33"><a href="#cb23-33" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb23-34"><a href="#cb23-34" tabindex="-1"></a><span class="co">#&gt; #~~~ Output dispatch (added by rush) ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span></span>
+<span id="cb23-35"><a href="#cb23-35" tabindex="-1"></a><span class="co">#&gt; .has_tty &lt;- isatty(stdout())</span></span>
+<span id="cb23-36"><a href="#cb23-36" tabindex="-1"></a><span class="co">#&gt; .stdout_binary &lt;- function() {</span></span>
+<span id="cb23-37"><a href="#cb23-37" tabindex="-1"></a><span class="co">#&gt;   if (.Platform$OS.type == "windows") {</span></span>
+<span id="cb23-38"><a href="#cb23-38" tabindex="-1"></a><span class="co">#&gt;     file("stdout", "wb", raw = TRUE)</span></span>
+<span id="cb23-39"><a href="#cb23-39" tabindex="-1"></a><span class="co">#&gt;   } else {</span></span>
+<span id="cb23-40"><a href="#cb23-40" tabindex="-1"></a><span class="co">#&gt;     file("/dev/stdout", "wb", raw = TRUE)</span></span>
+<span id="cb23-41"><a href="#cb23-41" tabindex="-1"></a><span class="co">#&gt;   }</span></span>
+<span id="cb23-42"><a href="#cb23-42" tabindex="-1"></a><span class="co">#&gt; }</span></span>
+<span id="cb23-43"><a href="#cb23-43" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb23-44"><a href="#cb23-44" tabindex="-1"></a><span class="co">#&gt; out &lt;- .rush$output</span></span>
+<span id="cb23-45"><a href="#cb23-45" tabindex="-1"></a><span class="co">#&gt; w &lt;- .rush$width</span></span>
+<span id="cb23-46"><a href="#cb23-46" tabindex="-1"></a><span class="co">#&gt; h &lt;- .rush$height</span></span>
+<span id="cb23-47"><a href="#cb23-47" tabindex="-1"></a><span class="co">#&gt; if (is.null(out)) {</span></span>
+<span id="cb23-48"><a href="#cb23-48" tabindex="-1"></a><span class="co">#&gt;   out &lt;- if (.has_tty) "ansi" else "png"</span></span>
+<span id="cb23-49"><a href="#cb23-49" tabindex="-1"></a><span class="co">#&gt; }</span></span>
+<span id="cb23-50"><a href="#cb23-50" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb23-51"><a href="#cb23-51" tabindex="-1"></a><span class="co">#&gt; if (out %in% c("ansi", "ascii")) {</span></span>
+<span id="cb23-52"><a href="#cb23-52" tabindex="-1"></a><span class="co">#&gt;   if (is.null(w)) {</span></span>
+<span id="cb23-53"><a href="#cb23-53" tabindex="-1"></a><span class="co">#&gt;     w &lt;- cli::console_width()</span></span>
+<span id="cb23-54"><a href="#cb23-54" tabindex="-1"></a><span class="co">#&gt;   }</span></span>
+<span id="cb23-55"><a href="#cb23-55" tabindex="-1"></a><span class="co">#&gt;   devoutansi::ansi(</span></span>
+<span id="cb23-56"><a href="#cb23-56" tabindex="-1"></a><span class="co">#&gt;     width = w,</span></span>
+<span id="cb23-57"><a href="#cb23-57" tabindex="-1"></a><span class="co">#&gt;     height = h,</span></span>
+<span id="cb23-58"><a href="#cb23-58" tabindex="-1"></a><span class="co">#&gt;     plain_ascii = TRUE,</span></span>
+<span id="cb23-59"><a href="#cb23-59" tabindex="-1"></a><span class="co">#&gt;     char_lookup_table = 2</span></span>
+<span id="cb23-60"><a href="#cb23-60" tabindex="-1"></a><span class="co">#&gt;   )</span></span>
+<span id="cb23-61"><a href="#cb23-61" tabindex="-1"></a><span class="co">#&gt;   if (!.rush$has_post) {</span></span>
+<span id="cb23-62"><a href="#cb23-62" tabindex="-1"></a><span class="co">#&gt;     result &lt;- result +</span></span>
+<span id="cb23-63"><a href="#cb23-63" tabindex="-1"></a><span class="co">#&gt;       ggplot2::theme_minimal() +</span></span>
+<span id="cb23-64"><a href="#cb23-64" tabindex="-1"></a><span class="co">#&gt;       ggplot2::theme(panel.grid = ggplot2::element_blank())</span></span>
+<span id="cb23-65"><a href="#cb23-65" tabindex="-1"></a><span class="co">#&gt;   }</span></span>
+<span id="cb23-66"><a href="#cb23-66" tabindex="-1"></a><span class="co">#&gt;   print(result)</span></span>
+<span id="cb23-67"><a href="#cb23-67" tabindex="-1"></a><span class="co">#&gt;   invisible(grDevices::dev.off())</span></span>
+<span id="cb23-68"><a href="#cb23-68" tabindex="-1"></a><span class="co">#&gt; } else {</span></span>
+<span id="cb23-69"><a href="#cb23-69" tabindex="-1"></a><span class="co">#&gt;   if (fs::path_ext(out) == "") {</span></span>
+<span id="cb23-70"><a href="#cb23-70" tabindex="-1"></a><span class="co">#&gt;     output_filename &lt;- tempfile()</span></span>
+<span id="cb23-71"><a href="#cb23-71" tabindex="-1"></a><span class="co">#&gt;     device &lt;- out</span></span>
+<span id="cb23-72"><a href="#cb23-72" tabindex="-1"></a><span class="co">#&gt;     cat_output &lt;- TRUE</span></span>
+<span id="cb23-73"><a href="#cb23-73" tabindex="-1"></a><span class="co">#&gt;   } else {</span></span>
+<span id="cb23-74"><a href="#cb23-74" tabindex="-1"></a><span class="co">#&gt;     output_filename &lt;- out</span></span>
+<span id="cb23-75"><a href="#cb23-75" tabindex="-1"></a><span class="co">#&gt;     device &lt;- NULL</span></span>
+<span id="cb23-76"><a href="#cb23-76" tabindex="-1"></a><span class="co">#&gt;     cat_output &lt;- FALSE</span></span>
+<span id="cb23-77"><a href="#cb23-77" tabindex="-1"></a><span class="co">#&gt;   }</span></span>
+<span id="cb23-78"><a href="#cb23-78" tabindex="-1"></a><span class="co">#&gt;   if (is.null(w)) {</span></span>
+<span id="cb23-79"><a href="#cb23-79" tabindex="-1"></a><span class="co">#&gt;     w &lt;- 6</span></span>
+<span id="cb23-80"><a href="#cb23-80" tabindex="-1"></a><span class="co">#&gt;   }</span></span>
+<span id="cb23-81"><a href="#cb23-81" tabindex="-1"></a><span class="co">#&gt;   if (is.null(h)) {</span></span>
+<span id="cb23-82"><a href="#cb23-82" tabindex="-1"></a><span class="co">#&gt;     h &lt;- 4</span></span>
+<span id="cb23-83"><a href="#cb23-83" tabindex="-1"></a><span class="co">#&gt;   }</span></span>
+<span id="cb23-84"><a href="#cb23-84" tabindex="-1"></a><span class="co">#&gt;   ggplot2::ggsave(</span></span>
+<span id="cb23-85"><a href="#cb23-85" tabindex="-1"></a><span class="co">#&gt;     output_filename,</span></span>
+<span id="cb23-86"><a href="#cb23-86" tabindex="-1"></a><span class="co">#&gt;     result,</span></span>
+<span id="cb23-87"><a href="#cb23-87" tabindex="-1"></a><span class="co">#&gt;     device = device,</span></span>
+<span id="cb23-88"><a href="#cb23-88" tabindex="-1"></a><span class="co">#&gt;     width = w,</span></span>
+<span id="cb23-89"><a href="#cb23-89" tabindex="-1"></a><span class="co">#&gt;     height = h,</span></span>
+<span id="cb23-90"><a href="#cb23-90" tabindex="-1"></a><span class="co">#&gt;     units = .rush$units,</span></span>
+<span id="cb23-91"><a href="#cb23-91" tabindex="-1"></a><span class="co">#&gt;     dpi = .rush$dpi</span></span>
+<span id="cb23-92"><a href="#cb23-92" tabindex="-1"></a><span class="co">#&gt;   )</span></span>
+<span id="cb23-93"><a href="#cb23-93" tabindex="-1"></a><span class="co">#&gt;   if (cat_output) {</span></span>
+<span id="cb23-94"><a href="#cb23-94" tabindex="-1"></a><span class="co">#&gt;     contents &lt;- readBin(output_filename, raw(), n = 1e8)</span></span>
+<span id="cb23-95"><a href="#cb23-95" tabindex="-1"></a><span class="co">#&gt;     writeBin(contents, .stdout_binary())</span></span>
+<span id="cb23-96"><a href="#cb23-96" tabindex="-1"></a><span class="co">#&gt;   }</span></span>
+<span id="cb23-97"><a href="#cb23-97" tabindex="-1"></a><span class="co">#&gt; }</span></span></code></pre></div>
 <p>Run it in a terminal and the plot is drawn right there as ANSI/ASCII art. Redirect the output to a file instead and <code>rush</code> writes an image, picking the device from the extension:</p>
-<div class="sourceCode" id="cb15"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a><span class="ex">rush</span> plot <span class="at">--x</span> mpg <span class="at">--geom</span> density <span class="at">--fill</span> <span class="st">'factor(cyl)'</span> mtcars.csv <span class="op">&gt;</span> ../man/figures/mtcars.png</span></code></pre></div>
+<div class="sourceCode" id="cb24"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb24-1"><a href="#cb24-1" tabindex="-1"></a><span class="ex">rush</span> plot <span class="at">--x</span> mpg <span class="at">--geom</span> density <span class="at">--fill</span> <span class="st">'factor(cyl)'</span> mtcars.csv <span class="op">&gt;</span> ../man/figures/mtcars.png</span></code></pre></div>
 <p><img src="reference/figures/mtcars.png"></p>
 <p>Terminal plotting relies on three packages that are not on CRAN — <code>devout</code>, <code>miniansi</code>, and <code>devoutansi</code> — but you do not need to install them yourself. <code>rush</code> declares them in the generated script’s frontmatter, and <code>ir</code> fetches them from GitHub the first time they are needed.</p>
 </div>
@@ -295,19 +348,19 @@
 <h2 id="saving-and-reusing-scripts">Saving and reusing scripts<a class="anchor" aria-label="anchor" href="#saving-and-reusing-scripts"></a>
 </h2>
 <p>The script that <code>--dry-run</code> prints is not a throwaway — it is a complete, self-contained <code>ir</code> script. Redirect it to a file and you have a reproducible artifact you can version, share, or run again later, long after the one-liner has scrolled out of your shell history:</p>
-<div class="sourceCode" id="cb16"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a><span class="ex">rush</span> run <span class="at">--dry-run</span> <span class="st">'df |&gt; dplyr::filter(mpg &gt; 21)'</span> mtcars.csv <span class="op">&gt;</span> analysis.R</span>
-<span id="cb16-2"><a href="#cb16-2" tabindex="-1"></a><span class="fu">head</span> <span class="at">-3</span> analysis.R</span>
-<span id="cb16-3"><a href="#cb16-3" tabindex="-1"></a><span class="co">#&gt; #!/usr/bin/env -S ir run</span></span>
-<span id="cb16-4"><a href="#cb16-4" tabindex="-1"></a><span class="co">#&gt; #| packages:</span></span>
-<span id="cb16-5"><a href="#cb16-5" tabindex="-1"></a><span class="co">#&gt; #|   - rlang</span></span></code></pre></div>
+<div class="sourceCode" id="cb25"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb25-1"><a href="#cb25-1" tabindex="-1"></a><span class="ex">rush</span> run <span class="at">--dry-run</span> <span class="st">'df |&gt; dplyr::filter(mpg &gt; 21)'</span> mtcars.csv <span class="op">&gt;</span> analysis.R</span>
+<span id="cb25-2"><a href="#cb25-2" tabindex="-1"></a><span class="fu">head</span> <span class="at">-3</span> analysis.R</span>
+<span id="cb25-3"><a href="#cb25-3" tabindex="-1"></a><span class="co">#&gt; #!/usr/bin/env -S ir run</span></span>
+<span id="cb25-4"><a href="#cb25-4" tabindex="-1"></a><span class="co">#&gt; #| packages:</span></span>
+<span id="cb25-5"><a href="#cb25-5" tabindex="-1"></a><span class="co">#&gt; #|   - rlang</span></span></code></pre></div>
 <p>The <code>#!/usr/bin/env -S ir run</code> shebang on the first line makes the file directly executable. <code>ir</code> reads the <code>#|</code> frontmatter, installs any packages the script declares, and runs it — so the saved script carries its own dependencies and needs nothing but <code>ir</code> on the target machine:</p>
-<div class="sourceCode" id="cb17"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a><span class="fu">chmod</span> +x analysis.R</span>
-<span id="cb17-2"><a href="#cb17-2" tabindex="-1"></a><span class="ex">./analysis.R</span> <span class="dv">2</span><span class="op">&gt;</span>/dev/null</span>
-<span id="cb17-3"><a href="#cb17-3" tabindex="-1"></a><span class="co">#&gt; mpg,cyl,disp,hp,drat,wt,qsec,vs,am,gear,carb</span></span>
-<span id="cb17-4"><a href="#cb17-4" tabindex="-1"></a><span class="co">#&gt; 22.8,4,108,93,3.85,2.32,18.61,1,1,4,1</span></span>
-<span id="cb17-5"><a href="#cb17-5" tabindex="-1"></a><span class="co">#&gt; 21.4,6,258,110,3.08,3.215,19.44,1,0,3,1</span></span>
-<span id="cb17-6"><a href="#cb17-6" tabindex="-1"></a><span class="co">#&gt; 24.4,4,146.7,62,3.69,3.19,20,1,0,4,2</span></span>
-<span id="cb17-7"><a href="#cb17-7" tabindex="-1"></a><span class="co">#&gt; 22.8,4,140.8,95,3.92,3.15,22.9,1,0,4,2</span></span></code></pre></div>
+<div class="sourceCode" id="cb26"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb26-1"><a href="#cb26-1" tabindex="-1"></a><span class="fu">chmod</span> +x analysis.R</span>
+<span id="cb26-2"><a href="#cb26-2" tabindex="-1"></a><span class="ex">./analysis.R</span> <span class="dv">2</span><span class="op">&gt;</span>/dev/null</span>
+<span id="cb26-3"><a href="#cb26-3" tabindex="-1"></a><span class="co">#&gt; mpg,cyl,disp,hp,drat,wt,qsec,vs,am,gear,carb</span></span>
+<span id="cb26-4"><a href="#cb26-4" tabindex="-1"></a><span class="co">#&gt; 22.8,4,108,93,3.85,2.32,18.61,1,1,4,1</span></span>
+<span id="cb26-5"><a href="#cb26-5" tabindex="-1"></a><span class="co">#&gt; 21.4,6,258,110,3.08,3.215,19.44,1,0,3,1</span></span>
+<span id="cb26-6"><a href="#cb26-6" tabindex="-1"></a><span class="co">#&gt; 24.4,4,146.7,62,3.69,3.19,20,1,0,4,2</span></span>
+<span id="cb26-7"><a href="#cb26-7" tabindex="-1"></a><span class="co">#&gt; 22.8,4,140.8,95,3.92,3.15,22.9,1,0,4,2</span></span></code></pre></div>
 <p>This is also handy for tweaking: dump a <code>rush</code> one-liner to a file, edit the generated R to do something <code>rush</code> does not express directly, and run it with <code>ir run analysis.R</code>.</p>
 <p>If the <a href="https://posit-dev.github.io/air/" class="external-link">air</a> formatter is on your <code>PATH</code>, <code>rush</code> runs the <code>--dry-run</code> output through it, so the printed script is neatly formatted and ready to save. This affects only what <code>--dry-run</code> shows; the script that actually runs is never reformatted.</p>
 </div>
@@ -316,173 +369,173 @@
 <a class="anchor" aria-label="anchor" href="#running-without-ir"></a>
 </h2>
 <p>By default <code>rush</code> runs each script with <code>ir</code>, which resolves the packages declared in the frontmatter on the fly. If you would rather run against the packages already installed in your library — for speed, to work offline, or in an environment where dependencies are pinned — pass <code>--no-ir</code> (<code>-I</code>) and <code>rush</code> runs the script with plain <code>Rscript</code> instead:</p>
-<div class="sourceCode" id="cb18"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a><span class="ex">rush</span> run <span class="at">--no-ir</span> <span class="st">'6 * 7'</span></span>
-<span id="cb18-2"><a href="#cb18-2" tabindex="-1"></a><span class="co">#&gt; 42</span></span></code></pre></div>
+<div class="sourceCode" id="cb27"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb27-1"><a href="#cb27-1" tabindex="-1"></a><span class="ex">rush</span> run <span class="at">--no-ir</span> <span class="st">'6 * 7'</span></span>
+<span id="cb27-2"><a href="#cb27-2" tabindex="-1"></a><span class="co">#&gt; 42</span></span></code></pre></div>
 <p>In this mode the <code>#|</code> frontmatter is left as inert comments and nothing is installed, so every package the script needs — including the GitHub-only packages used for terminal plotting — must already be present. The generated script itself is unchanged, so the same file still runs under <code>ir</code> later.</p>
 </div>
 <div class="section level2">
 <h2 id="help">Help<a class="anchor" aria-label="anchor" href="#help"></a>
 </h2>
 <p>Every command has built-in help. Start with the top level:</p>
-<div class="sourceCode" id="cb19"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a><span class="ex">rush</span> <span class="at">-h</span></span>
-<span id="cb19-2"><a href="#cb19-2" tabindex="-1"></a><span class="co">#&gt; rush: R Scripting at the Command Line</span></span>
-<span id="cb19-3"><a href="#cb19-3" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb19-4"><a href="#cb19-4" tabindex="-1"></a><span class="co">#&gt; Usage:</span></span>
-<span id="cb19-5"><a href="#cb19-5" tabindex="-1"></a><span class="co">#&gt;   rush [options] &lt;command&gt; [&lt;args&gt;]</span></span>
-<span id="cb19-6"><a href="#cb19-6" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb19-7"><a href="#cb19-7" tabindex="-1"></a><span class="co">#&gt; Options:</span></span>
-<span id="cb19-8"><a href="#cb19-8" tabindex="-1"></a><span class="co">#&gt;   -n, --dry-run            Only print generated script.</span></span>
-<span id="cb19-9"><a href="#cb19-9" tabindex="-1"></a><span class="co">#&gt;   -h, --help               Show this help.</span></span>
-<span id="cb19-10"><a href="#cb19-10" tabindex="-1"></a><span class="co">#&gt;   -I, --no-ir              Run with Rscript, not ir.</span></span>
-<span id="cb19-11"><a href="#cb19-11" tabindex="-1"></a><span class="co">#&gt;   -q, --quiet              Be quiet.</span></span>
-<span id="cb19-12"><a href="#cb19-12" tabindex="-1"></a><span class="co">#&gt;       --seed &lt;int&gt;         Seed random number generator.</span></span>
-<span id="cb19-13"><a href="#cb19-13" tabindex="-1"></a><span class="co">#&gt;   -v, --verbose            Be verbose.</span></span>
-<span id="cb19-14"><a href="#cb19-14" tabindex="-1"></a><span class="co">#&gt;       --version            Show version.</span></span>
-<span id="cb19-15"><a href="#cb19-15" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb19-16"><a href="#cb19-16" tabindex="-1"></a><span class="co">#&gt; Commands:</span></span>
-<span id="cb19-17"><a href="#cb19-17" tabindex="-1"></a><span class="co">#&gt;   plot</span></span>
-<span id="cb19-18"><a href="#cb19-18" tabindex="-1"></a><span class="co">#&gt;   run</span></span>
-<span id="cb19-19"><a href="#cb19-19" tabindex="-1"></a><span class="co">#&gt;   sql</span></span></code></pre></div>
+<div class="sourceCode" id="cb28"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb28-1"><a href="#cb28-1" tabindex="-1"></a><span class="ex">rush</span> <span class="at">-h</span></span>
+<span id="cb28-2"><a href="#cb28-2" tabindex="-1"></a><span class="co">#&gt; rush: R Scripting at the Command Line</span></span>
+<span id="cb28-3"><a href="#cb28-3" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb28-4"><a href="#cb28-4" tabindex="-1"></a><span class="co">#&gt; Usage:</span></span>
+<span id="cb28-5"><a href="#cb28-5" tabindex="-1"></a><span class="co">#&gt;   rush [options] &lt;command&gt; [&lt;args&gt;]</span></span>
+<span id="cb28-6"><a href="#cb28-6" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb28-7"><a href="#cb28-7" tabindex="-1"></a><span class="co">#&gt; Options:</span></span>
+<span id="cb28-8"><a href="#cb28-8" tabindex="-1"></a><span class="co">#&gt;   -n, --dry-run            Only print generated script.</span></span>
+<span id="cb28-9"><a href="#cb28-9" tabindex="-1"></a><span class="co">#&gt;   -h, --help               Show this help.</span></span>
+<span id="cb28-10"><a href="#cb28-10" tabindex="-1"></a><span class="co">#&gt;   -I, --no-ir              Run with Rscript, not ir.</span></span>
+<span id="cb28-11"><a href="#cb28-11" tabindex="-1"></a><span class="co">#&gt;   -q, --quiet              Be quiet.</span></span>
+<span id="cb28-12"><a href="#cb28-12" tabindex="-1"></a><span class="co">#&gt;       --seed &lt;int&gt;         Seed random number generator.</span></span>
+<span id="cb28-13"><a href="#cb28-13" tabindex="-1"></a><span class="co">#&gt;   -v, --verbose            Be verbose.</span></span>
+<span id="cb28-14"><a href="#cb28-14" tabindex="-1"></a><span class="co">#&gt;       --version            Show version.</span></span>
+<span id="cb28-15"><a href="#cb28-15" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb28-16"><a href="#cb28-16" tabindex="-1"></a><span class="co">#&gt; Commands:</span></span>
+<span id="cb28-17"><a href="#cb28-17" tabindex="-1"></a><span class="co">#&gt;   plot</span></span>
+<span id="cb28-18"><a href="#cb28-18" tabindex="-1"></a><span class="co">#&gt;   run</span></span>
+<span id="cb28-19"><a href="#cb28-19" tabindex="-1"></a><span class="co">#&gt;   sql</span></span></code></pre></div>
 <p>Then dig into a specific command:</p>
-<div class="sourceCode" id="cb20"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb20-1"><a href="#cb20-1" tabindex="-1"></a><span class="ex">rush</span> run <span class="at">-h</span></span>
-<span id="cb20-2"><a href="#cb20-2" tabindex="-1"></a><span class="co">#&gt; rush: Run an R expression</span></span>
-<span id="cb20-3"><a href="#cb20-3" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb20-4"><a href="#cb20-4" tabindex="-1"></a><span class="co">#&gt; Usage:</span></span>
-<span id="cb20-5"><a href="#cb20-5" tabindex="-1"></a><span class="co">#&gt;   rush run [options] [&lt;expression&gt;] [--] [&lt;file&gt;...]</span></span>
-<span id="cb20-6"><a href="#cb20-6" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb20-7"><a href="#cb20-7" tabindex="-1"></a><span class="co">#&gt; Arguments:</span></span>
-<span id="cb20-8"><a href="#cb20-8" tabindex="-1"></a><span class="co">#&gt;   &lt;expression&gt;             R expression to evaluate. The value of the last</span></span>
-<span id="cb20-9"><a href="#cb20-9" tabindex="-1"></a><span class="co">#&gt;                            expression is printed or written out.</span></span>
-<span id="cb20-10"><a href="#cb20-10" tabindex="-1"></a><span class="co">#&gt;   &lt;file&gt;                   Data file(s) to read into a data frame named 'df'</span></span>
-<span id="cb20-11"><a href="#cb20-11" tabindex="-1"></a><span class="co">#&gt;                            before the expression runs. The reader is chosen by</span></span>
-<span id="cb20-12"><a href="#cb20-12" tabindex="-1"></a><span class="co">#&gt;                            extension: '.parquet'/'.pq' via nanoparquet,</span></span>
-<span id="cb20-13"><a href="#cb20-13" tabindex="-1"></a><span class="co">#&gt;                            '.duckdb'/'.ddb' (each table becomes an element of</span></span>
-<span id="cb20-14"><a href="#cb20-14" tabindex="-1"></a><span class="co">#&gt;                            'dfs') via DuckDB, everything else as delimited</span></span>
-<span id="cb20-15"><a href="#cb20-15" tabindex="-1"></a><span class="co">#&gt;                            text. Use '-' to read delimited text from standard</span></span>
-<span id="cb20-16"><a href="#cb20-16" tabindex="-1"></a><span class="co">#&gt;                            input. With multiple files, each is read into a</span></span>
-<span id="cb20-17"><a href="#cb20-17" tabindex="-1"></a><span class="co">#&gt;                            named element of a list 'dfs'.</span></span>
-<span id="cb20-18"><a href="#cb20-18" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb20-19"><a href="#cb20-19" tabindex="-1"></a><span class="co">#&gt; Reading options:</span></span>
-<span id="cb20-20"><a href="#cb20-20" tabindex="-1"></a><span class="co">#&gt;   -d, --delimiter &lt;str&gt;    Delimiter [default: ,].</span></span>
-<span id="cb20-21"><a href="#cb20-21" tabindex="-1"></a><span class="co">#&gt;   -C, --no-clean-names     No clean names.</span></span>
-<span id="cb20-22"><a href="#cb20-22" tabindex="-1"></a><span class="co">#&gt;   -H, --no-header          No header.</span></span>
-<span id="cb20-23"><a href="#cb20-23" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb20-24"><a href="#cb20-24" tabindex="-1"></a><span class="co">#&gt; Setup options:</span></span>
-<span id="cb20-25"><a href="#cb20-25" tabindex="-1"></a><span class="co">#&gt;   -l, --library &lt;name&gt;     Libraries to load.</span></span>
-<span id="cb20-26"><a href="#cb20-26" tabindex="-1"></a><span class="co">#&gt;   -t, --tidyverse          Enter the Tidyverse.</span></span>
-<span id="cb20-27"><a href="#cb20-27" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb20-28"><a href="#cb20-28" tabindex="-1"></a><span class="co">#&gt; Saving options:</span></span>
-<span id="cb20-29"><a href="#cb20-29" tabindex="-1"></a><span class="co">#&gt;       --dpi &lt;str|int&gt;      Plot resolution [default: 300].</span></span>
-<span id="cb20-30"><a href="#cb20-30" tabindex="-1"></a><span class="co">#&gt;       --height &lt;int&gt;       Plot height.</span></span>
-<span id="cb20-31"><a href="#cb20-31" tabindex="-1"></a><span class="co">#&gt;   -o, --output &lt;str&gt;       Output file.</span></span>
-<span id="cb20-32"><a href="#cb20-32" tabindex="-1"></a><span class="co">#&gt;       --units &lt;str&gt;        Plot size units [default: in].</span></span>
-<span id="cb20-33"><a href="#cb20-33" tabindex="-1"></a><span class="co">#&gt;   -w, --width &lt;int&gt;        Plot width.</span></span>
-<span id="cb20-34"><a href="#cb20-34" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb20-35"><a href="#cb20-35" tabindex="-1"></a><span class="co">#&gt; General options:</span></span>
-<span id="cb20-36"><a href="#cb20-36" tabindex="-1"></a><span class="co">#&gt;   -n, --dry-run            Only print generated script.</span></span>
-<span id="cb20-37"><a href="#cb20-37" tabindex="-1"></a><span class="co">#&gt;   -h, --help               Show this help.</span></span>
-<span id="cb20-38"><a href="#cb20-38" tabindex="-1"></a><span class="co">#&gt;   -I, --no-ir              Run with Rscript, not ir.</span></span>
-<span id="cb20-39"><a href="#cb20-39" tabindex="-1"></a><span class="co">#&gt;   -q, --quiet              Be quiet.</span></span>
-<span id="cb20-40"><a href="#cb20-40" tabindex="-1"></a><span class="co">#&gt;       --seed &lt;int&gt;         Seed random number generator.</span></span>
-<span id="cb20-41"><a href="#cb20-41" tabindex="-1"></a><span class="co">#&gt;   -v, --verbose            Be verbose.</span></span>
-<span id="cb20-42"><a href="#cb20-42" tabindex="-1"></a><span class="co">#&gt;       --version            Show version.</span></span></code></pre></div>
-<div class="sourceCode" id="cb21"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb21-1"><a href="#cb21-1" tabindex="-1"></a><span class="ex">rush</span> sql <span class="at">-h</span></span>
-<span id="cb21-2"><a href="#cb21-2" tabindex="-1"></a><span class="co">#&gt; rush: Query files with SQL (DuckDB)</span></span>
-<span id="cb21-3"><a href="#cb21-3" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb21-4"><a href="#cb21-4" tabindex="-1"></a><span class="co">#&gt; Usage:</span></span>
-<span id="cb21-5"><a href="#cb21-5" tabindex="-1"></a><span class="co">#&gt;   rush sql [options] [&lt;query&gt;] [--] [&lt;file&gt;...]</span></span>
-<span id="cb21-6"><a href="#cb21-6" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb21-7"><a href="#cb21-7" tabindex="-1"></a><span class="co">#&gt; Arguments:</span></span>
-<span id="cb21-8"><a href="#cb21-8" tabindex="-1"></a><span class="co">#&gt;   &lt;query&gt;                  DuckDB SQL query to run. Its result is printed or</span></span>
-<span id="cb21-9"><a href="#cb21-9" tabindex="-1"></a><span class="co">#&gt;                            written out.</span></span>
-<span id="cb21-10"><a href="#cb21-10" tabindex="-1"></a><span class="co">#&gt;   &lt;file&gt;                   File(s) to expose to the query, each as a relation</span></span>
-<span id="cb21-11"><a href="#cb21-11" tabindex="-1"></a><span class="co">#&gt;                            named after the file's base name. CSV files are</span></span>
-<span id="cb21-12"><a href="#cb21-12" tabindex="-1"></a><span class="co">#&gt;                            read with read_csv_auto, Parquet with read_parquet,</span></span>
-<span id="cb21-13"><a href="#cb21-13" tabindex="-1"></a><span class="co">#&gt;                            and a '.duckdb' database is attached so its tables</span></span>
-<span id="cb21-14"><a href="#cb21-14" tabindex="-1"></a><span class="co">#&gt;                            are addressed as name.table. Use '-' to read CSV</span></span>
-<span id="cb21-15"><a href="#cb21-15" tabindex="-1"></a><span class="co">#&gt;                            from standard input as a relation named 'stdin'.</span></span>
-<span id="cb21-16"><a href="#cb21-16" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb21-17"><a href="#cb21-17" tabindex="-1"></a><span class="co">#&gt; Setup options:</span></span>
-<span id="cb21-18"><a href="#cb21-18" tabindex="-1"></a><span class="co">#&gt;   -l, --library &lt;name&gt;     Libraries to load.</span></span>
-<span id="cb21-19"><a href="#cb21-19" tabindex="-1"></a><span class="co">#&gt;   -t, --tidyverse          Enter the Tidyverse.</span></span>
-<span id="cb21-20"><a href="#cb21-20" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb21-21"><a href="#cb21-21" tabindex="-1"></a><span class="co">#&gt; Saving options:</span></span>
-<span id="cb21-22"><a href="#cb21-22" tabindex="-1"></a><span class="co">#&gt;       --dpi &lt;str|int&gt;      Plot resolution [default: 300].</span></span>
-<span id="cb21-23"><a href="#cb21-23" tabindex="-1"></a><span class="co">#&gt;       --height &lt;int&gt;       Plot height.</span></span>
-<span id="cb21-24"><a href="#cb21-24" tabindex="-1"></a><span class="co">#&gt;   -o, --output &lt;str&gt;       Output file.</span></span>
-<span id="cb21-25"><a href="#cb21-25" tabindex="-1"></a><span class="co">#&gt;       --units &lt;str&gt;        Plot size units [default: in].</span></span>
-<span id="cb21-26"><a href="#cb21-26" tabindex="-1"></a><span class="co">#&gt;   -w, --width &lt;int&gt;        Plot width.</span></span>
-<span id="cb21-27"><a href="#cb21-27" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb21-28"><a href="#cb21-28" tabindex="-1"></a><span class="co">#&gt; General options:</span></span>
-<span id="cb21-29"><a href="#cb21-29" tabindex="-1"></a><span class="co">#&gt;   -n, --dry-run            Only print generated script.</span></span>
-<span id="cb21-30"><a href="#cb21-30" tabindex="-1"></a><span class="co">#&gt;   -h, --help               Show this help.</span></span>
-<span id="cb21-31"><a href="#cb21-31" tabindex="-1"></a><span class="co">#&gt;   -I, --no-ir              Run with Rscript, not ir.</span></span>
-<span id="cb21-32"><a href="#cb21-32" tabindex="-1"></a><span class="co">#&gt;   -q, --quiet              Be quiet.</span></span>
-<span id="cb21-33"><a href="#cb21-33" tabindex="-1"></a><span class="co">#&gt;       --seed &lt;int&gt;         Seed random number generator.</span></span>
-<span id="cb21-34"><a href="#cb21-34" tabindex="-1"></a><span class="co">#&gt;   -v, --verbose            Be verbose.</span></span>
-<span id="cb21-35"><a href="#cb21-35" tabindex="-1"></a><span class="co">#&gt;       --version            Show version.</span></span></code></pre></div>
-<div class="sourceCode" id="cb22"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb22-1"><a href="#cb22-1" tabindex="-1"></a><span class="ex">rush</span> plot <span class="at">-h</span></span>
-<span id="cb22-2"><a href="#cb22-2" tabindex="-1"></a><span class="co">#&gt; rush: Quick plot</span></span>
-<span id="cb22-3"><a href="#cb22-3" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb22-4"><a href="#cb22-4" tabindex="-1"></a><span class="co">#&gt; Usage:</span></span>
-<span id="cb22-5"><a href="#cb22-5" tabindex="-1"></a><span class="co">#&gt;   rush plot [options] [--] [&lt;file&gt;...]</span></span>
-<span id="cb22-6"><a href="#cb22-6" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb22-7"><a href="#cb22-7" tabindex="-1"></a><span class="co">#&gt; Arguments:</span></span>
-<span id="cb22-8"><a href="#cb22-8" tabindex="-1"></a><span class="co">#&gt;   &lt;file&gt;                   Data file(s) to read before plotting. The reader is</span></span>
-<span id="cb22-9"><a href="#cb22-9" tabindex="-1"></a><span class="co">#&gt;                            chosen by extension: '.parquet'/'.pq' via</span></span>
-<span id="cb22-10"><a href="#cb22-10" tabindex="-1"></a><span class="co">#&gt;                            nanoparquet, '.duckdb'/'.ddb' via DuckDB, everything</span></span>
-<span id="cb22-11"><a href="#cb22-11" tabindex="-1"></a><span class="co">#&gt;                            else as delimited text. A single file is read into a</span></span>
-<span id="cb22-12"><a href="#cb22-12" tabindex="-1"></a><span class="co">#&gt;                            data frame named 'df'; use '-' or omit to read</span></span>
-<span id="cb22-13"><a href="#cb22-13" tabindex="-1"></a><span class="co">#&gt;                            delimited text from standard input. Multiple files</span></span>
-<span id="cb22-14"><a href="#cb22-14" tabindex="-1"></a><span class="co">#&gt;                            are each read into a named element of a list 'dfs';</span></span>
-<span id="cb22-15"><a href="#cb22-15" tabindex="-1"></a><span class="co">#&gt;                            combine them into 'df' yourself with the --pre</span></span>
-<span id="cb22-16"><a href="#cb22-16" tabindex="-1"></a><span class="co">#&gt;                            option, e.g. 'df &lt;- dplyr::bind_rows(dfs)'.</span></span>
-<span id="cb22-17"><a href="#cb22-17" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb22-18"><a href="#cb22-18" tabindex="-1"></a><span class="co">#&gt; Reading options:</span></span>
-<span id="cb22-19"><a href="#cb22-19" tabindex="-1"></a><span class="co">#&gt;   -d, --delimiter &lt;str&gt;    Delimiter [default: ,].</span></span>
-<span id="cb22-20"><a href="#cb22-20" tabindex="-1"></a><span class="co">#&gt;   -C, --no-clean-names     No clean names.</span></span>
-<span id="cb22-21"><a href="#cb22-21" tabindex="-1"></a><span class="co">#&gt;   -H, --no-header          No header.</span></span>
-<span id="cb22-22"><a href="#cb22-22" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb22-23"><a href="#cb22-23" tabindex="-1"></a><span class="co">#&gt; Setup options:</span></span>
-<span id="cb22-24"><a href="#cb22-24" tabindex="-1"></a><span class="co">#&gt;   -l, --library &lt;name&gt;     Libraries to load.</span></span>
-<span id="cb22-25"><a href="#cb22-25" tabindex="-1"></a><span class="co">#&gt;   -t, --tidyverse          Enter the Tidyverse.</span></span>
-<span id="cb22-26"><a href="#cb22-26" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb22-27"><a href="#cb22-27" tabindex="-1"></a><span class="co">#&gt; Plotting options:</span></span>
-<span id="cb22-28"><a href="#cb22-28" tabindex="-1"></a><span class="co">#&gt;       --aes &lt;key=value&gt;    Additional aesthetics.</span></span>
-<span id="cb22-29"><a href="#cb22-29" tabindex="-1"></a><span class="co">#&gt;   -a, --alpha &lt;name&gt;       Alpha column.</span></span>
-<span id="cb22-30"><a href="#cb22-30" tabindex="-1"></a><span class="co">#&gt;   -c, --color &lt;name&gt;       Color column.</span></span>
-<span id="cb22-31"><a href="#cb22-31" tabindex="-1"></a><span class="co">#&gt;       --facets &lt;formula&gt;   Facet specification.</span></span>
-<span id="cb22-32"><a href="#cb22-32" tabindex="-1"></a><span class="co">#&gt;   -f, --fill &lt;name&gt;        Fill column.</span></span>
-<span id="cb22-33"><a href="#cb22-33" tabindex="-1"></a><span class="co">#&gt;   -g, --geom &lt;geom&gt;        Geometry [default: auto].</span></span>
-<span id="cb22-34"><a href="#cb22-34" tabindex="-1"></a><span class="co">#&gt;       --group &lt;name&gt;       Group column.</span></span>
-<span id="cb22-35"><a href="#cb22-35" tabindex="-1"></a><span class="co">#&gt;       --log &lt;x|y|xy&gt;       Variables to log transform.</span></span>
-<span id="cb22-36"><a href="#cb22-36" tabindex="-1"></a><span class="co">#&gt;       --margins            Display marginal facets.</span></span>
-<span id="cb22-37"><a href="#cb22-37" tabindex="-1"></a><span class="co">#&gt;       --post &lt;code&gt;        Code to run after plotting.</span></span>
-<span id="cb22-38"><a href="#cb22-38" tabindex="-1"></a><span class="co">#&gt;       --pre &lt;code&gt;         Code to run before plotting.</span></span>
-<span id="cb22-39"><a href="#cb22-39" tabindex="-1"></a><span class="co">#&gt;       --shape &lt;name&gt;       Shape column.</span></span>
-<span id="cb22-40"><a href="#cb22-40" tabindex="-1"></a><span class="co">#&gt;       --size &lt;name&gt;        Size column.</span></span>
-<span id="cb22-41"><a href="#cb22-41" tabindex="-1"></a><span class="co">#&gt;       --title &lt;str&gt;        Plot title.</span></span>
-<span id="cb22-42"><a href="#cb22-42" tabindex="-1"></a><span class="co">#&gt;   -x, --x &lt;name&gt;           X column.</span></span>
-<span id="cb22-43"><a href="#cb22-43" tabindex="-1"></a><span class="co">#&gt;       --xlab &lt;str&gt;         X axis label.</span></span>
-<span id="cb22-44"><a href="#cb22-44" tabindex="-1"></a><span class="co">#&gt;   -y, --y &lt;name&gt;           Y column.</span></span>
-<span id="cb22-45"><a href="#cb22-45" tabindex="-1"></a><span class="co">#&gt;       --ylab &lt;str&gt;         Y axis label.</span></span>
-<span id="cb22-46"><a href="#cb22-46" tabindex="-1"></a><span class="co">#&gt;   -z, --z &lt;name&gt;           Z column.</span></span>
-<span id="cb22-47"><a href="#cb22-47" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb22-48"><a href="#cb22-48" tabindex="-1"></a><span class="co">#&gt; Saving options:</span></span>
-<span id="cb22-49"><a href="#cb22-49" tabindex="-1"></a><span class="co">#&gt;       --dpi &lt;str|int&gt;      Plot resolution [default: 300].</span></span>
-<span id="cb22-50"><a href="#cb22-50" tabindex="-1"></a><span class="co">#&gt;       --height &lt;int&gt;       Plot height.</span></span>
-<span id="cb22-51"><a href="#cb22-51" tabindex="-1"></a><span class="co">#&gt;   -o, --output &lt;str&gt;       Output file.</span></span>
-<span id="cb22-52"><a href="#cb22-52" tabindex="-1"></a><span class="co">#&gt;       --units &lt;str&gt;        Plot size units [default: in].</span></span>
-<span id="cb22-53"><a href="#cb22-53" tabindex="-1"></a><span class="co">#&gt;   -w, --width &lt;int&gt;        Plot width.</span></span>
-<span id="cb22-54"><a href="#cb22-54" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb22-55"><a href="#cb22-55" tabindex="-1"></a><span class="co">#&gt; General options:</span></span>
-<span id="cb22-56"><a href="#cb22-56" tabindex="-1"></a><span class="co">#&gt;   -n, --dry-run            Only print generated script.</span></span>
-<span id="cb22-57"><a href="#cb22-57" tabindex="-1"></a><span class="co">#&gt;   -h, --help               Show this help.</span></span>
-<span id="cb22-58"><a href="#cb22-58" tabindex="-1"></a><span class="co">#&gt;   -I, --no-ir              Run with Rscript, not ir.</span></span>
-<span id="cb22-59"><a href="#cb22-59" tabindex="-1"></a><span class="co">#&gt;   -q, --quiet              Be quiet.</span></span>
-<span id="cb22-60"><a href="#cb22-60" tabindex="-1"></a><span class="co">#&gt;       --seed &lt;int&gt;         Seed random number generator.</span></span>
-<span id="cb22-61"><a href="#cb22-61" tabindex="-1"></a><span class="co">#&gt;   -v, --verbose            Be verbose.</span></span>
-<span id="cb22-62"><a href="#cb22-62" tabindex="-1"></a><span class="co">#&gt;       --version            Show version.</span></span></code></pre></div>
+<div class="sourceCode" id="cb29"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb29-1"><a href="#cb29-1" tabindex="-1"></a><span class="ex">rush</span> run <span class="at">-h</span></span>
+<span id="cb29-2"><a href="#cb29-2" tabindex="-1"></a><span class="co">#&gt; rush: Run an R expression</span></span>
+<span id="cb29-3"><a href="#cb29-3" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb29-4"><a href="#cb29-4" tabindex="-1"></a><span class="co">#&gt; Usage:</span></span>
+<span id="cb29-5"><a href="#cb29-5" tabindex="-1"></a><span class="co">#&gt;   rush run [options] [&lt;expression&gt;] [--] [&lt;file&gt;...]</span></span>
+<span id="cb29-6"><a href="#cb29-6" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb29-7"><a href="#cb29-7" tabindex="-1"></a><span class="co">#&gt; Arguments:</span></span>
+<span id="cb29-8"><a href="#cb29-8" tabindex="-1"></a><span class="co">#&gt;   &lt;expression&gt;             R expression to evaluate. The value of the last</span></span>
+<span id="cb29-9"><a href="#cb29-9" tabindex="-1"></a><span class="co">#&gt;                            expression is printed or written out.</span></span>
+<span id="cb29-10"><a href="#cb29-10" tabindex="-1"></a><span class="co">#&gt;   &lt;file&gt;                   Data file(s) to read into a data frame named 'df'</span></span>
+<span id="cb29-11"><a href="#cb29-11" tabindex="-1"></a><span class="co">#&gt;                            before the expression runs. The reader is chosen by</span></span>
+<span id="cb29-12"><a href="#cb29-12" tabindex="-1"></a><span class="co">#&gt;                            extension: '.parquet'/'.pq' via nanoparquet,</span></span>
+<span id="cb29-13"><a href="#cb29-13" tabindex="-1"></a><span class="co">#&gt;                            '.duckdb'/'.ddb' (each table becomes an element of</span></span>
+<span id="cb29-14"><a href="#cb29-14" tabindex="-1"></a><span class="co">#&gt;                            'dfs') via DuckDB, everything else as delimited</span></span>
+<span id="cb29-15"><a href="#cb29-15" tabindex="-1"></a><span class="co">#&gt;                            text. Use '-' to read delimited text from standard</span></span>
+<span id="cb29-16"><a href="#cb29-16" tabindex="-1"></a><span class="co">#&gt;                            input. With multiple files, each is read into a</span></span>
+<span id="cb29-17"><a href="#cb29-17" tabindex="-1"></a><span class="co">#&gt;                            named element of a list 'dfs'.</span></span>
+<span id="cb29-18"><a href="#cb29-18" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb29-19"><a href="#cb29-19" tabindex="-1"></a><span class="co">#&gt; Reading options:</span></span>
+<span id="cb29-20"><a href="#cb29-20" tabindex="-1"></a><span class="co">#&gt;   -d, --delimiter &lt;str&gt;    Delimiter [default: ,].</span></span>
+<span id="cb29-21"><a href="#cb29-21" tabindex="-1"></a><span class="co">#&gt;   -C, --no-clean-names     No clean names.</span></span>
+<span id="cb29-22"><a href="#cb29-22" tabindex="-1"></a><span class="co">#&gt;   -H, --no-header          No header.</span></span>
+<span id="cb29-23"><a href="#cb29-23" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb29-24"><a href="#cb29-24" tabindex="-1"></a><span class="co">#&gt; Setup options:</span></span>
+<span id="cb29-25"><a href="#cb29-25" tabindex="-1"></a><span class="co">#&gt;   -l, --library &lt;name&gt;     Libraries to load.</span></span>
+<span id="cb29-26"><a href="#cb29-26" tabindex="-1"></a><span class="co">#&gt;   -t, --tidyverse          Enter the Tidyverse.</span></span>
+<span id="cb29-27"><a href="#cb29-27" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb29-28"><a href="#cb29-28" tabindex="-1"></a><span class="co">#&gt; Saving options:</span></span>
+<span id="cb29-29"><a href="#cb29-29" tabindex="-1"></a><span class="co">#&gt;       --dpi &lt;str|int&gt;      Plot resolution [default: 300].</span></span>
+<span id="cb29-30"><a href="#cb29-30" tabindex="-1"></a><span class="co">#&gt;       --height &lt;int&gt;       Plot height.</span></span>
+<span id="cb29-31"><a href="#cb29-31" tabindex="-1"></a><span class="co">#&gt;   -o, --output &lt;str&gt;       Output file.</span></span>
+<span id="cb29-32"><a href="#cb29-32" tabindex="-1"></a><span class="co">#&gt;       --units &lt;str&gt;        Plot size units [default: in].</span></span>
+<span id="cb29-33"><a href="#cb29-33" tabindex="-1"></a><span class="co">#&gt;   -w, --width &lt;int&gt;        Plot width.</span></span>
+<span id="cb29-34"><a href="#cb29-34" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb29-35"><a href="#cb29-35" tabindex="-1"></a><span class="co">#&gt; General options:</span></span>
+<span id="cb29-36"><a href="#cb29-36" tabindex="-1"></a><span class="co">#&gt;   -n, --dry-run            Only print generated script.</span></span>
+<span id="cb29-37"><a href="#cb29-37" tabindex="-1"></a><span class="co">#&gt;   -h, --help               Show this help.</span></span>
+<span id="cb29-38"><a href="#cb29-38" tabindex="-1"></a><span class="co">#&gt;   -I, --no-ir              Run with Rscript, not ir.</span></span>
+<span id="cb29-39"><a href="#cb29-39" tabindex="-1"></a><span class="co">#&gt;   -q, --quiet              Be quiet.</span></span>
+<span id="cb29-40"><a href="#cb29-40" tabindex="-1"></a><span class="co">#&gt;       --seed &lt;int&gt;         Seed random number generator.</span></span>
+<span id="cb29-41"><a href="#cb29-41" tabindex="-1"></a><span class="co">#&gt;   -v, --verbose            Be verbose.</span></span>
+<span id="cb29-42"><a href="#cb29-42" tabindex="-1"></a><span class="co">#&gt;       --version            Show version.</span></span></code></pre></div>
+<div class="sourceCode" id="cb30"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb30-1"><a href="#cb30-1" tabindex="-1"></a><span class="ex">rush</span> sql <span class="at">-h</span></span>
+<span id="cb30-2"><a href="#cb30-2" tabindex="-1"></a><span class="co">#&gt; rush: Query files with SQL (DuckDB)</span></span>
+<span id="cb30-3"><a href="#cb30-3" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb30-4"><a href="#cb30-4" tabindex="-1"></a><span class="co">#&gt; Usage:</span></span>
+<span id="cb30-5"><a href="#cb30-5" tabindex="-1"></a><span class="co">#&gt;   rush sql [options] [&lt;query&gt;] [--] [&lt;file&gt;...]</span></span>
+<span id="cb30-6"><a href="#cb30-6" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb30-7"><a href="#cb30-7" tabindex="-1"></a><span class="co">#&gt; Arguments:</span></span>
+<span id="cb30-8"><a href="#cb30-8" tabindex="-1"></a><span class="co">#&gt;   &lt;query&gt;                  DuckDB SQL query to run. Its result is printed or</span></span>
+<span id="cb30-9"><a href="#cb30-9" tabindex="-1"></a><span class="co">#&gt;                            written out.</span></span>
+<span id="cb30-10"><a href="#cb30-10" tabindex="-1"></a><span class="co">#&gt;   &lt;file&gt;                   File(s) to expose to the query, each as a relation</span></span>
+<span id="cb30-11"><a href="#cb30-11" tabindex="-1"></a><span class="co">#&gt;                            named after the file's base name. CSV files are</span></span>
+<span id="cb30-12"><a href="#cb30-12" tabindex="-1"></a><span class="co">#&gt;                            read with read_csv_auto, Parquet with read_parquet,</span></span>
+<span id="cb30-13"><a href="#cb30-13" tabindex="-1"></a><span class="co">#&gt;                            and a '.duckdb' database is attached so its tables</span></span>
+<span id="cb30-14"><a href="#cb30-14" tabindex="-1"></a><span class="co">#&gt;                            are addressed as name.table. Use '-' to read CSV</span></span>
+<span id="cb30-15"><a href="#cb30-15" tabindex="-1"></a><span class="co">#&gt;                            from standard input as a relation named 'stdin'.</span></span>
+<span id="cb30-16"><a href="#cb30-16" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb30-17"><a href="#cb30-17" tabindex="-1"></a><span class="co">#&gt; Setup options:</span></span>
+<span id="cb30-18"><a href="#cb30-18" tabindex="-1"></a><span class="co">#&gt;   -l, --library &lt;name&gt;     Libraries to load.</span></span>
+<span id="cb30-19"><a href="#cb30-19" tabindex="-1"></a><span class="co">#&gt;   -t, --tidyverse          Enter the Tidyverse.</span></span>
+<span id="cb30-20"><a href="#cb30-20" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb30-21"><a href="#cb30-21" tabindex="-1"></a><span class="co">#&gt; Saving options:</span></span>
+<span id="cb30-22"><a href="#cb30-22" tabindex="-1"></a><span class="co">#&gt;       --dpi &lt;str|int&gt;      Plot resolution [default: 300].</span></span>
+<span id="cb30-23"><a href="#cb30-23" tabindex="-1"></a><span class="co">#&gt;       --height &lt;int&gt;       Plot height.</span></span>
+<span id="cb30-24"><a href="#cb30-24" tabindex="-1"></a><span class="co">#&gt;   -o, --output &lt;str&gt;       Output file.</span></span>
+<span id="cb30-25"><a href="#cb30-25" tabindex="-1"></a><span class="co">#&gt;       --units &lt;str&gt;        Plot size units [default: in].</span></span>
+<span id="cb30-26"><a href="#cb30-26" tabindex="-1"></a><span class="co">#&gt;   -w, --width &lt;int&gt;        Plot width.</span></span>
+<span id="cb30-27"><a href="#cb30-27" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb30-28"><a href="#cb30-28" tabindex="-1"></a><span class="co">#&gt; General options:</span></span>
+<span id="cb30-29"><a href="#cb30-29" tabindex="-1"></a><span class="co">#&gt;   -n, --dry-run            Only print generated script.</span></span>
+<span id="cb30-30"><a href="#cb30-30" tabindex="-1"></a><span class="co">#&gt;   -h, --help               Show this help.</span></span>
+<span id="cb30-31"><a href="#cb30-31" tabindex="-1"></a><span class="co">#&gt;   -I, --no-ir              Run with Rscript, not ir.</span></span>
+<span id="cb30-32"><a href="#cb30-32" tabindex="-1"></a><span class="co">#&gt;   -q, --quiet              Be quiet.</span></span>
+<span id="cb30-33"><a href="#cb30-33" tabindex="-1"></a><span class="co">#&gt;       --seed &lt;int&gt;         Seed random number generator.</span></span>
+<span id="cb30-34"><a href="#cb30-34" tabindex="-1"></a><span class="co">#&gt;   -v, --verbose            Be verbose.</span></span>
+<span id="cb30-35"><a href="#cb30-35" tabindex="-1"></a><span class="co">#&gt;       --version            Show version.</span></span></code></pre></div>
+<div class="sourceCode" id="cb31"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb31-1"><a href="#cb31-1" tabindex="-1"></a><span class="ex">rush</span> plot <span class="at">-h</span></span>
+<span id="cb31-2"><a href="#cb31-2" tabindex="-1"></a><span class="co">#&gt; rush: Quick plot</span></span>
+<span id="cb31-3"><a href="#cb31-3" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb31-4"><a href="#cb31-4" tabindex="-1"></a><span class="co">#&gt; Usage:</span></span>
+<span id="cb31-5"><a href="#cb31-5" tabindex="-1"></a><span class="co">#&gt;   rush plot [options] [--] [&lt;file&gt;...]</span></span>
+<span id="cb31-6"><a href="#cb31-6" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb31-7"><a href="#cb31-7" tabindex="-1"></a><span class="co">#&gt; Arguments:</span></span>
+<span id="cb31-8"><a href="#cb31-8" tabindex="-1"></a><span class="co">#&gt;   &lt;file&gt;                   Data file(s) to read before plotting. The reader is</span></span>
+<span id="cb31-9"><a href="#cb31-9" tabindex="-1"></a><span class="co">#&gt;                            chosen by extension: '.parquet'/'.pq' via</span></span>
+<span id="cb31-10"><a href="#cb31-10" tabindex="-1"></a><span class="co">#&gt;                            nanoparquet, '.duckdb'/'.ddb' via DuckDB, everything</span></span>
+<span id="cb31-11"><a href="#cb31-11" tabindex="-1"></a><span class="co">#&gt;                            else as delimited text. A single file is read into a</span></span>
+<span id="cb31-12"><a href="#cb31-12" tabindex="-1"></a><span class="co">#&gt;                            data frame named 'df'; use '-' or omit to read</span></span>
+<span id="cb31-13"><a href="#cb31-13" tabindex="-1"></a><span class="co">#&gt;                            delimited text from standard input. Multiple files</span></span>
+<span id="cb31-14"><a href="#cb31-14" tabindex="-1"></a><span class="co">#&gt;                            are each read into a named element of a list 'dfs';</span></span>
+<span id="cb31-15"><a href="#cb31-15" tabindex="-1"></a><span class="co">#&gt;                            combine them into 'df' yourself with the --pre</span></span>
+<span id="cb31-16"><a href="#cb31-16" tabindex="-1"></a><span class="co">#&gt;                            option, e.g. 'df &lt;- dplyr::bind_rows(dfs)'.</span></span>
+<span id="cb31-17"><a href="#cb31-17" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb31-18"><a href="#cb31-18" tabindex="-1"></a><span class="co">#&gt; Reading options:</span></span>
+<span id="cb31-19"><a href="#cb31-19" tabindex="-1"></a><span class="co">#&gt;   -d, --delimiter &lt;str&gt;    Delimiter [default: ,].</span></span>
+<span id="cb31-20"><a href="#cb31-20" tabindex="-1"></a><span class="co">#&gt;   -C, --no-clean-names     No clean names.</span></span>
+<span id="cb31-21"><a href="#cb31-21" tabindex="-1"></a><span class="co">#&gt;   -H, --no-header          No header.</span></span>
+<span id="cb31-22"><a href="#cb31-22" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb31-23"><a href="#cb31-23" tabindex="-1"></a><span class="co">#&gt; Setup options:</span></span>
+<span id="cb31-24"><a href="#cb31-24" tabindex="-1"></a><span class="co">#&gt;   -l, --library &lt;name&gt;     Libraries to load.</span></span>
+<span id="cb31-25"><a href="#cb31-25" tabindex="-1"></a><span class="co">#&gt;   -t, --tidyverse          Enter the Tidyverse.</span></span>
+<span id="cb31-26"><a href="#cb31-26" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb31-27"><a href="#cb31-27" tabindex="-1"></a><span class="co">#&gt; Plotting options:</span></span>
+<span id="cb31-28"><a href="#cb31-28" tabindex="-1"></a><span class="co">#&gt;       --aes &lt;key=value&gt;    Additional aesthetics.</span></span>
+<span id="cb31-29"><a href="#cb31-29" tabindex="-1"></a><span class="co">#&gt;   -a, --alpha &lt;name&gt;       Alpha column.</span></span>
+<span id="cb31-30"><a href="#cb31-30" tabindex="-1"></a><span class="co">#&gt;   -c, --color &lt;name&gt;       Color column.</span></span>
+<span id="cb31-31"><a href="#cb31-31" tabindex="-1"></a><span class="co">#&gt;       --facets &lt;formula&gt;   Facet specification.</span></span>
+<span id="cb31-32"><a href="#cb31-32" tabindex="-1"></a><span class="co">#&gt;   -f, --fill &lt;name&gt;        Fill column.</span></span>
+<span id="cb31-33"><a href="#cb31-33" tabindex="-1"></a><span class="co">#&gt;   -g, --geom &lt;geom&gt;        Geometry [default: auto].</span></span>
+<span id="cb31-34"><a href="#cb31-34" tabindex="-1"></a><span class="co">#&gt;       --group &lt;name&gt;       Group column.</span></span>
+<span id="cb31-35"><a href="#cb31-35" tabindex="-1"></a><span class="co">#&gt;       --log &lt;x|y|xy&gt;       Variables to log transform.</span></span>
+<span id="cb31-36"><a href="#cb31-36" tabindex="-1"></a><span class="co">#&gt;       --margins            Display marginal facets.</span></span>
+<span id="cb31-37"><a href="#cb31-37" tabindex="-1"></a><span class="co">#&gt;       --post &lt;code&gt;        Code to run after plotting.</span></span>
+<span id="cb31-38"><a href="#cb31-38" tabindex="-1"></a><span class="co">#&gt;       --pre &lt;code&gt;         Code to run before plotting.</span></span>
+<span id="cb31-39"><a href="#cb31-39" tabindex="-1"></a><span class="co">#&gt;       --shape &lt;name&gt;       Shape column.</span></span>
+<span id="cb31-40"><a href="#cb31-40" tabindex="-1"></a><span class="co">#&gt;       --size &lt;name&gt;        Size column.</span></span>
+<span id="cb31-41"><a href="#cb31-41" tabindex="-1"></a><span class="co">#&gt;       --title &lt;str&gt;        Plot title.</span></span>
+<span id="cb31-42"><a href="#cb31-42" tabindex="-1"></a><span class="co">#&gt;   -x, --x &lt;name&gt;           X column.</span></span>
+<span id="cb31-43"><a href="#cb31-43" tabindex="-1"></a><span class="co">#&gt;       --xlab &lt;str&gt;         X axis label.</span></span>
+<span id="cb31-44"><a href="#cb31-44" tabindex="-1"></a><span class="co">#&gt;   -y, --y &lt;name&gt;           Y column.</span></span>
+<span id="cb31-45"><a href="#cb31-45" tabindex="-1"></a><span class="co">#&gt;       --ylab &lt;str&gt;         Y axis label.</span></span>
+<span id="cb31-46"><a href="#cb31-46" tabindex="-1"></a><span class="co">#&gt;   -z, --z &lt;name&gt;           Z column.</span></span>
+<span id="cb31-47"><a href="#cb31-47" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb31-48"><a href="#cb31-48" tabindex="-1"></a><span class="co">#&gt; Saving options:</span></span>
+<span id="cb31-49"><a href="#cb31-49" tabindex="-1"></a><span class="co">#&gt;       --dpi &lt;str|int&gt;      Plot resolution [default: 300].</span></span>
+<span id="cb31-50"><a href="#cb31-50" tabindex="-1"></a><span class="co">#&gt;       --height &lt;int&gt;       Plot height.</span></span>
+<span id="cb31-51"><a href="#cb31-51" tabindex="-1"></a><span class="co">#&gt;   -o, --output &lt;str&gt;       Output file.</span></span>
+<span id="cb31-52"><a href="#cb31-52" tabindex="-1"></a><span class="co">#&gt;       --units &lt;str&gt;        Plot size units [default: in].</span></span>
+<span id="cb31-53"><a href="#cb31-53" tabindex="-1"></a><span class="co">#&gt;   -w, --width &lt;int&gt;        Plot width.</span></span>
+<span id="cb31-54"><a href="#cb31-54" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb31-55"><a href="#cb31-55" tabindex="-1"></a><span class="co">#&gt; General options:</span></span>
+<span id="cb31-56"><a href="#cb31-56" tabindex="-1"></a><span class="co">#&gt;   -n, --dry-run            Only print generated script.</span></span>
+<span id="cb31-57"><a href="#cb31-57" tabindex="-1"></a><span class="co">#&gt;   -h, --help               Show this help.</span></span>
+<span id="cb31-58"><a href="#cb31-58" tabindex="-1"></a><span class="co">#&gt;   -I, --no-ir              Run with Rscript, not ir.</span></span>
+<span id="cb31-59"><a href="#cb31-59" tabindex="-1"></a><span class="co">#&gt;   -q, --quiet              Be quiet.</span></span>
+<span id="cb31-60"><a href="#cb31-60" tabindex="-1"></a><span class="co">#&gt;       --seed &lt;int&gt;         Seed random number generator.</span></span>
+<span id="cb31-61"><a href="#cb31-61" tabindex="-1"></a><span class="co">#&gt;   -v, --verbose            Be verbose.</span></span>
+<span id="cb31-62"><a href="#cb31-62" tabindex="-1"></a><span class="co">#&gt;       --version            Show version.</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="code-of-conduct">Code of Conduct<a class="anchor" aria-label="anchor" href="#code-of-conduct"></a>
