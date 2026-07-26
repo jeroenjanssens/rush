@@ -562,6 +562,334 @@ rush plot -n --seed 123 -x cyl -y mpg -g jitter mtcars.csv
 
 ---
 
+## Delimiter control
+
+### `--input-delimiter`
+
+Override only the input delimiter while keeping the output as CSV:
+
+```{bash}
+rush run --input-delimiter "\t" 'head(df, 3)' cities.tsv
+```
+
+### `--output-delimiter` (`-D`)
+
+Override only the output delimiter. Read CSV, write pipe-separated:
+
+```{bash}
+rush run -D "|" 'head(df, 3)' mtcars.csv
+```
+
+### Independent input and output delimiters
+
+Read tab-separated input, write semicolons:
+
+```{bash}
+rush run --input-delimiter "\t" -D ";" 'head(df, 3)' cities.tsv
+```
+
+---
+
+## Format flags
+
+### `--input-format` (`-F`)
+
+Force a specific input format regardless of extension. Here we read a file
+with a `.txt` extension as tab-delimited:
+
+```{bash}
+cp cities.tsv cities.txt
+rush run -F tsv 'head(df, 3)' cities.txt
+rm cities.txt
+```
+
+### `--output-format` (`-O`)
+
+Force a specific output format regardless of the output file extension:
+
+```{bash}
+rush run -O tsv 'head(df, 3)' mtcars.csv
+```
+
+Write as tab-separated even when piping (no output file):
+
+```{bash}
+rush run -O tsv 'head(df, 3)' mtcars.csv | cat
+```
+
+---
+
+## `--head`
+
+Limit output to the first N rows. This applies after the expression but before
+writing, so it works as a final filter:
+
+```{bash}
+rush run --head 5 'df' mtcars.csv
+```
+
+Works with any output format:
+
+```{bash}
+rush run --head 3 -O tsv 'df' mtcars.csv
+```
+
+Combined with SQL:
+
+```{bash}
+rush sql --head 3 "SELECT * FROM mtcars ORDER BY mpg DESC" mtcars.csv
+```
+
+---
+
+## JSON input and output
+
+### Reading JSON files
+
+Files ending in `.json` are read with `jsonlite::fromJSON`:
+
+```{bash}
+rush run -O json 'data.frame(name = c("Alice", "Bob", "Carol"), age = c(30, 25, 35), city = c("Amsterdam", "Rotterdam", "Utrecht"))' > people.json
+cat people.json
+```
+
+```{bash}
+rush run 'df |> dplyr::filter(age > 28)' people.json
+```
+
+### Writing JSON
+
+Use `-O json` or name the output file `.json`:
+
+```{bash}
+rush run -O json 'head(df, 3)' mtcars.csv
+```
+
+```{bash}
+rush run -o top3.json 'head(df, 3)' mtcars.csv 2>/dev/null
+cat top3.json
+```
+
+### Reading JSONL (newline-delimited JSON)
+
+Files ending in `.jsonl` or `.ndjson` are read line-by-line:
+
+```{bash}
+rush run -O jsonl 'data.frame(event = c("login", "purchase", "logout"), user = c("alice", "bob", "alice"), ts = 1:3)' > events.jsonl
+cat events.jsonl
+```
+
+```{bash}
+rush run 'nrow(df)' events.jsonl
+```
+
+```{bash}
+rush run 'df |> dplyr::filter(user == "alice")' events.jsonl
+```
+
+### Writing JSONL
+
+Streaming one JSON object per line — great for log pipelines:
+
+```{bash}
+rush run -O jsonl 'head(df, 3)' mtcars.csv
+```
+
+### JSON with SQL
+
+DuckDB reads JSON/JSONL with `read_json_auto`:
+
+```{bash}
+rush sql "SELECT name, age FROM people WHERE age >= 30" people.json
+```
+
+```{bash}
+rush sql "SELECT event, user FROM events WHERE user = 'alice'" events.jsonl
+```
+
+### `--input-format` with JSON
+
+Read a file with a non-standard extension as JSON:
+
+```{bash}
+cp people.json people.dat
+rush run -F json 'head(df)' people.dat
+rm people.dat
+```
+
+---
+
+## Excel input and output
+
+### Reading Excel files
+
+Files ending in `.xlsx` or `.xls` are read with readxl:
+
+```{bash}
+rush run -o sales.xlsx 'data.frame(product = c("Widget", "Gadget", "Doohickey"), q1 = c(100, 250, 75), q2 = c(120, 200, 90), q3 = c(150, 180, 110))' 2>/dev/null
+rush run 'df' sales.xlsx
+```
+
+### `--sheet`
+
+Select a specific sheet by name or index:
+
+```{bash}
+rush run --sheet 1 'names(df)' sales.xlsx
+```
+
+### Writing Excel
+
+Name the output `.xlsx` or use `-O xlsx`:
+
+```{bash}
+rush run -o summary.xlsx 'df |> dplyr::mutate(total = q1 + q2 + q3)' sales.xlsx 2>/dev/null
+rush run 'df' summary.xlsx
+```
+
+### Converting CSV to Excel
+
+```{bash}
+rush run -o mtcars.xlsx 'df' mtcars.csv 2>/dev/null
+rush run 'nrow(df)' mtcars.xlsx
+```
+
+---
+
+## Arrow IPC / Feather
+
+### Reading Arrow files
+
+Files ending in `.arrow`, `.ipc`, or `.feather` are read with the arrow package:
+
+```{bash}
+rush run -o flights.arrow 'df' flights.parquet 2>/dev/null
+rush run 'head(df, 3) |> dplyr::select(carrier, origin, dest)' flights.arrow
+```
+
+### Writing Arrow IPC
+
+Name the output `.arrow`, `.ipc`, or `.feather`, or use `-O arrow`:
+
+```{bash}
+rush run -o subset.arrow 'dplyr::filter(df, dep_delay > 10)' flights.parquet 2>/dev/null
+rush run 'nrow(df)' subset.arrow
+```
+
+### Using `-O arrow` with stdout redirection
+
+```{bash}
+rush run -O arrow 'head(df, 5)' mtcars.csv > sample.arrow 2>/dev/null
+rush run 'ncol(df)' sample.arrow
+```
+
+### Reading .feather and .ipc extensions
+
+```{bash}
+cp flights.arrow flights.feather
+rush run 'nrow(df)' flights.feather
+cp flights.arrow flights.ipc
+rush run 'nrow(df)' flights.ipc
+rm flights.feather flights.ipc
+```
+
+---
+
+## rush convert
+
+The `convert` command converts between formats without writing an expression.
+
+### CSV to Parquet
+
+```{bash}
+rush convert -o mtcars_conv.parquet mtcars.csv 2>/dev/null
+rush run 'nrow(df)' mtcars_conv.parquet
+```
+
+### Parquet to JSON
+
+```{bash}
+rush convert -o flights_sample.json --head 3 flights.parquet 2>/dev/null
+cat flights_sample.json
+```
+
+### CSV to JSONL
+
+```{bash}
+rush convert -O jsonl --head 2 -o mtcars.jsonl mtcars.csv 2>/dev/null
+cat mtcars.jsonl
+```
+
+### JSON to CSV
+
+```{bash}
+rush convert -o people.csv people.json 2>/dev/null
+cat people.csv
+```
+
+### CSV to Excel
+
+```{bash}
+rush convert -o mtcars_conv.xlsx mtcars.csv 2>/dev/null
+rush run 'dim(df)' mtcars_conv.xlsx
+```
+
+### Parquet to Arrow
+
+```{bash}
+rush convert -o flights_conv.arrow flights.parquet 2>/dev/null
+rush run 'nrow(df)' flights_conv.arrow
+```
+
+### Combining multiple files
+
+Stack multiple CSVs into a single Parquet:
+
+```{bash}
+echo "id,val
+1,a
+2,b" > chunk1.csv
+echo "id,val
+3,c
+4,d" > chunk2.csv
+echo "id,val
+5,e
+6,f" > chunk3.csv
+rush convert -o stacked.parquet chunk1.csv chunk2.csv chunk3.csv 2>/dev/null
+rush run 'df' stacked.parquet
+```
+
+### Using `--head` with convert
+
+Limit the output to a specific number of rows:
+
+```{bash}
+rush convert --head 5 -o top5.csv flights.parquet 2>/dev/null
+cat top5.csv
+```
+
+### Format override with `-F` and `-O`
+
+Force input and output formats regardless of extension:
+
+```{bash}
+cp mtcars.csv mtcars.dat
+rush convert -F csv -O json -o result.json --head 2 mtcars.dat 2>/dev/null
+cat result.json
+rm mtcars.dat
+```
+
+### Converting with delimiter control
+
+Read a TSV and convert to semicolon-separated CSV:
+
+```{bash}
+rush convert --input-delimiter "\t" -D ";" -o cities_semi.csv cities.tsv 2>/dev/null
+cat cities_semi.csv
+```
+
+---
+
 ## Combining commands in pipelines
 
 The real power of `rush` is combining commands in Unix pipelines:
@@ -578,8 +906,38 @@ rush run 'dplyr::filter(df, mpg > 15)' mtcars.csv | \
   rush sql "SELECT cyl, ROUND(AVG(mpg),1) as avg FROM stdin GROUP BY cyl ORDER BY cyl" -
 ```
 
+### JSON in pipelines
+
+Produce JSON, process it, and convert back to CSV:
+
+```{bash}
+rush run -O json 'head(df, 3)' mtcars.csv | rush run -F json 'dplyr::select(df, mpg, cyl, hp)' -
+```
+
+### Format conversion pipelines
+
+Read Parquet, filter with SQL, save as JSON:
+
+```{bash}
+rush sql -O json "SELECT carrier, origin, dest FROM flights WHERE dep_delay > 20" flights.parquet
+```
+
+### Streaming JSONL through pipelines
+
+Generate JSONL, filter line by line, and write CSV:
+
+```{bash}
+rush run -O jsonl 'df' mtcars.csv | rush run -F jsonl 'dplyr::filter(df, mpg > 25)' -
+```
+
 ```{r, include=FALSE}
 unlink(c("mtcars.csv", "cities.tsv", "numbers.txt", "flights.parquet",
          "inventory.duckdb", "fuel.csv", "a.csv", "b.csv", "summary.csv",
-         "subset.parquet", "efficient.parquet", "scatter.png", "hires.png"))
+         "subset.parquet", "efficient.parquet", "scatter.png", "hires.png",
+         "people.json", "events.jsonl", "top3.json", "sales.xlsx",
+         "summary.xlsx", "mtcars.xlsx", "flights.arrow", "subset.arrow",
+         "sample.arrow", "mtcars_conv.parquet", "flights_sample.json",
+         "mtcars.jsonl", "people.csv", "mtcars_conv.xlsx", "flights_conv.arrow",
+         "chunk1.csv", "chunk2.csv", "chunk3.csv", "stacked.parquet",
+         "top5.csv", "result.json", "cities_semi.csv"))
 ```
