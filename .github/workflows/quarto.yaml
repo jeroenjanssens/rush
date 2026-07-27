@@ -34,7 +34,7 @@ jobs:
 
       - name: Install ir and set up rush
         run: |
-          Rscript -e 'pak::pak("r-lib/ir")'
+          curl -fsSL https://github.com/r-lib/ir/releases/latest/download/ir-x86_64-unknown-linux-gnu.tar.gz | sudo tar -xz -C /usr/local/bin
           chmod +x exec/rush.R
           sudo ln -sf $(pwd)/exec/rush.R /usr/local/bin/rush
         shell: bash

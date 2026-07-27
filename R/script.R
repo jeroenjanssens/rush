@@ -63,60 +63,144 @@ format_supports_nesting <- function(fmt) {
 
 file_kind <- function(path, input_format = "auto") {
   if (!identical(input_format, "auto")) {
-    if (input_format %in% c("csv", "tsv")) return("delim")
-    if (input_format == "zsav") return("sav")
+    if (input_format %in% c("csv", "tsv")) {
+      return("delim")
+    }
+    if (input_format == "zsav") {
+      return("sav")
+    }
     return(input_format)
   }
-  if (path == "-") return("stdin")
+  if (path == "-") {
+    return("stdin")
+  }
   ext <- tolower(tools::file_ext(path))
-  if (ext %in% c("parquet", "pq")) return("parquet")
-  if (ext %in% c("duckdb", "ddb")) return("duckdb")
-  if (ext == "json") return("json")
-  if (ext %in% c("jsonl", "ndjson")) return("jsonl")
-  if (ext %in% c("xlsx", "xls")) return("xlsx")
-  if (ext %in% c("arrow", "ipc", "feather")) return("arrow")
-  if (ext %in% c("sav", "zsav")) return("sav")
-  if (ext == "por") return("por")
-  if (ext == "dta") return("dta")
-  if (ext == "sas7bdat") return("sas7bdat")
-  if (ext == "xpt") return("xpt")
-  if (ext %in% c("sqlite", "db")) return("sqlite")
-  if (ext == "fwf") return("fwf")
-  if (ext == "rds") return("rds")
-  if (ext == "ods") return("ods")
-  if (ext %in% c("fasta", "fa", "fna")) return("fasta")
-  if (ext %in% c("fastq", "fq")) return("fastq")
-  if (ext %in% c("yaml", "yml")) return("yaml")
-  if (ext == "toml") return("toml")
-  if (ext == "xml") return("xml")
+  if (ext %in% c("parquet", "pq")) {
+    return("parquet")
+  }
+  if (ext %in% c("duckdb", "ddb")) {
+    return("duckdb")
+  }
+  if (ext == "json") {
+    return("json")
+  }
+  if (ext %in% c("jsonl", "ndjson")) {
+    return("jsonl")
+  }
+  if (ext %in% c("xlsx", "xls")) {
+    return("xlsx")
+  }
+  if (ext %in% c("arrow", "ipc", "feather")) {
+    return("arrow")
+  }
+  if (ext %in% c("sav", "zsav")) {
+    return("sav")
+  }
+  if (ext == "por") {
+    return("por")
+  }
+  if (ext == "dta") {
+    return("dta")
+  }
+  if (ext == "sas7bdat") {
+    return("sas7bdat")
+  }
+  if (ext == "xpt") {
+    return("xpt")
+  }
+  if (ext %in% c("sqlite", "db")) {
+    return("sqlite")
+  }
+  if (ext == "fwf") {
+    return("fwf")
+  }
+  if (ext == "rds") {
+    return("rds")
+  }
+  if (ext == "ods") {
+    return("ods")
+  }
+  if (ext %in% c("fasta", "fa", "fna")) {
+    return("fasta")
+  }
+  if (ext %in% c("fastq", "fq")) {
+    return("fastq")
+  }
+  if (ext %in% c("yaml", "yml")) {
+    return("yaml")
+  }
+  if (ext == "toml") {
+    return("toml")
+  }
+  if (ext == "xml") {
+    return("xml")
+  }
   "delim"
 }
 
 resolve_output_format <- function(output, output_format) {
   if (!identical(output_format, "auto")) {
-    if (output_format %in% c("csv", "tsv")) return("delim")
+    if (output_format %in% c("csv", "tsv")) {
+      return("delim")
+    }
     return(output_format)
   }
   if (!is.null(output)) {
     ext <- tolower(tools::file_ext(output))
-    if (ext %in% c("parquet", "pq")) return("parquet")
-    if (ext == "json") return("json")
-    if (ext %in% c("jsonl", "ndjson")) return("jsonl")
-    if (ext %in% c("arrow", "ipc", "feather")) return("arrow")
-    if (ext == "xlsx") return("xlsx")
-    if (ext == "sav") return("sav")
-    if (ext == "zsav") return("zsav")
-    if (ext == "dta") return("dta")
-    if (ext == "sas7bdat") return("sas7bdat")
-    if (ext == "xpt") return("xpt")
-    if (ext %in% c("duckdb", "ddb")) return("duckdb")
-    if (ext %in% c("sqlite", "db")) return("sqlite")
-    if (ext == "rds") return("rds")
-    if (ext == "ods") return("ods")
-    if (ext %in% c("fasta", "fa", "fna")) return("fasta")
-    if (ext %in% c("fastq", "fq")) return("fastq")
-    if (ext %in% c("yaml", "yml")) return("yaml")
-    if (ext == "toml") return("toml")
+    if (ext %in% c("parquet", "pq")) {
+      return("parquet")
+    }
+    if (ext == "json") {
+      return("json")
+    }
+    if (ext %in% c("jsonl", "ndjson")) {
+      return("jsonl")
+    }
+    if (ext %in% c("arrow", "ipc", "feather")) {
+      return("arrow")
+    }
+    if (ext == "xlsx") {
+      return("xlsx")
+    }
+    if (ext == "sav") {
+      return("sav")
+    }
+    if (ext == "zsav") {
+      return("zsav")
+    }
+    if (ext == "dta") {
+      return("dta")
+    }
+    if (ext == "sas7bdat") {
+      return("sas7bdat")
+    }
+    if (ext == "xpt") {
+      return("xpt")
+    }
+    if (ext %in% c("duckdb", "ddb")) {
+      return("duckdb")
+    }
+    if (ext %in% c("sqlite", "db")) {
+      return("sqlite")
+    }
+    if (ext == "rds") {
+      return("rds")
+    }
+    if (ext == "ods") {
+      return("ods")
+    }
+    if (ext %in% c("fasta", "fa", "fna")) {
+      return("fasta")
+    }
+    if (ext %in% c("fastq", "fq")) {
+      return("fastq")
+    }
+    if (ext %in% c("yaml", "yml")) {
+      return("yaml")
+    }
+    if (ext == "toml") {
+      return("toml")
+    }
     if (ext == "xml") return("xml")
   }
   "delim"
@@ -184,7 +268,10 @@ emit_read_files <- function(con, files, flags) {
       read_pkgs <- "haven"
       read_expr <- expr(haven::read_xpt(!!path))
     } else if (kind == "fwf") {
-      read_expr <- expr(readr::read_fwf(!!path, col_positions = readr::fwf_empty(!!path)))
+      read_expr <- expr(readr::read_fwf(
+        !!path,
+        col_positions = readr::fwf_empty(!!path)
+      ))
     } else if (kind == "rds") {
       read_expr <- expr(readRDS(!!path))
     } else if (kind == "ods") {
@@ -223,7 +310,11 @@ emit_read_files <- function(con, files, flags) {
 
   emit_duckdb <- function(path, name) {
     read <- if (!flags$no_clean_names) {
-      paste0("    dfs[[\"", name, "\"]][[.t]] <<- janitor::clean_names(DBI::dbReadTable(.con, .t))")
+      paste0(
+        "    dfs[[\"",
+        name,
+        "\"]][[.t]] <<- janitor::clean_names(DBI::dbReadTable(.con, .t))"
+      )
     } else {
       paste0("    dfs[[\"", name, "\"]][[.t]] <<- DBI::dbReadTable(.con, .t)")
     }
@@ -249,7 +340,11 @@ emit_read_files <- function(con, files, flags) {
 
   emit_sqlite <- function(path, name) {
     read <- if (!flags$no_clean_names) {
-      paste0("    dfs[[\"", name, "\"]][[.t]] <<- janitor::clean_names(DBI::dbReadTable(.con, .t))")
+      paste0(
+        "    dfs[[\"",
+        name,
+        "\"]][[.t]] <<- janitor::clean_names(DBI::dbReadTable(.con, .t))"
+      )
     } else {
       paste0("    dfs[[\"", name, "\"]][[.t]] <<- DBI::dbReadTable(.con, .t)")
     }
@@ -307,14 +402,20 @@ emit_sql <- function(con, query, files, flags) {
   sql_id <- function(x) paste0('"', gsub('"', '""', x, fixed = TRUE), '"')
 
   writeLines("con <- DBI::dbConnect(duckdb::duckdb())", con)
-  writeLines("on.exit(DBI::dbDisconnect(con, shutdown = TRUE), add = TRUE)", con)
+  writeLines(
+    "on.exit(DBI::dbDisconnect(con, shutdown = TRUE), add = TRUE)",
+    con
+  )
 
   if (length(files) > 0) {
     names <- input_names(files)
     kinds <- vapply(files, file_kind, character(1))
 
     if (any(kinds %in% c("json", "jsonl"))) {
-      writeLines('invisible(DBI::dbExecute(con, "INSTALL json; LOAD json;"))', con)
+      writeLines(
+        'invisible(DBI::dbExecute(con, "INSTALL json; LOAD json;"))',
+        con
+      )
     }
 
     for (i in seq_along(files)) {

@@ -12,10 +12,15 @@ rush <- function(...) {
   if (identical(flags$input_format, "tsv") && is.null(flags$input_delimiter)) {
     flags$resolved_input_delimiter <- "\t"
   }
-  if (identical(flags$output_format, "tsv") && is.null(flags$output_delimiter)) {
+  if (
+    identical(flags$output_format, "tsv") && is.null(flags$output_delimiter)
+  ) {
     flags$resolved_output_delimiter <- "\t"
   }
-  flags$resolved_output_format <- resolve_output_format(flags$output, flags$output_format)
+  flags$resolved_output_format <- resolve_output_format(
+    flags$output,
+    flags$output_format
+  )
 
   if (!is.null(flags$output) && grepl("%\\(", flags$output)) {
     flags$output_template <- flags$output
@@ -44,7 +49,8 @@ rush <- function(...) {
     code_expression(body, set.seed(!!flags$seed))
   }
 
-  result <- switch(flags$command,
+  result <- switch(
+    flags$command,
     run = build_run_body(body, flags),
     sql = build_sql_body(body, flags),
     plot = build_plot_body(body, flags),
@@ -60,7 +66,9 @@ rush <- function(...) {
     pkgs <- c(pkgs, "arrow")
   } else if (identical(flags$resolved_output_format, "xlsx")) {
     pkgs <- c(pkgs, "writexl")
-  } else if (flags$resolved_output_format %in% c("sav", "zsav", "dta", "sas7bdat", "xpt")) {
+  } else if (
+    flags$resolved_output_format %in% c("sav", "zsav", "dta", "sas7bdat", "xpt")
+  ) {
     pkgs <- c(pkgs, "haven")
   } else if (identical(flags$resolved_output_format, "duckdb")) {
     pkgs <- c(pkgs, "duckdb", "DBI")
@@ -191,8 +199,11 @@ build_convert_body <- function(con, flags) {
       i = "See {.code rush convert -h} for usage."
     ))
   }
-  if (is.null(flags$output) && is.null(flags$output_template) &&
-      identical(flags$output_format, "auto")) {
+  if (
+    is.null(flags$output) &&
+      is.null(flags$output_template) &&
+      identical(flags$output_format, "auto")
+  ) {
     cli::cli_abort(c(
       "No output format specified.",
       i = "Use {.code -o <file>} to write to a file, or {.code -O <format>} to write to stdout.",
@@ -204,8 +215,14 @@ build_convert_body <- function(con, flags) {
   pkgs <- c(pkgs, emit_read_files(con, flags$file, flags))
 
   is_multi <- length(flags$file) > 1 ||
-    any(vapply(flags$file, function(f) file_kind(f, flags$input_format %||% "auto"),
-               character(1)) %in% c("duckdb", "sqlite"))
+    any(
+      vapply(
+        flags$file,
+        function(f) file_kind(f, flags$input_format %||% "auto"),
+        character(1)
+      ) %in%
+        c("duckdb", "sqlite")
+    )
   output_is_db <- flags$resolved_output_format %in% c("duckdb", "sqlite")
 
   if (!is.null(flags$output_template)) {
@@ -227,7 +244,17 @@ build_convert_body <- function(con, flags) {
 }
 
 build_plot_call <- function(flags) {
-  aes_names <- c("x", "y", "z", "color", "alpha", "shape", "group", "size", "fill")
+  aes_names <- c(
+    "x",
+    "y",
+    "z",
+    "color",
+    "alpha",
+    "shape",
+    "group",
+    "size",
+    "fill"
+  )
   aes_call <- rlang::call2("aes", !!!purrr::compact(flags[aes_names]))
   if (!is.null(flags$aes)) {
     aes_call <- rlang::call_modify(aes_call, !!!flags$aes, .homonyms = "last")
@@ -274,7 +301,11 @@ build_plot_call <- function(flags) {
     title = flags$title
   ))
   if (length(labs_args) > 0) {
-    plot_call <- rlang::call2("+", plot_call, rlang::call2("labs", !!!labs_args))
+    plot_call <- rlang::call2(
+      "+",
+      plot_call,
+      rlang::call2("labs", !!!labs_args)
+    )
   }
 
   plot_call

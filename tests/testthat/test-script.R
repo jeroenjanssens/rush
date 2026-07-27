@@ -102,8 +102,14 @@ test_that("stdin creates dfs$stdin entry", {
 test_that("run reads multiple files into a dfs list", {
   script <- dry_run("run", "-n", "nrow(dfs$a)", "a.csv", "b.csv")
   expect_true(any(grepl("^dfs <- list\\(\\)$", script)))
-  expect_true(any(grepl('dfs\\[\\["a"\\]\\] <- .*read_delim\\("a.csv"', script)))
-  expect_true(any(grepl('dfs\\[\\["b"\\]\\] <- .*read_delim\\("b.csv"', script)))
+  expect_true(any(grepl(
+    'dfs\\[\\["a"\\]\\] <- .*read_delim\\("a.csv"',
+    script
+  )))
+  expect_true(any(grepl(
+    'dfs\\[\\["b"\\]\\] <- .*read_delim\\("b.csv"',
+    script
+  )))
 })
 
 test_that("run reads a Parquet file with nanoparquet", {
@@ -201,7 +207,10 @@ test_that("sql emits on.exit disconnect", {
 
 test_that("plot reads a single file into df", {
   script <- dry_run("plot", "-n", "-x", "wt", "a.csv")
-  expect_true(any(grepl('dfs\\[\\["a"\\]\\] <- .*read_delim\\("a.csv"', script)))
+  expect_true(any(grepl(
+    'dfs\\[\\["a"\\]\\] <- .*read_delim\\("a.csv"',
+    script
+  )))
   expect_true(any(grepl("df <- dfs\\[\\[1(L)?\\]\\]", script)))
 })
 
@@ -223,8 +232,14 @@ test_that("plot reads multiple files into a dfs list", {
     "b.csv"
   )
   expect_true(any(grepl("^dfs <- list\\(\\)$", script)))
-  expect_true(any(grepl('dfs\\[\\["a"\\]\\] <- .*read_delim\\("a.csv"', script)))
-  expect_true(any(grepl('dfs\\[\\["b"\\]\\] <- .*read_delim\\("b.csv"', script)))
+  expect_true(any(grepl(
+    'dfs\\[\\["a"\\]\\] <- .*read_delim\\("a.csv"',
+    script
+  )))
+  expect_true(any(grepl(
+    'dfs\\[\\["b"\\]\\] <- .*read_delim\\("b.csv"',
+    script
+  )))
   expect_true(any(grepl("df <- dplyr::bind_rows\\(dfs\\)", script)))
 })
 
@@ -365,7 +380,14 @@ test_that("--output-delimiter overrides only the output delimiter", {
 })
 
 test_that("--input-delimiter overrides only the input delimiter", {
-  script <- dry_run("run", "-n", "--input-delimiter", "\t", "head(df)", "data.csv")
+  script <- dry_run(
+    "run",
+    "-n",
+    "--input-delimiter",
+    "\t",
+    "head(df)",
+    "data.csv"
+  )
   # Input side uses tab
   read_line <- script[grepl("read_delim", script)]
   expect_true(any(grepl('delim = "\\\\t"', read_line)))
@@ -396,7 +418,16 @@ test_that("-O json sets output_format to json in preamble", {
 })
 
 test_that("-O parquet works like --output ending in .parquet", {
-  script <- dry_run("run", "-n", "-O", "parquet", "-o", "out.parquet", "df", "data.csv")
+  script <- dry_run(
+    "run",
+    "-n",
+    "-O",
+    "parquet",
+    "-o",
+    "out.parquet",
+    "df",
+    "data.csv"
+  )
   expect_true(any(grepl('output_format = "parquet"', script)))
   expect_true(any(grepl("nanoparquet::write_parquet", script)))
   expect_true(any(grepl("^#\\|   - nanoparquet$", script)))
@@ -412,14 +443,20 @@ test_that("run reads a JSON file with jsonlite and flattens for CSV output", {
 
 test_that("run reads a JSONL file with jsonlite stream_in and flattens for CSV", {
   script <- dry_run("run", "-n", "head(df)", "data.jsonl")
-  expect_true(any(grepl("jsonlite::stream_in\\(file\\(\"data.jsonl\"\\)", script)))
+  expect_true(any(grepl(
+    "jsonlite::stream_in\\(file\\(\"data.jsonl\"\\)",
+    script
+  )))
   expect_true(any(grepl("jsonlite::flatten", script)))
   expect_true(any(grepl("^#\\|   - jsonlite$", script)))
 })
 
 test_that("run reads an .ndjson file as JSONL", {
   script <- dry_run("run", "-n", "head(df)", "data.ndjson")
-  expect_true(any(grepl("jsonlite::stream_in\\(file\\(\"data.ndjson\"\\)", script)))
+  expect_true(any(grepl(
+    "jsonlite::stream_in\\(file\\(\"data.ndjson\"\\)",
+    script
+  )))
 })
 
 test_that("JSON input does not flatten when output is JSON", {
@@ -480,12 +517,18 @@ test_that("run reads .xls files with readxl", {
 
 test_that("--sheet selects a specific Excel sheet", {
   script <- dry_run("run", "-n", "--sheet", "Sales", "head(df)", "data.xlsx")
-  expect_true(any(grepl('readxl::read_excel\\("data.xlsx", sheet = "Sales"\\)', script)))
+  expect_true(any(grepl(
+    'readxl::read_excel\\("data.xlsx", sheet = "Sales"\\)',
+    script
+  )))
 })
 
 test_that("--sheet with numeric index works", {
   script <- dry_run("run", "-n", "--sheet", "2", "head(df)", "data.xlsx")
-  expect_true(any(grepl('readxl::read_excel\\("data.xlsx", sheet = 2\\)', script)))
+  expect_true(any(grepl(
+    'readxl::read_excel\\("data.xlsx", sheet = 2\\)',
+    script
+  )))
 })
 
 test_that("-F xlsx forces Excel reading", {
@@ -495,7 +538,16 @@ test_that("-F xlsx forces Excel reading", {
 })
 
 test_that("-O xlsx emits Excel output via writexl", {
-  script <- dry_run("run", "-n", "-O", "xlsx", "-o", "out.xlsx", "df", "data.csv")
+  script <- dry_run(
+    "run",
+    "-n",
+    "-O",
+    "xlsx",
+    "-o",
+    "out.xlsx",
+    "df",
+    "data.csv"
+  )
   expect_true(any(grepl('output_format = "xlsx"', script)))
   expect_true(any(grepl("writexl::write_xlsx", script)))
   expect_true(any(grepl("^#\\|   - writexl$", script)))
@@ -531,7 +583,16 @@ test_that("-F arrow forces Arrow reading", {
 })
 
 test_that("-O arrow emits Arrow IPC output", {
-  script <- dry_run("run", "-n", "-O", "arrow", "-o", "out.arrow", "df", "data.csv")
+  script <- dry_run(
+    "run",
+    "-n",
+    "-O",
+    "arrow",
+    "-o",
+    "out.arrow",
+    "df",
+    "data.csv"
+  )
   expect_true(any(grepl('output_format = "arrow"', script)))
   expect_true(any(grepl("arrow::write_ipc_file", script)))
   expect_true(any(grepl("^#\\|   - arrow$", script)))
@@ -592,7 +653,14 @@ test_that("convert with multiple input files requires a template", {
 })
 
 test_that("convert with output template emits result <- dfs", {
-  script <- dry_run("convert", "-n", "-o", "%(file_name)s.parquet", "a.csv", "b.csv")
+  script <- dry_run(
+    "convert",
+    "-n",
+    "-o",
+    "%(file_name)s.parquet",
+    "a.csv",
+    "b.csv"
+  )
   expect_true(any(grepl("dfs <- list", script)))
   expect_true(any(grepl("result <- dfs", script)))
   expect_true(any(grepl("output_template", script)))
@@ -616,7 +684,15 @@ test_that("convert parquet to xlsx", {
 })
 
 test_that("convert applies --head to limit rows", {
-  script <- dry_run("convert", "-n", "--head", "10", "-o", "out.csv", "data.parquet")
+  script <- dry_run(
+    "convert",
+    "-n",
+    "--head",
+    "10",
+    "-o",
+    "out.csv",
+    "data.parquet"
+  )
   expect_true(any(grepl("head = 10L", script)))
 })
 
@@ -650,7 +726,6 @@ test_that("run reads a .sav file with haven", {
 })
 
 test_that("run reads a .zsav file with haven::read_sav", {
-
   script <- dry_run("run", "-n", "head(df)", "data.zsav")
   expect_true(any(grepl("haven::read_sav\\(\"data.zsav\"\\)", script)))
   expect_true(any(grepl("^#\\|   - haven$", script)))
@@ -714,7 +789,16 @@ test_that("run reads a .xpt file with haven", {
 })
 
 test_that("-O sas7bdat emits haven::write_sas", {
-  script <- dry_run("run", "-n", "-O", "sas7bdat", "-o", "out.sas7bdat", "df", "data.csv")
+  script <- dry_run(
+    "run",
+    "-n",
+    "-O",
+    "sas7bdat",
+    "-o",
+    "out.sas7bdat",
+    "df",
+    "data.csv"
+  )
   expect_true(any(grepl('output_format = "sas7bdat"', script)))
   expect_true(any(grepl("haven::write_sas", script)))
 })
@@ -745,7 +829,16 @@ test_that("run reads a .db file as SQLite", {
 })
 
 test_that("-O sqlite emits SQLite write via DBI", {
-  script <- dry_run("run", "-n", "-O", "sqlite", "-o", "out.sqlite", "df", "data.csv")
+  script <- dry_run(
+    "run",
+    "-n",
+    "-O",
+    "sqlite",
+    "-o",
+    "out.sqlite",
+    "df",
+    "data.csv"
+  )
   expect_true(any(grepl('output_format = "sqlite"', script)))
   expect_true(any(grepl("RSQLite::SQLite", script)))
   expect_true(any(grepl("dbWriteTable", script)))
@@ -818,7 +911,16 @@ test_that("run reads .fa and .fna as FASTA", {
 })
 
 test_that("-O fasta emits microseq::writeFasta", {
-  script <- dry_run("run", "-n", "-O", "fasta", "-o", "out.fasta", "df", "data.csv")
+  script <- dry_run(
+    "run",
+    "-n",
+    "-O",
+    "fasta",
+    "-o",
+    "out.fasta",
+    "df",
+    "data.csv"
+  )
   expect_true(any(grepl('output_format = "fasta"', script)))
   expect_true(any(grepl("microseq::writeFasta", script)))
   expect_true(any(grepl("^#\\|   - microseq$", script)))
@@ -838,7 +940,16 @@ test_that("run reads .fq as FASTQ", {
 })
 
 test_that("-O fastq emits microseq::writeFastq", {
-  script <- dry_run("run", "-n", "-O", "fastq", "-o", "out.fastq", "df", "data.csv")
+  script <- dry_run(
+    "run",
+    "-n",
+    "-O",
+    "fastq",
+    "-o",
+    "out.fastq",
+    "df",
+    "data.csv"
+  )
   expect_true(any(grepl('output_format = "fastq"', script)))
   expect_true(any(grepl("microseq::writeFastq", script)))
 })
@@ -898,7 +1009,16 @@ test_that("run reads a .yml file with yaml", {
 })
 
 test_that("-O yaml emits yaml::as.yaml", {
-  script <- dry_run("run", "-n", "-O", "yaml", "-o", "out.yaml", "df", "data.csv")
+  script <- dry_run(
+    "run",
+    "-n",
+    "-O",
+    "yaml",
+    "-o",
+    "out.yaml",
+    "df",
+    "data.csv"
+  )
   expect_true(any(grepl('output_format = "yaml"', script)))
   expect_true(any(grepl("yaml::as.yaml", script)))
   expect_true(any(grepl("^#\\|   - yaml$", script)))
@@ -921,7 +1041,16 @@ test_that("run reads a .toml file with RcppTOML", {
 })
 
 test_that("-O toml emits RcppTOML::writeTOML", {
-  script <- dry_run("run", "-n", "-O", "toml", "-o", "out.toml", "df", "data.csv")
+  script <- dry_run(
+    "run",
+    "-n",
+    "-O",
+    "toml",
+    "-o",
+    "out.toml",
+    "df",
+    "data.csv"
+  )
   expect_true(any(grepl('output_format = "toml"', script)))
   expect_true(any(grepl("RcppTOML::writeTOML", script)))
   expect_true(any(grepl("^#\\|   - RcppTOML$", script)))
@@ -979,7 +1108,10 @@ test_that("jsonl is NOT flattened when output is toml", {
 
 test_that("output template is detected and stored in preamble", {
   script <- dry_run("convert", "-n", "-o", "%(file_name)s.parquet", "a.csv")
-  expect_true(any(grepl('output_template = "%\\(file_name\\)s.parquet"', script)))
+  expect_true(any(grepl(
+    'output_template = "%\\(file_name\\)s.parquet"',
+    script
+  )))
   expect_true(any(grepl("output = NULL", script)))
 })
 
@@ -991,7 +1123,14 @@ test_that("template dispatch includes .expand_template helper", {
 })
 
 test_that("convert multi-file with template sets result <- dfs", {
-  script <- dry_run("convert", "-n", "-o", "out_%(file_index)d.csv", "a.csv", "b.csv")
+  script <- dry_run(
+    "convert",
+    "-n",
+    "-o",
+    "out_%(file_index)d.csv",
+    "a.csv",
+    "b.csv"
+  )
   expect_true(any(grepl("result <- dfs", script)))
 })
 
@@ -1012,7 +1151,16 @@ test_that("convert single database without template errors", {
 # DuckDB write -----------------------------------------------------------------
 
 test_that("-O duckdb emits DuckDB write via DBI", {
-  script <- dry_run("run", "-n", "-O", "duckdb", "-o", "out.duckdb", "df", "data.csv")
+  script <- dry_run(
+    "run",
+    "-n",
+    "-O",
+    "duckdb",
+    "-o",
+    "out.duckdb",
+    "df",
+    "data.csv"
+  )
   expect_true(any(grepl('output_format = "duckdb"', script)))
   expect_true(any(grepl("duckdb::duckdb\\(\\)", script)))
   expect_true(any(grepl("dbWriteTable", script)))
@@ -1054,7 +1202,16 @@ test_that("convert single csv to duckdb uses file name as table name", {
 })
 
 test_that("rush run with -O duckdb writes data frame as 'data' table", {
-  script <- dry_run("run", "-n", "-O", "duckdb", "-o", "out.duckdb", "df", "data.csv")
+  script <- dry_run(
+    "run",
+    "-n",
+    "-O",
+    "duckdb",
+    "-o",
+    "out.duckdb",
+    "df",
+    "data.csv"
+  )
   expect_true(any(grepl("result <- df", script)))
   expect_true(any(grepl('dbWriteTable\\(.con, "data", result\\)', script)))
 })
