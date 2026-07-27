@@ -85,6 +85,12 @@ You can pipe the output of one `rush` into another:
 rush run 'head(df, 5)' penguins.csv | rush run 'dplyr::select(df, species, bill_length_mm, body_mass_g)' -
 ```
 
+Use `-F` to read non-CSV formats from stdin — for example, JSON:
+
+```{bash}
+rush run -O json 'head(df, 3)' penguins.csv | rush run -F json 'dplyr::select(df, species, body_mass_g)' -
+```
+
 ### Reading DuckDB databases
 
 Point `rush` at a `.duckdb` file and all tables are loaded into `dfs`:
