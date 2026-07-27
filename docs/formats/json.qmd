@@ -91,26 +91,14 @@ cat logs.csv
 
 ## JSON with SQL
 
-DuckDB reads JSON/JSONL with `read_json_auto` (requires the `json` extension):
+DuckDB reads JSON/JSONL with `read_json_auto`:
 
 ```{bash}
-#| eval: false
 rush sql "SELECT name, age FROM people WHERE age >= 30" people.json
 ```
-```
-#> name,age
-#> Alice,30
-#> Carol,35
-```
 
 ```{bash}
-#| eval: false
 rush sql "SELECT event, user FROM events WHERE user = 'alice'" events.jsonl
-```
-```
-#> event,user
-#> login,alice
-#> logout,alice
 ```
 
 ## Using `--input-format` with JSON

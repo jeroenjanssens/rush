@@ -1066,3 +1066,34 @@ test_that("plot with database input auto-selects first table", {
   expect_true(any(grepl("if \\(is.list\\(df\\)", script)))
   expect_true(any(grepl("df <- df\\[\\[1L\\]\\]", script)))
 })
+
+# JSON/JSONL stdin -------------------------------------------------------------
+
+test_that("run -F json with stdin uses file('stdin') connection", {
+  script <- dry_run("run", "-n", "-F", "json", "head(df)", "-")
+  expect_true(any(grepl('fromJSON\\(file\\("stdin"\\)\\)', script)))
+})
+
+test_that("run -F jsonl with stdin uses file('stdin') connection", {
+  script <- dry_run("run", "-n", "-F", "jsonl", "head(df)", "-")
+  expect_true(any(grepl('stream_in\\(file\\("stdin"\\)', script)))
+})
+
+# SQL with JSON extension ------------------------------------------------------
+
+test_that("sql with .json file emits INSTALL/LOAD json", {
+  script <- dry_run("sql", "-n", "SELECT * FROM data", "data.json")
+  expect_true(any(grepl("INSTALL json; LOAD json", script)))
+  expect_true(any(grepl("read_json_auto", script)))
+})
+
+test_that("sql with .jsonl file emits INSTALL/LOAD json", {
+  script <- dry_run("sql", "-n", "SELECT * FROM events", "events.jsonl")
+  expect_true(any(grepl("INSTALL json; LOAD json", script)))
+  expect_true(any(grepl("read_json_auto", script)))
+})
+
+test_that("sql without json files does not emit INSTALL json", {
+  script <- dry_run("sql", "-n", "SELECT * FROM data", "data.csv")
+  expect_false(any(grepl("INSTALL json", script)))
+})

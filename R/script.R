@@ -146,13 +146,15 @@ emit_read_files <- function(con, files, flags) {
       read_expr <- expr(nanoparquet::read_parquet(!!path))
     } else if (kind == "json") {
       read_pkgs <- "jsonlite"
-      read_expr <- expr(jsonlite::fromJSON(!!path))
+      src <- if (path == "-") expr(file("stdin")) else path
+      read_expr <- expr(jsonlite::fromJSON(!!src))
       if (!format_supports_nesting(flags$resolved_output_format)) {
         read_expr <- expr(jsonlite::flatten(!!read_expr))
       }
     } else if (kind == "jsonl") {
       read_pkgs <- "jsonlite"
-      read_expr <- expr(jsonlite::stream_in(file(!!path), verbose = FALSE))
+      src <- if (path == "-") expr(file("stdin")) else expr(file(!!path))
+      read_expr <- expr(jsonlite::stream_in(!!src, verbose = FALSE))
       if (!format_supports_nesting(flags$resolved_output_format)) {
         read_expr <- expr(jsonlite::flatten(!!read_expr))
       }
@@ -309,11 +311,16 @@ emit_sql <- function(con, query, files, flags) {
 
   if (length(files) > 0) {
     names <- input_names(files)
+    kinds <- vapply(files, file_kind, character(1))
+
+    if (any(kinds %in% c("json", "jsonl"))) {
+      writeLines('invisible(DBI::dbExecute(con, "INSTALL json; LOAD json;"))', con)
+    }
 
     for (i in seq_along(files)) {
       path <- files[[i]]
       nm <- names[[i]]
-      kind <- file_kind(path)
+      kind <- kinds[[i]]
       if (kind == "parquet") {
         stmt <- paste0(
           "CREATE VIEW ",

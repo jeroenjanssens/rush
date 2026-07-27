@@ -24,6 +24,14 @@ rush sql "SELECT species, bill_length_mm, body_mass_g FROM penguins WHERE body_m
   rush run 'head(df, 5)' -
 ```
 
+## JSON in pipelines
+
+Produce JSON, process it, and convert back to CSV:
+
+```{bash}
+rush run -O json 'head(df, 3)' penguins.csv | rush run -F json 'dplyr::select(df, species, body_mass_g)' -
+```
+
 ## Format conversion in pipelines
 
 Read Parquet, filter with SQL, output as JSON:

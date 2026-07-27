@@ -2,3 +2,5 @@ _site/
 _freeze/
 .quarto/
 **/*.quarto_ipynb
+
+/.quarto/
