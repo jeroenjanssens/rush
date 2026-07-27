@@ -17,6 +17,7 @@ jobs:
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       RSPM: https://packagemanager.posit.co/cran/__linux__/noble/latest
+      PKG_CRAN_MIRROR: https://packagemanager.posit.co/cran/__linux__/noble/latest
     permissions:
       contents: write
     steps:
@@ -49,11 +50,6 @@ jobs:
         with:
           path: ~/.cache/R/ir
           key: ir-${{ runner.os }}-${{ hashFiles('R/script.R') }}
-
-      - name: Configure R profile for ir
-        run: |
-          echo 'options(repos = c(CRAN = Sys.getenv("RSPM", "https://packagemanager.posit.co/cran/__linux__/noble/latest")))' > ~/.Rprofile
-        shell: bash
 
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
