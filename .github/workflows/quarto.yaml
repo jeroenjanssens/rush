@@ -44,6 +44,12 @@ jobs:
           sudo ln -sf $(pwd)/exec/rush.R /usr/local/bin/rush
         shell: bash
 
+      - name: Cache ir libraries
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/R/ir
+          key: ir-${{ runner.os }}-${{ hashFiles('R/script.R') }}
+
       - name: Configure R profile for ir
         run: |
           echo 'options(repos = c(CRAN = Sys.getenv("RSPM", "https://packagemanager.posit.co/cran/__linux__/noble/latest")))' > ~/.Rprofile

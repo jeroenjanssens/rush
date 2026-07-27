@@ -29,7 +29,7 @@ rush sql "SELECT species, bill_length_mm, body_mass_g FROM penguins WHERE body_m
 Produce JSON, process it, and convert back to CSV:
 
 ```{bash}
-#| error: true
+#| eval: false
 rush run -O json 'head(df, 3)' penguins.csv | rush run -F json 'dplyr::select(df, species, body_mass_g)' -
 ```
 
