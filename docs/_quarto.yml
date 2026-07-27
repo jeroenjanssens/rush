@@ -1,0 +1,73 @@
+project:
+  type: website
+  output-dir: _site
+
+website:
+  title: "rush"
+  site-url: https://jeroenjanssens.github.io/rush
+  repo-url: https://github.com/jeroenjanssens/rush
+  repo-actions: [edit, issue]
+  navbar:
+    left:
+      - text: "Get started"
+        href: get-started.qmd
+      - text: "Commands"
+        menu:
+          - text: "rush run"
+            href: reference/run.qmd
+          - text: "rush sql"
+            href: reference/sql.qmd
+          - text: "rush plot"
+            href: reference/plot.qmd
+          - text: "rush convert"
+            href: reference/convert.qmd
+      - text: "Formats"
+        menu:
+          - text: "Overview"
+            href: formats.qmd
+          - text: "---"
+          - text: "Delimited (CSV/TSV)"
+            href: formats/delimited.qmd
+          - text: "Parquet"
+            href: formats/parquet.qmd
+          - text: "JSON / JSONL"
+            href: formats/json.qmd
+          - text: "Excel / ODS"
+            href: formats/excel.qmd
+          - text: "Arrow IPC"
+            href: formats/arrow.qmd
+          - text: "DuckDB / SQLite"
+            href: formats/databases.qmd
+          - text: "Statistical (SPSS, Stata, SAS)"
+            href: formats/statistical.qmd
+          - text: "Bioinformatics (FASTA/FASTQ)"
+            href: formats/bioinformatics.qmd
+          - text: "Structured (YAML, TOML, XML, RDS, FWF)"
+            href: formats/structured.qmd
+      - text: "Pipelines"
+        href: pipelines.qmd
+      - text: "Scripts"
+        href: scripts.qmd
+    right:
+      - text: "Changelog"
+        href: changelog.qmd
+      - icon: github
+        href: https://github.com/jeroenjanssens/rush
+
+execute:
+  freeze: true
+  working-dir: "../exec"
+
+engine: knitr
+
+knitr:
+  opts_chunk:
+    collapse: true
+    comment: "#>"
+
+format:
+  html:
+    theme: cosmo
+    toc: true
+    code-copy: true
+    highlight-style: github

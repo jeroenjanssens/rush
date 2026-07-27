@@ -1,0 +1,38 @@
+---
+title: "Parquet"
+---
+
+{{< include ../_setup.qmd >}}
+
+Files ending in `.parquet` or `.pq` are read with
+[nanoparquet](https://nanoparquet.r-lib.org/) — no flags needed. Point
+`--output` (`-o`) at a `.parquet` file to write one.
+
+## Reading
+
+```{bash}
+rush run 'df |> dplyr::filter(dep_delay > 10) |> dplyr::select(carrier, origin, dest, dep_delay)' flights.parquet
+```
+
+## Writing
+
+Convert CSV to Parquet and read it back:
+
+```{bash}
+rush run --output penguins.parquet 'df' penguins.csv
+rush run 'head(df, 3)' penguins.parquet
+```
+
+## With SQL
+
+Because DuckDB reads Parquet natively, large-file queries run without loading
+everything into memory:
+
+```{bash}
+rush sql "SELECT carrier, COUNT(*) AS flights, ROUND(AVG(arr_delay), 1) AS avg_delay
+          FROM flights
+          GROUP BY carrier
+          ORDER BY avg_delay DESC" flights.parquet
+```
+
+{{< include ../_cleanup.qmd >}}

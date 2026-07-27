@@ -1,0 +1,38 @@
+```{r}
+#| include: false
+unlink(c("penguins.csv", "cities.tsv", "numbers.txt", "flights.parquet", "shop.duckdb"))
+
+readr::write_csv(
+  tidyr::drop_na(palmerpenguins::penguins),
+  "penguins.csv"
+)
+
+readr::write_tsv(
+  data.frame(
+    city = c("Amsterdam", "Rotterdam", "Utrecht", "Den Haag"),
+    pop = c(921402, 655468, 361924, 552995),
+    province = c("Noord-Holland", "Zuid-Holland", "Utrecht", "Zuid-Holland")
+  ),
+  "cities.tsv"
+)
+
+writeLines(c("10", "20", "30", "40", "50"), "numbers.txt")
+
+nanoparquet::write_parquet(
+  data.frame(
+    carrier = c("UA","AA","DL","UA","AA","DL","UA","AA","DL","WN"),
+    origin = c("EWR","JFK","LGA","EWR","JFK","LGA","EWR","JFK","LGA","EWR"),
+    dest = c("LAX","SFO","ATL","ORD","LAX","DTW","SFO","MIA","ATL","DEN"),
+    dep_delay = c(-2, 5, 12, -1, 120, 3, 0, -4, 22, 45),
+    arr_delay = c(-10, -2, 8, 5, 115, -5, -8, -12, 18, 50),
+    air_time = c(320, 350, 120, 130, 330, 100, 340, 160, 115, 220),
+    distance = c(2454, 2586, 762, 719, 2475, 502, 2565, 1089, 762, 1605)
+  ),
+  "flights.parquet"
+)
+
+con <- DBI::dbConnect(duckdb::duckdb(), "shop.duckdb")
+DBI::dbWriteTable(con, "customers", data.frame(id = 1:3, name = c("Alice", "Bob", "Carol")))
+DBI::dbWriteTable(con, "orders", data.frame(cust = c(1, 1, 2, 3, 3), amount = c(20, 35, 10, 50, 15)))
+DBI::dbDisconnect(con, shutdown = TRUE)
+```

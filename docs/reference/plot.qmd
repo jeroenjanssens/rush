@@ -1,0 +1,209 @@
+---
+title: "rush plot"
+---
+
+{{< include ../_setup.qmd >}}
+
+The `plot` command builds a [ggplot2](https://ggplot2.tidyverse.org/) graphic
+from your data. Choose columns with `--x`, `--y`, `--color`, and friends, and a
+sensible geom is guessed for you (override it with `--geom`).
+
+## Usage
+
+```bash
+rush plot [options] [--] [<file>...]
+```
+
+## Geom selection
+
+When both `--x` and `--y` are given, `rush` guesses `geom_point`:
+
+```{bash}
+rush plot -n -x bill_length_mm -y body_mass_g penguins.csv
+```
+
+When only `--x` is given, `rush` guesses `geom_histogram`:
+
+```{bash}
+rush plot -n -x body_mass_g penguins.csv
+```
+
+### `--geom` (`-g`)
+
+Override the guessed geom. Any ggplot2 geom suffix works:
+
+```{bash}
+rush plot -n -x body_mass_g -g density penguins.csv
+```
+
+```{bash}
+rush plot -n -x species -y body_mass_g -g boxplot penguins.csv
+```
+
+```{bash}
+rush plot -n -x bill_length_mm -y body_mass_g -g smooth penguins.csv
+```
+
+## Aesthetics
+
+### `--color` (`-c`)
+
+Map a column to the color aesthetic:
+
+```{bash}
+rush plot -n -x bill_length_mm -y body_mass_g -c species penguins.csv
+```
+
+### `--fill` (`-f`)
+
+Map a column to fill (useful for histograms, bar charts, density plots):
+
+```{bash}
+rush plot -n -x body_mass_g -g density -f species --alpha 0.5 penguins.csv
+```
+
+### `--alpha` (`-a`)
+
+Map a column to transparency, or use a constant for semi-transparent geoms:
+
+```{bash}
+rush plot -n -x bill_length_mm -y body_mass_g --alpha 0.6 penguins.csv
+```
+
+### `--size`
+
+Map a column to point size — great for bubble charts:
+
+```{bash}
+rush plot -n -x bill_length_mm -y body_mass_g --size flipper_length_mm -c species penguins.csv
+```
+
+### `--shape`
+
+Map a column to point shape:
+
+```{bash}
+rush plot -n -x bill_length_mm -y body_mass_g --shape sex penguins.csv
+```
+
+### `--group`
+
+Group observations for geoms like `geom_line` that connect points:
+
+```{bash}
+rush plot -n -x bill_length_mm -y body_mass_g --group species -g line penguins.csv
+```
+
+### `--aes`
+
+Pass additional aesthetics as `key=value` pairs:
+
+```{bash}
+rush plot -n -x bill_length_mm -y body_mass_g --aes "label=species" -g text penguins.csv
+```
+
+## Axis and labels
+
+### `--log`
+
+Log-transform axes. Accepts `x`, `y`, or `xy`:
+
+```{bash}
+rush plot -n -x body_mass_g -y bill_length_mm --log x penguins.csv
+```
+
+### `--title`, `--xlab`, `--ylab`
+
+Add axis labels and a title:
+
+```{bash}
+rush plot -n -x bill_length_mm -y body_mass_g --title "Bill Length vs Body Mass" --xlab "Bill length (mm)" --ylab "Body mass (g)" penguins.csv
+```
+
+## Facets
+
+### One-sided formula (facet_wrap)
+
+```{bash}
+rush plot -n -x bill_length_mm -y body_mass_g --facets '~ species' penguins.csv
+```
+
+### Two-sided formula (facet_grid) + `--margins`
+
+```{bash}
+rush plot -n -x bill_length_mm -y body_mass_g --facets 'sex ~ species' --margins penguins.csv
+```
+
+## Pre- and post-processing
+
+### `--pre`
+
+Run code before the plot is built. Useful for data transformations:
+
+```{bash}
+rush plot -n -x species -y mean_mass --pre 'df <- df |> dplyr::summarise(mean_mass = mean(body_mass_g), .by = species)' -g col penguins.csv
+```
+
+### `--post`
+
+Run code after the plot is built. The plot object is available as `p`:
+
+```{bash}
+rush plot -n -x bill_length_mm -y body_mass_g --post 'p + ggplot2::theme_minimal() + ggplot2::geom_smooth(method = "lm")' penguins.csv
+```
+
+## Saving plots
+
+### `--output` (`-o`)
+
+When `--output` points to a file, the plot is saved (device inferred from extension):
+
+```{bash}
+rush plot -x bill_length_mm -y body_mass_g -c species -o scatter.png penguins.csv 2>/dev/null
+ls -la scatter.png
+rm -f scatter.png
+```
+
+### `--width`, `--height`, `--units`, `--dpi`
+
+Control the saved image dimensions and resolution:
+
+```{bash}
+rush plot -x bill_length_mm -y body_mass_g -o hires.png --width 10 --height 6 --units in --dpi 150 penguins.csv 2>/dev/null
+ls -la hires.png
+rm -f hires.png
+```
+
+## Reading from stdin
+
+Without a file argument, `plot` reads from standard input:
+
+```{bash}
+rush run 'head(df, 50)' penguins.csv | rush plot -n -x bill_length_mm -y body_mass_g -
+```
+
+## Multiple files
+
+With multiple files, each is read into `dfs`. Use `--pre` to combine them
+into `df` before plotting:
+
+```{bash}
+echo "src,x,y
+A,1,2
+A,2,4
+A,3,5" > a.csv
+echo "src,x,y
+B,1,3
+B,2,2
+B,3,6" > b.csv
+rush plot -n -x x -y y -c src --pre 'df <- dplyr::bind_rows(dfs)' a.csv b.csv
+rm -f a.csv b.csv
+```
+
+## Help
+
+```{bash}
+rush plot -h
+```
+
+{{< include ../_cleanup.qmd >}}

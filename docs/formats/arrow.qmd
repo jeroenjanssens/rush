@@ -1,0 +1,49 @@
+---
+title: "Arrow IPC"
+---
+
+{{< include ../_setup.qmd >}}
+
+Files ending in `.arrow`, `.ipc`, or `.feather` are read with
+[arrow](https://arrow.apache.org/docs/r/). Write Arrow IPC output with
+`-O arrow` or by naming the output accordingly.
+
+## Reading
+
+```{bash}
+rush run -o flights.arrow 'df' flights.parquet 2>/dev/null
+rush run 'head(df, 3) |> dplyr::select(carrier, origin, dest)' flights.arrow
+```
+
+## Writing
+
+```{bash}
+rush run -o subset.arrow 'dplyr::filter(df, dep_delay > 10)' flights.parquet 2>/dev/null
+rush run 'nrow(df)' subset.arrow
+```
+
+## Using `-O arrow` with output flag
+
+```{bash}
+rush run -O arrow -o sample.arrow 'head(df, 5)' penguins.csv 2>/dev/null
+rush run 'ncol(df)' sample.arrow
+```
+
+## Alternative extensions
+
+The `.feather` and `.ipc` extensions are also recognized:
+
+```{bash}
+cp flights.arrow flights.feather
+rush run 'nrow(df)' flights.feather
+cp flights.arrow flights.ipc
+rush run 'nrow(df)' flights.ipc
+rm -f flights.feather flights.ipc
+```
+
+```{bash}
+#| include: false
+rm -f flights.arrow subset.arrow sample.arrow
+```
+
+{{< include ../_cleanup.qmd >}}

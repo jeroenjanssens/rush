@@ -1,0 +1,51 @@
+---
+title: "rush"
+subtitle: "R Scripting at the Command Line"
+---
+
+[![R-CMD-check](https://github.com/jeroenjanssens/rush/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/jeroenjanssens/rush/actions/workflows/R-CMD-check.yaml)
+
+**`rush` brings R to the command line.** Run an R expression, wrangle a CSV,
+query a Parquet file with SQL, or draw a plot right in your terminal — all
+without opening an R session or writing a script.
+
+```bash
+rush run 'penguins |> dplyr::filter(body_mass_g > 5000) |> head()'
+```
+
+R has a wonderful ecosystem for working with data, but reaching for it usually
+means launching R, loading packages, and reading files by hand. `rush` collapses
+that into a single command you can pipe, redirect, and drop into any shell
+pipeline — so R becomes just another Unix tool, at home next to `grep`, `awk`,
+and `jq`.
+
+## Highlights
+
+- **One-liners, not scripts.** Evaluate any R expression straight from the shell.
+- **Pipeline-native.** Reads from standard input and writes to standard output,
+  so it composes with every other command-line tool.
+- **Reads what you have.** CSV, Parquet, JSON/JSONL, Excel, Arrow IPC, DuckDB,
+  SPSS/Stata/SAS, SQLite, YAML, TOML, XML, and more — chosen automatically
+  by file extension.
+- **Converts between formats.** The [`convert`](reference/convert.qmd) command
+  converts files directly between any supported format.
+- **Query with SQL.** The [`sql`](reference/sql.qmd) command runs DuckDB
+  queries directly against your files, no import step required.
+- **Plots in your terminal.** The [`plot`](reference/plot.qmd) command renders
+  ggplot2 graphics as ANSI/ASCII art, or saves them to PNG, PDF, and more.
+- **Zero dependency management.** Packages are resolved on demand by `ir`.
+
+## How it works
+
+Under the hood, each invocation assembles a small, self-contained R script and
+runs it with [`ir`](https://r-lib.github.io/ir/), the R interpreter launcher
+from r-lib. The script declares its own package dependencies in `#|`
+frontmatter, and `ir` installs whatever it needs on the fly. That means `rush`
+itself stays lightweight, and you never have to manage a library of packages
+just to run a one-liner.
+
+::: {.callout-tip}
+## Ready to try it?
+Head over to [Get started](get-started.qmd) for installation instructions and
+a quick tour.
+:::

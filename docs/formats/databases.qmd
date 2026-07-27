@@ -1,0 +1,89 @@
+---
+title: "DuckDB / SQLite"
+---
+
+{{< include ../_setup.qmd >}}
+
+## DuckDB
+
+Point `rush` at a [DuckDB](https://duckdb.org/) database (`.duckdb` or `.ddb`)
+and every table is read into the `dfs` list, keyed by table name:
+
+```{bash}
+rush run 'names(dfs$shop)' shop.duckdb
+```
+
+If a database holds a single table, it is also bound to `df` for convenience,
+so a one-table database behaves just like any other single input.
+
+### Writing to DuckDB
+
+Write to DuckDB with `-o output.duckdb`. When the result is a named list (e.g.
+from multiple inputs), each element becomes a separate table:
+
+```{bash}
+echo "id,val
+1,a
+2,b" > a.csv
+echo "id,val
+3,c
+4,d" > b.csv
+rush convert -o combined.duckdb a.csv b.csv 2>/dev/null
+rush run 'names(dfs$combined)' combined.duckdb
+```
+
+A single file uses the file stem as the table name:
+
+```{bash}
+rush convert -o penguins_db.duckdb penguins.csv 2>/dev/null
+rush sql "SELECT species, COUNT(*) AS n FROM penguins_db.penguins GROUP BY species" penguins_db.duckdb
+rm -f penguins_db.duckdb
+```
+
+### Querying with SQL
+
+A `.duckdb` file is attached as a schema, and its tables are accessible as
+`schema.table`:
+
+```{bash}
+rush sql "SELECT c.name, SUM(o.amount) AS total
+          FROM shop.customers c JOIN shop.orders o ON c.id = o.cust
+          GROUP BY c.name ORDER BY total DESC" shop.duckdb
+```
+
+## SQLite
+
+Files ending in `.sqlite` or `.db` are read with
+[RSQLite](https://rsqlite.r-dbi.org/). All tables are loaded into the `dfs`
+list, similar to DuckDB:
+
+```{bash}
+rush convert -o app.sqlite penguins.csv 2>/dev/null
+rush run 'names(dfs$app)' app.sqlite
+rm -f app.sqlite
+```
+
+### Writing to SQLite
+
+Like DuckDB, multiple inputs become separate tables:
+
+```{bash}
+rush convert -o combined.sqlite a.csv b.csv 2>/dev/null
+rush run 'names(dfs$combined)' combined.sqlite
+```
+
+### Converting between database formats
+
+Copy all tables from one database to another:
+
+```{bash}
+rush convert -o copy.sqlite shop.duckdb 2>/dev/null
+rush run 'names(dfs$copy)' copy.sqlite
+```
+
+```{bash}
+#| include: false
+rm -f a.csv b.csv combined.duckdb combined.sqlite copy.sqlite
+```
+
+{{< include ../_cleanup.qmd >}}

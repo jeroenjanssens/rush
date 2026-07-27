@@ -1,0 +1,59 @@
+---
+title: "Pipelines"
+---
+
+{{< include _setup.qmd >}}
+
+The real power of `rush` is combining commands in Unix pipelines. Because `rush`
+reads from stdin and writes to stdout by default, it composes naturally with
+other command-line tools — including other `rush` invocations.
+
+## Chaining rush commands
+
+Filter with `rush run`, then query with SQL:
+
+```{bash}
+rush run 'dplyr::filter(df, body_mass_g > 3500)' penguins.csv | \
+  rush sql "SELECT species, ROUND(AVG(bill_length_mm), 1) as avg_bill FROM stdin GROUP BY species ORDER BY avg_bill DESC" -
+```
+
+Query with SQL, then filter further with `rush run`:
+
+```{bash}
+rush sql "SELECT species, bill_length_mm, body_mass_g FROM penguins WHERE body_mass_g > 5000" penguins.csv | \
+  rush run 'head(df, 5)' -
+```
+
+## Format conversion in pipelines
+
+Read Parquet, filter with SQL, output as JSON:
+
+```{bash}
+rush sql -O json "SELECT carrier, origin, dest FROM flights WHERE dep_delay > 20" flights.parquet
+```
+
+## Multiple rush commands
+
+Chain `rush run` to progressively transform data:
+
+```{bash}
+rush run 'dplyr::select(df, species, bill_length_mm, body_mass_g)' penguins.csv | \
+  rush run 'dplyr::filter(df, body_mass_g > 5000)' -
+```
+
+## With other tools
+
+`rush` plays well with standard Unix tools:
+
+```bash
+# Count lines with wc
+rush run 'df' penguins.csv | wc -l
+
+# Extract a column with cut
+rush run 'df' penguins.csv | cut -d, -f1 | sort | uniq -c
+
+# Feed curl output into rush
+curl -s https://api.example.com/data.json | rush run -F json 'head(df)'
+```
+
+{{< include _cleanup.qmd >}}

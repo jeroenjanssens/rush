@@ -1,0 +1,126 @@
+---
+title: "JSON / JSONL"
+---
+
+{{< include ../_setup.qmd >}}
+
+Files ending in `.json` are read with `jsonlite::fromJSON`; `.jsonl` and
+`.ndjson` files are read line-by-line with `jsonlite::stream_in`. Write JSON
+output with `-O json` or by naming the output file `.json`.
+
+## Reading JSON
+
+```{bash}
+rush run -O json 'data.frame(name = c("Alice", "Bob", "Carol"), age = c(30, 25, 35), city = c("Amsterdam", "Rotterdam", "Utrecht"))' > people.json
+cat people.json
+```
+
+```{bash}
+rush run 'df |> dplyr::filter(age > 28)' people.json
+```
+
+## Writing JSON
+
+Use `-O json` or name the output file `.json`:
+
+```{bash}
+rush run -O json 'head(df, 3)' penguins.csv
+```
+
+```{bash}
+rush run -o top3.json 'head(df, 3)' penguins.csv 2>/dev/null
+cat top3.json
+```
+
+## Reading JSONL
+
+Files ending in `.jsonl` or `.ndjson` are read line-by-line:
+
+```{bash}
+rush run -O jsonl 'data.frame(event = c("login", "purchase", "logout"), user = c("alice", "bob", "alice"), ts = 1:3)' > events.jsonl
+cat events.jsonl
+```
+
+```{bash}
+rush run 'nrow(df)' events.jsonl
+```
+
+```{bash}
+rush run 'df |> dplyr::filter(user == "alice")' events.jsonl
+```
+
+## Writing JSONL
+
+Streaming one JSON object per line — great for log pipelines:
+
+```{bash}
+rush run -O jsonl 'head(df, 3)' penguins.csv
+```
+
+## Nested JSON and flattening
+
+When outputting to CSV/TSV or any format that does not support nesting, nested
+JSON objects are automatically flattened using `jsonlite::flatten()`. Nested
+field names become dot-separated (then normalized to underscores by
+`clean_names`):
+
+```{bash}
+printf '{"user":"alice","event":"login","meta":{"ip":"192.168.1.1","browser":"firefox"}}\n{"user":"bob","event":"purchase","meta":{"ip":"10.0.0.5","browser":"chrome"}}\n{"user":"carol","event":"logout","meta":{"ip":"172.16.0.1","browser":"safari"}}\n' > logs.jsonl
+rush run 'df' logs.jsonl
+```
+
+Deeper nesting is flattened recursively:
+
+```{bash}
+printf '{"id":1,"info":{"name":"Widget","dims":{"w":10,"h":5,"d":3}}}\n{"id":2,"info":{"name":"Gadget","dims":{"w":8,"h":4,"d":2}}}\n' > products.jsonl
+rush run 'df' products.jsonl
+```
+
+When outputting to JSON, nesting is preserved as-is — no flattening occurs:
+
+```{bash}
+rush run -O json 'df' logs.jsonl
+```
+
+This also works with `rush convert`:
+
+```{bash}
+rush convert -o logs.csv logs.jsonl 2>/dev/null
+cat logs.csv
+```
+
+## JSON with SQL
+
+DuckDB reads JSON/JSONL with `read_json_auto` (requires the `json` extension):
+
+```{bash}
+#| eval: false
+rush sql "SELECT name, age FROM people WHERE age >= 30" people.json
+```
+```
+#> name,age
+#> Alice,30
+#> Carol,35
+```
+
+```{bash}
+#| eval: false
+rush sql "SELECT event, user FROM events WHERE user = 'alice'" events.jsonl
+```
+```
+#> event,user
+#> login,alice
+#> logout,alice
+```
+
+## Using `--input-format` with JSON
+
+Read a file with a non-standard extension as JSON:
+
+```{bash}
+cp people.json people.dat
+rush run -F json 'head(df)' people.dat
+rm -f people.dat
+```
+
+{{< include ../_cleanup.qmd >}}

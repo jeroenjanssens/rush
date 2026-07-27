@@ -1,0 +1,44 @@
+---
+title: "Bioinformatics (FASTA/FASTQ)"
+engine: knitr
+---
+
+Sequence files (`.fasta`, `.fa`, `.fna`, `.fastq`, `.fq`) are read and written
+with [microseq](https://github.com/larssnip/microseq). FASTA files produce a
+data frame with `Header` and `Sequence` columns; FASTQ adds a `Quality` column.
+
+## FASTA
+
+### Reading
+
+```{bash}
+rush run -n 'head(df)' sequences.fasta
+```
+
+### Writing
+
+```{bash}
+rush run -n -O fasta -o output.fasta 'df' data.csv
+```
+
+## FASTQ
+
+### Reading
+
+```{bash}
+rush run -n 'head(df)' reads.fastq
+```
+
+### Writing
+
+```{bash}
+rush run -n -O fastq -o output.fastq 'df' data.csv
+```
+
+## Example workflows
+
+```bash
+rush run 'nrow(df)' sequences.fasta
+rush run 'df |> dplyr::filter(nchar(Sequence) > 100)' reads.fastq
+rush convert -o filtered.fasta data.csv
+```

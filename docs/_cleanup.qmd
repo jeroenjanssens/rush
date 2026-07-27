@@ -1,0 +1,15 @@
+```{r}
+#| include: false
+unlink(c(
+  "penguins.csv", "cities.tsv", "numbers.txt", "flights.parquet", "shop.duckdb",
+  "penguins.parquet", "penguins.json", "penguins.jsonl", "penguins.xlsx",
+  "penguins.arrow", "subset.parquet", "summary.csv", "analysis.R",
+  "efficient.parquet", "people.json", "events.jsonl", "top3.json",
+  "logs.jsonl", "logs.csv", "products.jsonl", "places.jsonl",
+  "sales.xlsx", "summary.xlsx", "sample.arrow", "fuel.csv",
+  "a.csv", "b.csv", "combined.duckdb", "combined.sqlite", "copy.sqlite",
+  "chunk1.csv", "chunk2.csv", "chunk3.csv",
+  "chunk1.parquet", "chunk2.parquet", "chunk3.parquet",
+  "cities_semi.csv", "result.json", "top5.csv"
+))
+```

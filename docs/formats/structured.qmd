@@ -1,0 +1,96 @@
+---
+title: "Structured data (YAML, TOML, XML, RDS, FWF)"
+engine: knitr
+---
+
+## YAML
+
+Files ending in `.yaml` or `.yml` are read with
+[yaml](https://cran.r-project.org/package=yaml). Nested structures are
+preserved when the output format supports nesting (JSON, YAML, TOML, XML, RDS);
+otherwise they are flattened.
+
+### Reading
+
+```{bash}
+rush run -n 'head(df)' config.yaml
+```
+
+### Writing
+
+```{bash}
+rush run -n -O yaml -o output.yaml 'df' data.csv
+```
+
+### Converting (nesting preserved)
+
+```{bash}
+rush convert -n -o output.yaml data.json
+```
+
+## TOML
+
+Files ending in `.toml` are read with
+[RcppTOML](https://cran.r-project.org/package=RcppTOML):
+
+### Reading
+
+```{bash}
+rush run -n 'head(df)' config.toml
+```
+
+### Writing
+
+```{bash}
+rush run -n -O toml -o output.toml 'df' data.csv
+```
+
+## XML
+
+Files ending in `.xml` are read with [xml2](https://xml2.r-lib.org/):
+
+### Reading
+
+```{bash}
+rush run -n 'head(df)' data.xml
+```
+
+### Writing
+
+```{bash}
+rush run -n -O xml -o output.xml 'df' data.csv
+```
+
+## RDS
+
+R's native serialisation format. Files ending in `.rds` are read with
+`readRDS()` and written with `saveRDS()` — no extra packages needed:
+
+### Reading
+
+```{bash}
+rush run -n 'head(df)' data.rds
+```
+
+### Writing
+
+```{bash}
+rush run -n -o output.rds 'df' data.csv
+```
+
+## Fixed-width files (FWF)
+
+Files ending in `.fwf` are read with `readr::read_fwf()`. Column positions are
+auto-detected. This format is read-only.
+
+### Reading
+
+```{bash}
+rush run -n 'head(df)' data.fwf
+```
+
+### Using `-F fwf` for files without the `.fwf` extension
+
+```{bash}
+rush run -n -F fwf 'head(df)' legacy.txt
+```

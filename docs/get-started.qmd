@@ -1,0 +1,77 @@
+---
+title: "Get started"
+---
+
+{{< include _setup.qmd >}}
+
+## Installation
+
+First install [`ir`](https://r-lib.github.io/ir/#installation). Then install
+`rush` as an `ir` tool, which puts a `rush` launcher on your `PATH`:
+
+```sh
+ir tool install github::jeroenjanssens/rush
+```
+
+That's it — there's no separate R package to load. The first time a command
+needs a package (say, ggplot2 for a plot), `ir` fetches and caches it for you.
+
+## Quick tour
+
+Evaluate an expression — the value of the last expression is printed:
+
+```{bash}
+rush run '6 * 7'
+```
+
+Read from standard input with `-`. Input is read into a data frame called `df`,
+so `seq 6` becomes a one-column table you can compute on:
+
+```{bash}
+seq 6 | rush run -H '2 * sum(df$x1)' -
+```
+
+Give `rush run` a file and it is read into `df` before your expression runs.
+With no expression, the data frame is simply printed back out — a handy way to
+peek at a file:
+
+```{bash}
+rush run 'head(df, 5)' penguins.csv
+```
+
+Because `rush` writes plain CSV to standard output, you can keep piping into the
+next command — including another `rush`:
+
+```{bash}
+rush run 'head(df, 100)' penguins.csv | rush run 'df |> dplyr::select(species, bill_length_mm, body_mass_g)' -
+```
+
+Load extra packages with `-l`, or enter the whole Tidyverse with `-t`:
+
+```{bash}
+rush run -t 'penguins |> count(species, sort = TRUE)' penguins.csv
+```
+
+Query files directly with SQL:
+
+```{bash}
+rush sql "SELECT species, ROUND(AVG(body_mass_g)) AS avg_mass, COUNT(*) AS n
+          FROM penguins GROUP BY species ORDER BY avg_mass DESC" penguins.csv
+```
+
+Convert between formats in one step:
+
+```{bash}
+rush convert -o penguins.parquet penguins.csv 2>/dev/null
+rush run 'nrow(df)' penguins.parquet
+```
+
+## What's next?
+
+- Learn about the four commands: [`run`](reference/run.qmd),
+  [`sql`](reference/sql.qmd), [`plot`](reference/plot.qmd),
+  [`convert`](reference/convert.qmd)
+- See all [supported formats](formats.qmd)
+- Explore [pipeline patterns](pipelines.qmd) for composing shell commands
+
+{{< include _cleanup.qmd >}}

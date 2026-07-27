@@ -1,0 +1,104 @@
+---
+title: "Delimited text (CSV/TSV)"
+---
+
+{{< include ../_setup.qmd >}}
+
+CSV is the default format. Use `--delimiter` (`-d`) for other separators and
+`--no-header` (`-H`) for files without a header row. For finer control, use
+`--input-delimiter` and `--output-delimiter` (`-D`) to set them independently,
+or `-F`/`-O` to force a specific format regardless of extension.
+
+## Reading CSV
+
+```{bash}
+rush run 'df |> dplyr::filter(body_mass_g > 5500) |> dplyr::select(species, bill_length_mm, body_mass_g)' penguins.csv
+```
+
+## Reading TSV
+
+```{bash}
+rush run -d "\t" 'head(df, 3)' cities.tsv
+```
+
+## Delimiter control
+
+### `--delimiter` (`-d`)
+
+Override the delimiter for both reading and writing:
+
+```{bash}
+rush run -d "\t" 'head(df, 3)' penguins.csv | cat
+```
+
+### `--input-delimiter`
+
+Override only the input delimiter while keeping the output as CSV:
+
+```{bash}
+rush run --input-delimiter "\t" 'head(df, 3)' cities.tsv
+```
+
+### `--output-delimiter` (`-D`)
+
+Override only the output delimiter:
+
+```{bash}
+rush run -D "|" 'head(df, 3)' penguins.csv
+```
+
+### Independent input and output delimiters
+
+Read tab-separated input, write semicolons:
+
+```{bash}
+rush run --input-delimiter "\t" -D ";" 'head(df, 3)' cities.tsv
+```
+
+## Format flags
+
+### `--input-format` (`-F`)
+
+Force a specific input format regardless of extension:
+
+```{bash}
+cp cities.tsv cities.txt
+rush run -F tsv 'head(df, 3)' cities.txt
+rm -f cities.txt
+```
+
+### `--output-format` (`-O`)
+
+Force a specific output format:
+
+```{bash}
+rush run -O tsv 'head(df, 3)' penguins.csv
+```
+
+Write as tab-separated even when piping (no output file):
+
+```{bash}
+rush run -O tsv 'head(df, 3)' penguins.csv | cat
+```
+
+## Limiting output with `--head`
+
+Limit output to the first N rows:
+
+```{bash}
+rush run --head 5 'df' penguins.csv
+```
+
+Works with any output format:
+
+```{bash}
+rush run --head 3 -O tsv 'df' penguins.csv
+```
+
+Combined with SQL:
+
+```{bash}
+rush sql --head 3 "SELECT * FROM penguins ORDER BY body_mass_g DESC" penguins.csv
+```
+
+{{< include ../_cleanup.qmd >}}

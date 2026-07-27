@@ -1,0 +1,140 @@
+---
+title: "rush convert"
+---
+
+{{< include ../_setup.qmd >}}
+
+The `convert` command converts between formats without writing an expression.
+It reads the input, infers the output format from the file extension (or `-O`),
+and writes the result.
+
+## Usage
+
+```bash
+rush convert [options] [<file>...]
+```
+
+## Basic conversion
+
+```{bash}
+rush convert -o penguins.parquet penguins.csv 2>/dev/null
+rush run 'nrow(df)' penguins.parquet
+```
+
+```{bash}
+rush convert -o penguins.json --head 3 penguins.csv 2>/dev/null
+cat penguins.json
+```
+
+```{bash}
+rush convert -O jsonl --head 2 -o penguins.jsonl penguins.csv 2>/dev/null
+cat penguins.jsonl
+```
+
+## Output templates
+
+Convert multiple files using an output template with yt-dlp-style placeholders:
+
+```{bash}
+echo "id,val
+1,a
+2,b" > chunk1.csv
+echo "id,val
+3,c
+4,d" > chunk2.csv
+rush convert -o '%(file_name)s.parquet' chunk1.csv chunk2.csv 2>/dev/null
+rush run 'df' chunk1.parquet
+```
+
+### Available placeholders
+
+| Placeholder | Description |
+|-------------|-------------|
+| `%(file_name)s` | Input file stem |
+| `%(file_index)d` | 1-based file position |
+| `%(table_name)s` | Table name (databases) |
+| `%(table_index)d` | 1-based table position |
+
+The format spec after `)` follows `sprintf()` conventions: `s` for string, `d`
+for integer, `03d` for zero-padded. Use `l` for lowercase or `u` for uppercase:
+
+```bash
+rush convert -o '%(table_name)l.csv' sales.duckdb
+rush convert -o 'table_%(table_index)03d.csv' big.duckdb
+```
+
+## Database output
+
+When the output is a database format (DuckDB or SQLite), multiple inputs become
+separate tables named after the input file stems:
+
+```{bash}
+echo "id,val
+1,a
+2,b" > a.csv
+echo "id,val
+3,c
+4,d" > b.csv
+rush convert -o combined.duckdb a.csv b.csv 2>/dev/null
+rush run 'names(dfs$combined)' combined.duckdb
+```
+
+A single input also uses the file name as the table name:
+
+```{bash}
+rush convert -o penguins_db.duckdb penguins.csv 2>/dev/null
+rush sql "SELECT species, COUNT(*) AS n FROM penguins_db.penguins GROUP BY species" penguins_db.duckdb
+rm -f penguins_db.duckdb
+```
+
+Convert between database formats:
+
+```{bash}
+rush convert -o copy.sqlite shop.duckdb 2>/dev/null
+rush run 'names(dfs$copy)' copy.sqlite
+```
+
+## Limiting rows
+
+Use `--head` to limit the number of rows written:
+
+```{bash}
+rush convert --head 5 -o top5.csv penguins.csv 2>/dev/null
+cat top5.csv
+```
+
+## Format overrides
+
+Force input and output formats regardless of extension with `-F` and `-O`:
+
+```{bash}
+cp penguins.csv penguins.dat
+rush convert -F csv -O json -o result.json --head 2 penguins.dat 2>/dev/null
+cat result.json
+rm -f penguins.dat
+```
+
+## Delimiter control
+
+Read a TSV and convert to semicolon-separated CSV:
+
+```{bash}
+rush convert --input-delimiter "\t" -D ";" -o cities_semi.csv cities.tsv 2>/dev/null
+cat cities_semi.csv
+```
+
+## Help
+
+```{bash}
+rush convert -h
+```
+
+```{bash}
+#| include: false
+rm -f chunk1.csv chunk2.csv chunk1.parquet chunk2.parquet
+rm -f a.csv b.csv combined.duckdb copy.sqlite
+rm -f top5.csv result.json cities_semi.csv
+rm -f penguins.parquet penguins.json penguins.jsonl
+```
+
+{{< include ../_cleanup.qmd >}}

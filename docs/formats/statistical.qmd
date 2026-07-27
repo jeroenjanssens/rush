@@ -1,0 +1,63 @@
+---
+title: "Statistical formats (SPSS, Stata, SAS)"
+engine: knitr
+---
+
+Files ending in `.sav`, `.zsav`, `.por` (SPSS), `.dta` (Stata), `.sas7bdat`, or
+`.xpt` (SAS) are read with [haven](https://haven.tidyverse.org/). Labelled
+columns are kept as-is — apply `haven::as_factor()` in your expression if you
+want to convert them to factors.
+
+## SPSS
+
+### Reading
+
+```{bash}
+rush run -n 'head(df)' survey.sav
+```
+
+### Writing
+
+```{bash}
+rush run -n -o result.sav 'df' data.csv
+```
+
+## Stata
+
+### Reading
+
+```{bash}
+rush run -n 'head(df)' data.dta
+```
+
+### Writing
+
+```{bash}
+rush run -n -o result.dta 'df' data.csv
+```
+
+## SAS
+
+### Reading
+
+```{bash}
+rush run -n 'head(df)' data.sas7bdat
+```
+
+```{bash}
+rush run -n 'head(df)' data.xpt
+```
+
+### Writing SAS transport
+
+```{bash}
+rush run -n -o result.xpt 'df' data.csv
+```
+
+## Converting between formats
+
+```bash
+rush convert -o output.sav data.csv
+rush convert -o output.dta data.csv
+rush convert -o output.xpt data.csv
+```
