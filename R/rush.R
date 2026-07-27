@@ -17,6 +17,13 @@ rush <- function(...) {
   }
   flags$resolved_output_format <- resolve_output_format(flags$output, flags$output_format)
 
+  if (!is.null(flags$output) && grepl("%\\(", flags$output)) {
+    flags$output_template <- flags$output
+    flags$output <- NULL
+  } else {
+    flags$output_template <- NULL
+  }
+
   if (flags$verbose) {
     cli::cat_rule("Arguments", file = stderr())
     cli::cat_bullet(
@@ -150,6 +157,11 @@ build_plot_body <- function(con, flags) {
   }
   pkgs <- c(pkgs, emit_read_files(con, plot_files, flags))
 
+  first_kind <- file_kind(plot_files[[1]], flags$input_format %||% "auto")
+  if (first_kind %in% c("duckdb", "sqlite")) {
+    writeLines("if (is.list(df) && !is.data.frame(df)) df <- df[[1L]]", con)
+  }
+
   if (!is.null(flags$pre)) {
     purrr::walk(flags$pre, function(e) code_expression(con, !!e))
   }
@@ -177,7 +189,8 @@ build_convert_body <- function(con, flags) {
       i = "See {.code rush convert -h} for usage."
     ))
   }
-  if (is.null(flags$output) && identical(flags$output_format, "auto")) {
+  if (is.null(flags$output) && is.null(flags$output_template) &&
+      identical(flags$output_format, "auto")) {
     cli::cli_abort(c(
       "No output format specified.",
       i = "Use {.code -o <file>} to write to a file, or {.code -O <format>} to write to stdout.",
@@ -188,9 +201,19 @@ build_convert_body <- function(con, flags) {
   pkgs <- emit_setup_libraries(con, flags)
   pkgs <- c(pkgs, emit_read_files(con, flags$file, flags))
 
-  if (length(flags$file) > 1) {
-    code_expression(con, result <- dplyr::bind_rows(dfs))
-    pkgs <- c(pkgs, "dplyr")
+  is_multi <- length(flags$file) > 1 ||
+    any(vapply(flags$file, function(f) file_kind(f, flags$input_format %||% "auto"),
+               character(1)) %in% c("duckdb", "sqlite"))
+
+  if (!is.null(flags$output_template)) {
+    code_expression(con, result <- dfs)
+  } else if (is_multi) {
+    cli::cli_abort(c(
+      "Multiple inputs require an output template.",
+      i = "Use {.code %%(file_name)s} or {.code %%(file_index)d} in the output path.",
+      i = "Example: {.code rush convert -o 'out_%%(file_name)s.csv' a.parquet b.parquet}.",
+      i = "Or use {.code rush run} with an expression to select specific data."
+    ))
   } else {
     code_expression(con, result <- df)
   }

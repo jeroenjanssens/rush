@@ -85,6 +85,20 @@ test_that("stdin is read from a binary connection", {
   expect_true(any(grepl("stdin", script)))
 })
 
+test_that("single file always creates both df and dfs", {
+  script <- dry_run("run", "-n", "head(df)", "data.csv")
+  expect_true(any(grepl("^dfs <- list\\(\\)$", script)))
+  expect_true(any(grepl('dfs\\[\\["data"\\]\\] <-', script)))
+  expect_true(any(grepl("df <- dfs\\[\\[1(L)?\\]\\]", script)))
+})
+
+test_that("stdin creates dfs$stdin entry", {
+  script <- dry_run("run", "-n", "head(df)", "-")
+  expect_true(any(grepl("^dfs <- list\\(\\)$", script)))
+  expect_true(any(grepl('dfs\\[\\["stdin"\\]\\] <-', script)))
+  expect_true(any(grepl("df <- dfs\\[\\[1(L)?\\]\\]", script)))
+})
+
 test_that("run reads multiple files into a dfs list", {
   script <- dry_run("run", "-n", "nrow(dfs$a)", "a.csv", "b.csv")
   expect_true(any(grepl("^dfs <- list\\(\\)$", script)))
@@ -117,10 +131,9 @@ test_that("run reads a DuckDB database into a dfs list", {
   )))
   expect_true(any(grepl("dbListTables", script)))
   expect_true(any(grepl("dbReadTable", script)))
-  expect_true(any(grepl(
-    "if \\(length\\(dfs\\) == 1\\) df <- dfs\\[\\[1\\]\\]",
-    script
-  )))
+  expect_true(any(grepl('dfs\\[\\["mydb"\\]\\] <- list\\(\\)', script)))
+  expect_true(any(grepl('dfs\\[\\["mydb"\\]\\]\\[\\[.t\\]\\]', script)))
+  expect_true(any(grepl("df <- dfs\\[\\[1(L)?\\]\\]", script)))
   expect_true(any(grepl("^#\\|   - duckdb$", script)))
   expect_true(any(grepl("^#\\|   - DBI$", script)))
 })
@@ -188,12 +201,14 @@ test_that("sql emits on.exit disconnect", {
 
 test_that("plot reads a single file into df", {
   script <- dry_run("plot", "-n", "-x", "wt", "a.csv")
-  expect_true(any(grepl("^df <- .*read_delim\\(\"a.csv\"", script)))
+  expect_true(any(grepl('dfs\\[\\["a"\\]\\] <- .*read_delim\\("a.csv"', script)))
+  expect_true(any(grepl("df <- dfs\\[\\[1(L)?\\]\\]", script)))
 })
 
 test_that("plot defaults to reading df from stdin", {
   script <- dry_run("plot", "-n", "-x", "wt")
-  expect_true(any(grepl("^df <- .*stdin", script)))
+  expect_true(any(grepl('dfs\\[\\["stdin"\\]\\] <- .*stdin', script)))
+  expect_true(any(grepl("df <- dfs\\[\\[1(L)?\\]\\]", script)))
 })
 
 test_that("plot reads multiple files into a dfs list", {
@@ -569,10 +584,18 @@ test_that("convert json to csv generates correct script", {
   expect_true(any(grepl("readr::write_delim", script)))
 })
 
-test_that("convert with multiple input files uses bind_rows", {
-  script <- dry_run("convert", "-n", "-o", "out.parquet", "a.csv", "b.csv")
+test_that("convert with multiple input files requires a template", {
+  expect_error(
+    rush("convert", "-n", "-o", "out.parquet", "a.csv", "b.csv"),
+    "template"
+  )
+})
+
+test_that("convert with output template emits result <- dfs", {
+  script <- dry_run("convert", "-n", "-o", "%(file_name)s.parquet", "a.csv", "b.csv")
   expect_true(any(grepl("dfs <- list", script)))
-  expect_true(any(grepl("dplyr::bind_rows\\(dfs\\)", script)))
+  expect_true(any(grepl("result <- dfs", script)))
+  expect_true(any(grepl("output_template", script)))
 })
 
 test_that("convert respects -F for input format override", {
@@ -704,11 +727,14 @@ test_that("-O xpt emits haven::write_xpt", {
 
 # SQLite ----------------------------------------------------------------------
 
-test_that("run reads a SQLite database into a dfs list", {
+test_that("run reads a SQLite database into a nested dfs entry", {
   script <- dry_run("run", "-n", "nrow(df)", "mydb.sqlite")
   expect_true(any(grepl("DBI::dbConnect\\(RSQLite::SQLite\\(\\)", script)))
   expect_true(any(grepl("dbListTables", script)))
   expect_true(any(grepl("dbReadTable", script)))
+  expect_true(any(grepl('dfs\\[\\["mydb"\\]\\] <- list\\(\\)', script)))
+  expect_true(any(grepl('dfs\\[\\["mydb"\\]\\]\\[\\[.t\\]\\]', script)))
+  expect_true(any(grepl("df <- dfs\\[\\[1(L)?\\]\\]", script)))
   expect_true(any(grepl("^#\\|   - RSQLite$", script)))
   expect_true(any(grepl("^#\\|   - DBI$", script)))
 })
@@ -947,4 +973,46 @@ test_that("jsonl is flattened when output is xlsx", {
 test_that("jsonl is NOT flattened when output is toml", {
   script <- dry_run("run", "-n", "-o", "out.toml", "df", "data.jsonl")
   expect_false(any(grepl("jsonlite::flatten", script)))
+})
+
+# Output templates ------------------------------------------------------------
+
+test_that("output template is detected and stored in preamble", {
+  script <- dry_run("convert", "-n", "-o", "%(file_name)s.parquet", "a.csv")
+  expect_true(any(grepl('output_template = "%\\(file_name\\)s.parquet"', script)))
+  expect_true(any(grepl("output = NULL", script)))
+})
+
+test_that("template dispatch includes .expand_template helper", {
+  script <- dry_run("convert", "-n", "-o", "%(file_name)s.csv", "a.parquet")
+  expect_true(any(grepl("\\.expand_template", script)))
+  expect_true(any(grepl("\\.expand_field", script)))
+  expect_true(any(grepl("\\.write_result", script)))
+})
+
+test_that("convert multi-file with template sets result <- dfs", {
+  script <- dry_run("convert", "-n", "-o", "out_%(file_index)d.csv", "a.csv", "b.csv")
+  expect_true(any(grepl("result <- dfs", script)))
+})
+
+test_that("convert multi-file without template errors", {
+  expect_error(
+    rush("convert", "-n", "-o", "out.csv", "a.csv", "b.csv"),
+    "template"
+  )
+})
+
+test_that("convert single database without template errors", {
+  expect_error(
+    rush("convert", "-n", "-o", "out.csv", "data.duckdb"),
+    "template"
+  )
+})
+
+# Plot with database input ----------------------------------------------------
+
+test_that("plot with database input auto-selects first table", {
+  script <- dry_run("plot", "-n", "-x", "wt", "data.duckdb")
+  expect_true(any(grepl("if \\(is.list\\(df\\)", script)))
+  expect_true(any(grepl("df <- df\\[\\[1L\\]\\]", script)))
 })

@@ -194,9 +194,20 @@ graph LR
 
 ## Working with data files
 
-`rush` picks a reader based on the file extension, so the same commands work
-whatever format your data is in. A single file is read into `df`; pass several
-and each is read into a named element of a list called `dfs`.
+`rush` picks a reader based on the file extension. Two variables are always
+available in your expression:
+
+- **`df`** — the first input (a data frame for flat files, or a named list of
+  tables for database files).
+- **`dfs`** — a named list of all inputs, keyed by file stem. Database entries
+  are nested one level deeper: `dfs$dbname$tablename`.
+
+```bash
+rush run 'nrow(df)' sales.csv              # df is the data frame
+rush run 'names(dfs)' a.csv b.csv          # dfs$a, dfs$b
+rush run 'names(df)' shop.duckdb           # df$orders, df$returns (tables)
+rush run 'dfs$shop$orders' shop.duckdb     # same via dfs
+```
 
 ### Delimited text
 
@@ -451,10 +462,28 @@ rush convert -o mtcars.json mtcars.parquet
 rush convert -o mtcars.xlsx mtcars.csv
 ```
 
-Convert multiple files at once — they are stacked with `bind_rows`:
+Convert multiple files using an output template (yt-dlp-style placeholders):
 
 ```bash
-rush convert -o combined.parquet part1.csv part2.csv
+rush convert -o '%(file_name)s.parquet' part1.csv part2.csv
+# → part1.parquet, part2.parquet
+```
+
+Available template placeholders:
+
+| Placeholder | Description |
+|-------------|-------------|
+| `%(file_name)s` | Input file stem |
+| `%(file_index)d` | 1-based file position |
+| `%(table_name)s` | Table name (databases) |
+| `%(table_index)d` | 1-based table position |
+
+The format spec after `)` follows `sprintf()` conventions: `s` for string, `d`
+for integer, `03d` for zero-padded. Use `l` for lowercase or `u` for uppercase:
+
+```bash
+rush convert -o '%(table_name)l.csv' sales.duckdb
+rush convert -o 'table_%(table_index)03d.csv' big.duckdb
 ```
 
 Use `--head` to limit the number of rows written:

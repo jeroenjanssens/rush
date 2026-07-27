@@ -218,14 +218,15 @@ emit_read_files <- function(con, files, flags) {
     list(expr = read_expr, packages = read_pkgs)
   }
 
-  emit_duckdb <- function(path) {
+  emit_duckdb <- function(path, name) {
     read <- if (!flags$no_clean_names) {
-      "    dfs[[.t]] <<- janitor::clean_names(DBI::dbReadTable(.con, .t))"
+      paste0("    dfs[[\"", name, "\"]][[.t]] <<- janitor::clean_names(DBI::dbReadTable(.con, .t))")
     } else {
-      "    dfs[[.t]] <<- DBI::dbReadTable(.con, .t)"
+      paste0("    dfs[[\"", name, "\"]][[.t]] <<- DBI::dbReadTable(.con, .t)")
     }
     writeLines(
       c(
+        paste0("dfs[[\"", name, "\"]] <- list()"),
         "local({",
         paste0(
           "  .con <- DBI::dbConnect(duckdb::duckdb(), dbdir = ",
@@ -243,14 +244,15 @@ emit_read_files <- function(con, files, flags) {
     c("duckdb", "DBI")
   }
 
-  emit_sqlite <- function(path) {
+  emit_sqlite <- function(path, name) {
     read <- if (!flags$no_clean_names) {
-      "    dfs[[.t]] <<- janitor::clean_names(DBI::dbReadTable(.con, .t))"
+      paste0("    dfs[[\"", name, "\"]][[.t]] <<- janitor::clean_names(DBI::dbReadTable(.con, .t))")
     } else {
-      "    dfs[[.t]] <<- DBI::dbReadTable(.con, .t)"
+      paste0("    dfs[[\"", name, "\"]][[.t]] <<- DBI::dbReadTable(.con, .t)")
     }
     writeLines(
       c(
+        paste0("dfs[[\"", name, "\"]] <- list()"),
         "local({",
         paste0(
           "  .con <- DBI::dbConnect(RSQLite::SQLite(), ",
@@ -268,34 +270,28 @@ emit_read_files <- function(con, files, flags) {
     c("RSQLite", "DBI")
   }
 
-  if (length(files) == 1 && !file_kind(files[[1]], flags$input_format %||% "auto") %in% c("duckdb", "sqlite")) {
-    rc <- read_call(files)
-    pkgs <- c(pkgs, rc$packages)
-    code_expression(con, `<-`(df, !!rc$expr))
-  } else {
-    df_names <- input_names(files)
+  df_names <- input_names(files)
+  code_expression(con, dfs <- list())
 
-    code_expression(con, dfs <- list())
-    for (i in seq_along(files)) {
-      if (file_kind(files[[i]], flags$input_format %||% "auto") == "duckdb") {
-        pkgs <- c(pkgs, emit_duckdb(files[[i]]))
-      } else if (file_kind(files[[i]], flags$input_format %||% "auto") == "sqlite") {
-        pkgs <- c(pkgs, emit_sqlite(files[[i]]))
-      } else {
-        rc <- read_call(files[[i]])
-        pkgs <- c(pkgs, rc$packages)
-        assign_expr <- rlang::call2(
-          "<-",
-          rlang::call2("[[", rlang::sym("dfs"), df_names[[i]]),
-          rc$expr
-        )
-        code_expression(con, !!assign_expr)
-      }
-    }
-    if (length(files) == 1) {
-      code_expression(con, if (length(dfs) == 1) df <- dfs[[1]])
+  for (i in seq_along(files)) {
+    kind <- file_kind(files[[i]], flags$input_format %||% "auto")
+    if (kind == "duckdb") {
+      pkgs <- c(pkgs, emit_duckdb(files[[i]], df_names[[i]]))
+    } else if (kind == "sqlite") {
+      pkgs <- c(pkgs, emit_sqlite(files[[i]], df_names[[i]]))
+    } else {
+      rc <- read_call(files[[i]])
+      pkgs <- c(pkgs, rc$packages)
+      assign_expr <- rlang::call2(
+        "<-",
+        rlang::call2("[[", rlang::sym("dfs"), df_names[[i]]),
+        rc$expr
+      )
+      code_expression(con, !!assign_expr)
     }
   }
+
+  code_expression(con, df <- dfs[[1L]])
 
   if (!flags$no_clean_names) {
     pkgs <- c(pkgs, "janitor")
@@ -392,6 +388,7 @@ emit_sql <- function(con, query, files, flags) {
 script_preamble <- function(flags) {
   ctx <- list(
     output = flags$output,
+    output_template = flags$output_template,
     output_format = flags$resolved_output_format,
     width = flags$width,
     height = flags$height,
@@ -427,65 +424,109 @@ dispatch_run <- function() {
 }
 if (.has_tty) options(width = if (is.null(.rush$width)) cli::console_width() else .rush$width)
 
-if (rlang::is_atomic(result)) {
-  cli::cat_line(result)
-} else if (rlang::is_bare_list(result)) {
-  result <- tibble::enframe(result)
-}
-
-if (is.data.frame(result)) {
+.write_result <- function(result, output) {
   if (!is.null(.rush$head)) result <- head(result, .rush$head)
-  if (.has_tty && is.null(.rush$output)) {
+  if (.has_tty && is.null(output)) {
     options(tibble.width = if (is.null(.rush$width)) cli::console_width() else .rush$width)
     print(tibble::as_tibble(result), n = .rush$height)
   } else if (identical(.rush$output_format, "parquet")) {
-    nanoparquet::write_parquet(result, .rush$output)
+    nanoparquet::write_parquet(result, output)
   } else if (identical(.rush$output_format, "json")) {
     json <- jsonlite::toJSON(result, dataframe = "rows", pretty = TRUE, auto_unbox = TRUE)
-    if (is.null(.rush$output)) cat(json, "\n") else writeLines(json, .rush$output)
+    if (is.null(output)) cat(json, "\n") else writeLines(json, output)
   } else if (identical(.rush$output_format, "jsonl")) {
-    con_out <- if (is.null(.rush$output)) stdout() else file(.rush$output, "w")
+    con_out <- if (is.null(output)) stdout() else file(output, "w")
     jsonlite::stream_out(result, con_out, verbose = FALSE)
-    if (!is.null(.rush$output)) close(con_out)
+    if (!is.null(output)) close(con_out)
   } else if (identical(.rush$output_format, "arrow")) {
-    arrow::write_ipc_file(result, .rush$output)
+    arrow::write_ipc_file(result, output)
   } else if (identical(.rush$output_format, "xlsx")) {
-    writexl::write_xlsx(result, .rush$output)
+    writexl::write_xlsx(result, output)
   } else if (identical(.rush$output_format, "sav")) {
-    haven::write_sav(result, .rush$output)
+    haven::write_sav(result, output)
   } else if (identical(.rush$output_format, "zsav")) {
-    haven::write_sav(result, .rush$output, compress = "zsav")
+    haven::write_sav(result, output, compress = "zsav")
   } else if (identical(.rush$output_format, "dta")) {
-    haven::write_dta(result, .rush$output)
+    haven::write_dta(result, output)
   } else if (identical(.rush$output_format, "sas7bdat")) {
-    haven::write_sas(result, .rush$output)
+    haven::write_sas(result, output)
   } else if (identical(.rush$output_format, "xpt")) {
-    haven::write_xpt(result, .rush$output)
+    haven::write_xpt(result, output)
   } else if (identical(.rush$output_format, "sqlite")) {
-    .con <- DBI::dbConnect(RSQLite::SQLite(), .rush$output)
+    .con <- DBI::dbConnect(RSQLite::SQLite(), output)
     on.exit(DBI::dbDisconnect(.con))
     DBI::dbWriteTable(.con, "data", result)
   } else if (identical(.rush$output_format, "rds")) {
-    saveRDS(result, .rush$output)
+    saveRDS(result, output)
   } else if (identical(.rush$output_format, "ods")) {
-    readODS::write_ods(result, .rush$output)
+    readODS::write_ods(result, output)
   } else if (identical(.rush$output_format, "fasta")) {
-    microseq::writeFasta(result, .rush$output)
+    microseq::writeFasta(result, output)
   } else if (identical(.rush$output_format, "fastq")) {
-    microseq::writeFastq(result, .rush$output)
+    microseq::writeFastq(result, output)
   } else if (identical(.rush$output_format, "yaml")) {
     yaml_out <- yaml::as.yaml(result)
-    if (is.null(.rush$output)) cat(yaml_out) else writeLines(yaml_out, .rush$output)
+    if (is.null(output)) cat(yaml_out) else writeLines(yaml_out, output)
   } else if (identical(.rush$output_format, "toml")) {
     toml_out <- RcppTOML::writeTOML(result)
-    if (is.null(.rush$output)) cat(toml_out) else writeLines(toml_out, .rush$output)
+    if (is.null(output)) cat(toml_out) else writeLines(toml_out, output)
   } else if (identical(.rush$output_format, "xml")) {
     xml_doc <- xml2::as_xml_document(list(data = as.list(result)))
-    xml2::write_xml(xml_doc, if (is.null(.rush$output)) stdout() else .rush$output)
+    xml2::write_xml(xml_doc, if (is.null(output)) stdout() else output)
   } else {
-    con <- if (is.null(.rush$output)) .stdout_binary() else .rush$output
+    con <- if (is.null(output)) .stdout_binary() else output
     readr::write_delim(result, con, delim = .rush$delimiter)
   }
+}
+
+if (!is.null(.rush$output_template)) {
+  .expand_field <- function(value, spec) {
+    if (grepl("l$", spec)) {
+      tolower(sprintf(paste0("%", sub("l$", "s", spec)), value))
+    } else if (grepl("u$", spec)) {
+      toupper(sprintf(paste0("%", sub("u$", "s", spec)), value))
+    } else {
+      sprintf(paste0("%", spec), value)
+    }
+  }
+  .expand_template <- function(tmpl, file_name, file_index, table_name, table_index) {
+    while (grepl("%[(][^)]+[)]([^%]*[a-z])", tmpl)) {
+      m <- regexec("%[(]([^)]+)[)]([^%]*[a-z])", tmpl)[[1]]
+      full <- regmatches(tmpl, list(m))[[1]]
+      field <- full[2]
+      spec <- full[3]
+      value <- switch(field,
+        file_name = file_name, file_index = file_index,
+        table_name = table_name, table_index = table_index,
+        "")
+      replacement <- .expand_field(value, spec)
+      tmpl <- sub("%[(]([^)]+)[)]([^%]*[a-z])", replacement, tmpl)
+    }
+    tmpl
+  }
+  .file_index <- 0L
+  for (.fname in names(result)) {
+    .file_index <- .file_index + 1L
+    .item <- result[[.fname]]
+    if (is.data.frame(.item)) {
+      .path <- .expand_template(.rush$output_template, .fname, .file_index, "", 0L)
+      .write_result(.item, .path)
+    } else if (is.list(.item)) {
+      .table_index <- 0L
+      for (.tname in names(.item)) {
+        .table_index <- .table_index + 1L
+        .path <- .expand_template(.rush$output_template, .fname, .file_index, .tname, .table_index)
+        .write_result(.item[[.tname]], .path)
+      }
+    }
+  }
+} else if (rlang::is_atomic(result)) {
+  cli::cat_line(result)
+} else if (is.data.frame(result)) {
+  .write_result(result, .rush$output)
+} else if (rlang::is_bare_list(result)) {
+  result <- tibble::enframe(result)
+  .write_result(result, .rush$output)
 }
 '
 }

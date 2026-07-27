@@ -125,18 +125,13 @@ Usage:
 Arguments:
   <expression>             R expression to evaluate. The value of the last
                            expression is printed or written out.
-  <file>                   Data file(s) to read into a data frame named 'df'
-                           before the expression runs. The reader is chosen by
-                           extension: '.parquet'/'.pq' via nanoparquet,
-                           '.duckdb'/'.ddb' (each table becomes an element of
-                           'dfs') via DuckDB, everything else as delimited
-                           text. Use '-' to read delimited text from standard
-                           input. With multiple files, each is read into a
-                           named element of a list 'dfs', keyed by each file's
-                           base name (lowercased, with non-alphanumeric chars
-                           replaced by underscores; names starting with a digit
-                           are prefixed with 'x'). Files with the same base
-                           name in different directories collide.
+  <file>                   Data file(s) to read. Two variables are always set:
+                           'df' (the first input) and 'dfs' (a named list of
+                           all inputs, keyed by file stem). Database files
+                           (.duckdb, .sqlite) are nested one level deeper:
+                           dfs$dbname$tablename. The reader is chosen by
+                           extension. Use '-' to read from standard input
+                           (becomes dfs$stdin).
 
 Note: -d/--delimiter sets both input and output delimiter. Use -F, -D, or -O
 to override format and delimiter for each side independently.
