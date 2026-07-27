@@ -16,7 +16,7 @@ jobs:
       group: quarto-${{ github.event_name != 'pull_request' || github.run_id }}
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
-      PKG_CRAN_MIRROR: https://packagemanager.posit.co/cran/__linux__/noble/latest
+      RSPM: https://packagemanager.posit.co/cran/__linux__/noble/latest
     permissions:
       contents: write
     steps:
@@ -38,9 +38,15 @@ jobs:
 
       - name: Install ir and set up rush
         run: |
-          curl -fsSL https://github.com/r-lib/ir/releases/latest/download/ir-x86_64-unknown-linux-gnu.tar.gz | sudo tar -xz --strip-components=1 -C /usr/local/bin
+          curl -fsSL https://raw.githubusercontent.com/r-lib/ir/main/scripts/install.sh | sh
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
           chmod +x exec/rush.R
           sudo ln -sf $(pwd)/exec/rush.R /usr/local/bin/rush
+        shell: bash
+
+      - name: Configure R profile for ir
+        run: |
+          echo 'options(repos = c(CRAN = Sys.getenv("RSPM", "https://packagemanager.posit.co/cran/__linux__/noble/latest")))' > ~/.Rprofile
         shell: bash
 
       - name: Set up Quarto
