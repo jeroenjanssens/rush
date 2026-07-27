@@ -62,6 +62,8 @@ rush <- function(...) {
     pkgs <- c(pkgs, "writexl")
   } else if (flags$resolved_output_format %in% c("sav", "zsav", "dta", "sas7bdat", "xpt")) {
     pkgs <- c(pkgs, "haven")
+  } else if (identical(flags$resolved_output_format, "duckdb")) {
+    pkgs <- c(pkgs, "duckdb", "DBI")
   } else if (identical(flags$resolved_output_format, "sqlite")) {
     pkgs <- c(pkgs, "RSQLite", "DBI")
   } else if (identical(flags$resolved_output_format, "ods")) {
@@ -204,8 +206,11 @@ build_convert_body <- function(con, flags) {
   is_multi <- length(flags$file) > 1 ||
     any(vapply(flags$file, function(f) file_kind(f, flags$input_format %||% "auto"),
                character(1)) %in% c("duckdb", "sqlite"))
+  output_is_db <- flags$resolved_output_format %in% c("duckdb", "sqlite")
 
   if (!is.null(flags$output_template)) {
+    code_expression(con, result <- dfs)
+  } else if (output_is_db) {
     code_expression(con, result <- dfs)
   } else if (is_multi) {
     cli::cli_abort(c(

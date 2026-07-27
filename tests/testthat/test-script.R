@@ -167,7 +167,7 @@ test_that("sql registers files as relations and runs the query", {
   expect_true(any(grepl("ATTACH .* AS ..w.. .READ_ONLY.", script)))
   expect_true(any(grepl("\\.stdin_tmp <- tempfile", script)))
   expect_true(any(grepl(
-    "CREATE VIEW .stdin. AS SELECT .* FROM read_csv_auto",
+    'CREATE VIEW .{1,2}stdin.{1,2} AS SELECT .* FROM read_csv_auto',
     script
   )))
   expect_true(any(grepl(
@@ -1007,6 +1007,56 @@ test_that("convert single database without template errors", {
     rush("convert", "-n", "-o", "out.csv", "data.duckdb"),
     "template"
   )
+})
+
+# DuckDB write -----------------------------------------------------------------
+
+test_that("-O duckdb emits DuckDB write via DBI", {
+  script <- dry_run("run", "-n", "-O", "duckdb", "-o", "out.duckdb", "df", "data.csv")
+  expect_true(any(grepl('output_format = "duckdb"', script)))
+  expect_true(any(grepl("duckdb::duckdb\\(\\)", script)))
+  expect_true(any(grepl("dbWriteTable", script)))
+  expect_true(any(grepl("^#\\|   - duckdb$", script)))
+  expect_true(any(grepl("^#\\|   - DBI$", script)))
+})
+
+test_that("convert csv to duckdb", {
+  script <- dry_run("convert", "-n", "-o", "out.duckdb", "data.csv")
+  expect_true(any(grepl('output_format = "duckdb"', script)))
+  expect_true(any(grepl("duckdb::duckdb\\(\\)", script)))
+  expect_true(any(grepl("dbWriteTable", script)))
+})
+
+test_that("convert .ddb extension resolves to duckdb format", {
+  script <- dry_run("convert", "-n", "-o", "out.ddb", "data.csv")
+  expect_true(any(grepl('output_format = "duckdb"', script)))
+})
+
+test_that("convert multiple csvs to duckdb writes multi-table", {
+  script <- dry_run("convert", "-n", "-o", "combined.duckdb", "a.csv", "b.csv")
+  expect_true(any(grepl('output_format = "duckdb"', script)))
+  expect_true(any(grepl("result <- dfs", script)))
+  expect_true(any(grepl("for \\(.tbl_name in names\\(result\\)\\)", script)))
+  expect_true(any(grepl("dbWriteTable\\(.con, .tbl_name", script)))
+})
+
+test_that("convert multiple csvs to sqlite writes multi-table", {
+  script <- dry_run("convert", "-n", "-o", "combined.sqlite", "a.csv", "b.csv")
+  expect_true(any(grepl('output_format = "sqlite"', script)))
+  expect_true(any(grepl("result <- dfs", script)))
+  expect_true(any(grepl("for \\(.tbl_name in names\\(result\\)\\)", script)))
+})
+
+test_that("convert single csv to duckdb uses file name as table name", {
+  script <- dry_run("convert", "-n", "-o", "out.duckdb", "sales.csv")
+  expect_true(any(grepl("result <- dfs", script)))
+  expect_true(any(grepl("for \\(.tbl_name in names\\(result\\)\\)", script)))
+})
+
+test_that("rush run with -O duckdb writes data frame as 'data' table", {
+  script <- dry_run("run", "-n", "-O", "duckdb", "-o", "out.duckdb", "df", "data.csv")
+  expect_true(any(grepl("result <- df", script)))
+  expect_true(any(grepl('dbWriteTable\\(.con, "data", result\\)', script)))
 })
 
 # Plot with database input ----------------------------------------------------

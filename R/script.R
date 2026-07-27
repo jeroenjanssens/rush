@@ -109,6 +109,7 @@ resolve_output_format <- function(output, output_format) {
     if (ext == "dta") return("dta")
     if (ext == "sas7bdat") return("sas7bdat")
     if (ext == "xpt") return("xpt")
+    if (ext %in% c("duckdb", "ddb")) return("duckdb")
     if (ext %in% c("sqlite", "db")) return("sqlite")
     if (ext == "rds") return("rds")
     if (ext == "ods") return("ods")
@@ -348,7 +349,7 @@ emit_sql <- function(con, query, files, flags) {
             "})",
             paste0(
               "invisible(DBI::dbExecute(con, paste0(\"CREATE VIEW ",
-              sql_id(nm),
+              gsub('"', '\\\\"', sql_id(nm)),
               " AS SELECT * FROM read_csv_auto('\", .stdin_tmp, \"')\")))"
             )
           ),
@@ -452,10 +453,26 @@ if (.has_tty) options(width = if (is.null(.rush$width)) cli::console_width() els
     haven::write_sas(result, output)
   } else if (identical(.rush$output_format, "xpt")) {
     haven::write_xpt(result, output)
+  } else if (identical(.rush$output_format, "duckdb")) {
+    .con <- DBI::dbConnect(duckdb::duckdb(), dbdir = output)
+    on.exit(DBI::dbDisconnect(.con, shutdown = TRUE))
+    if (is.data.frame(result)) {
+      DBI::dbWriteTable(.con, "data", result)
+    } else if (is.list(result)) {
+      for (.tbl_name in names(result)) {
+        DBI::dbWriteTable(.con, .tbl_name, result[[.tbl_name]])
+      }
+    }
   } else if (identical(.rush$output_format, "sqlite")) {
     .con <- DBI::dbConnect(RSQLite::SQLite(), output)
     on.exit(DBI::dbDisconnect(.con))
-    DBI::dbWriteTable(.con, "data", result)
+    if (is.data.frame(result)) {
+      DBI::dbWriteTable(.con, "data", result)
+    } else if (is.list(result)) {
+      for (.tbl_name in names(result)) {
+        DBI::dbWriteTable(.con, .tbl_name, result[[.tbl_name]])
+      }
+    }
   } else if (identical(.rush$output_format, "rds")) {
     saveRDS(result, output)
   } else if (identical(.rush$output_format, "ods")) {
@@ -475,7 +492,7 @@ if (.has_tty) options(width = if (is.null(.rush$width)) cli::console_width() els
     xml2::write_xml(xml_doc, if (is.null(output)) stdout() else output)
   } else {
     con <- if (is.null(output)) .stdout_binary() else output
-    readr::write_delim(result, con, delim = .rush$delimiter)
+    readr::write_delim(result, con, delim = .rush$delimiter %||% ",")
   }
 }
 
@@ -525,8 +542,12 @@ if (!is.null(.rush$output_template)) {
 } else if (is.data.frame(result)) {
   .write_result(result, .rush$output)
 } else if (rlang::is_bare_list(result)) {
-  result <- tibble::enframe(result)
-  .write_result(result, .rush$output)
+  if (.rush$output_format %in% c("duckdb", "sqlite")) {
+    .write_result(result, .rush$output)
+  } else {
+    result <- tibble::enframe(result)
+    .write_result(result, .rush$output)
+  }
 }
 '
 }
