@@ -42,13 +42,27 @@ jobs:
           sudo ln -sf $(pwd)/exec/rush.R /usr/local/bin/rush
         shell: bash
 
+      - name: Debug ir
+        run: |
+          echo "=== ir version ==="
+          ir --version
+          echo "=== R_LIBS_USER ==="
+          echo "$R_LIBS_USER"
+          echo "=== Rscript .libPaths ==="
+          Rscript -e 'cat(.libPaths(), sep="\n")'
+          echo "=== ir .libPaths ==="
+          ir run -e 'cat(.libPaths(), sep="\n")'
+          echo "=== ir simple test ==="
+          ir run -e '6 * 7'
+          echo "=== rush run test ==="
+          cd exec && rush run '6 * 7'
+        shell: bash
+
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
 
       - name: Build website
         run: quarto render docs
-        env:
-          RUSH_NO_IR: "true"
 
       - name: Deploy to GitHub Pages
         if: github.event_name != 'pull_request'
