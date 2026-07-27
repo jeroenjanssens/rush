@@ -967,6 +967,60 @@ rush run -n -O fastq -o output.fastq 'df' data.csv
 
 ---
 
+## YAML
+
+### Reading YAML files
+
+```{bash}
+rush run -n 'head(df)' config.yaml
+```
+
+### Writing YAML
+
+```{bash}
+rush run -n -O yaml -o output.yaml 'df' data.csv
+```
+
+### Converting JSON to YAML (nesting preserved)
+
+```{bash}
+rush convert -n -o output.yaml data.json
+```
+
+---
+
+## TOML
+
+### Reading TOML files
+
+```{bash}
+rush run -n 'head(df)' config.toml
+```
+
+### Writing TOML
+
+```{bash}
+rush run -n -O toml -o output.toml 'df' data.csv
+```
+
+---
+
+## XML
+
+### Reading XML files
+
+```{bash}
+rush run -n 'head(df)' data.xml
+```
+
+### Writing XML
+
+```{bash}
+rush run -n -O xml -o output.xml 'df' data.csv
+```
+
+---
+
 ## rush convert
 
 The `convert` command converts between formats without writing an expression.

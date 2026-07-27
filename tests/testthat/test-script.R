@@ -856,3 +856,95 @@ test_that("convert csv to fasta", {
   script <- dry_run("convert", "-n", "-o", "out.fasta", "data.csv")
   expect_true(any(grepl("microseq::writeFasta", script)))
 })
+
+# YAML ------------------------------------------------------------------------
+
+test_that("run reads a .yaml file with yaml", {
+  script <- dry_run("run", "-n", "head(df)", "config.yaml")
+  expect_true(any(grepl("yaml::read_yaml\\(\"config.yaml\"\\)", script)))
+  expect_true(any(grepl("^#\\|   - yaml$", script)))
+  expect_false(any(grepl("read_delim", script)))
+})
+
+test_that("run reads a .yml file with yaml", {
+  script <- dry_run("run", "-n", "head(df)", "config.yml")
+  expect_true(any(grepl("yaml::read_yaml\\(\"config.yml\"\\)", script)))
+})
+
+test_that("-O yaml emits yaml::as.yaml", {
+  script <- dry_run("run", "-n", "-O", "yaml", "-o", "out.yaml", "df", "data.csv")
+  expect_true(any(grepl('output_format = "yaml"', script)))
+  expect_true(any(grepl("yaml::as.yaml", script)))
+  expect_true(any(grepl("^#\\|   - yaml$", script)))
+})
+
+test_that("convert json to yaml preserves nesting (no flatten)", {
+  script <- dry_run("convert", "-n", "-o", "out.yaml", "data.json")
+  expect_true(any(grepl("jsonlite::fromJSON", script)))
+  expect_false(any(grepl("jsonlite::flatten", script)))
+  expect_true(any(grepl("yaml::as.yaml", script)))
+})
+
+# TOML ------------------------------------------------------------------------
+
+test_that("run reads a .toml file with RcppTOML", {
+  script <- dry_run("run", "-n", "head(df)", "config.toml")
+  expect_true(any(grepl("RcppTOML::parseTOML\\(\"config.toml\"\\)", script)))
+  expect_true(any(grepl("^#\\|   - RcppTOML$", script)))
+  expect_false(any(grepl("read_delim", script)))
+})
+
+test_that("-O toml emits RcppTOML::writeTOML", {
+  script <- dry_run("run", "-n", "-O", "toml", "-o", "out.toml", "df", "data.csv")
+  expect_true(any(grepl('output_format = "toml"', script)))
+  expect_true(any(grepl("RcppTOML::writeTOML", script)))
+  expect_true(any(grepl("^#\\|   - RcppTOML$", script)))
+})
+
+# XML -------------------------------------------------------------------------
+
+test_that("run reads a .xml file with xml2", {
+  script <- dry_run("run", "-n", "head(df)", "data.xml")
+  expect_true(any(grepl("xml2::read_xml\\(\"data.xml\"\\)", script)))
+  expect_true(any(grepl("^#\\|   - xml2$", script)))
+  expect_false(any(grepl("read_delim", script)))
+})
+
+test_that("-O xml emits xml2::write_xml", {
+  script <- dry_run("run", "-n", "-O", "xml", "-o", "out.xml", "df", "data.csv")
+  expect_true(any(grepl('output_format = "xml"', script)))
+  expect_true(any(grepl("xml2::write_xml", script)))
+  expect_true(any(grepl("^#\\|   - xml2$", script)))
+})
+
+# Nesting behavior ------------------------------------------------------------
+
+test_that("json is flattened when output is a flat format (parquet)", {
+  script <- dry_run("run", "-n", "-o", "out.parquet", "df", "data.json")
+  expect_true(any(grepl("jsonlite::flatten", script)))
+})
+
+test_that("json is NOT flattened when output is json", {
+  script <- dry_run("run", "-n", "-O", "json", "df", "data.json")
+  expect_false(any(grepl("jsonlite::flatten", script)))
+})
+
+test_that("json is NOT flattened when output is yaml", {
+  script <- dry_run("run", "-n", "-o", "out.yaml", "df", "data.json")
+  expect_false(any(grepl("jsonlite::flatten", script)))
+})
+
+test_that("json is NOT flattened when output is rds", {
+  script <- dry_run("run", "-n", "-o", "out.rds", "df", "data.json")
+  expect_false(any(grepl("jsonlite::flatten", script)))
+})
+
+test_that("jsonl is flattened when output is xlsx", {
+  script <- dry_run("run", "-n", "-o", "out.xlsx", "df", "data.jsonl")
+  expect_true(any(grepl("jsonlite::flatten", script)))
+})
+
+test_that("jsonl is NOT flattened when output is toml", {
+  script <- dry_run("run", "-n", "-o", "out.toml", "df", "data.jsonl")
+  expect_false(any(grepl("jsonlite::flatten", script)))
+})

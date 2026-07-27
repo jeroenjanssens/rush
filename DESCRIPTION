@@ -46,6 +46,9 @@ Suggests:
     RSQLite,
     readODS,
     microseq,
+    yaml,
+    RcppTOML,
+    xml2,
     testthat (>= 3.0.0),
     roxygen2
 SystemRequirements: ir (https://r-lib.github.io/ir/)

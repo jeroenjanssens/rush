@@ -61,6 +61,12 @@ rush <- function(...) {
     pkgs <- c(pkgs, "readODS")
   } else if (flags$resolved_output_format %in% c("fasta", "fastq")) {
     pkgs <- c(pkgs, "microseq")
+  } else if (identical(flags$resolved_output_format, "yaml")) {
+    pkgs <- c(pkgs, "yaml")
+  } else if (identical(flags$resolved_output_format, "toml")) {
+    pkgs <- c(pkgs, "RcppTOML")
+  } else if (identical(flags$resolved_output_format, "xml")) {
+    pkgs <- c(pkgs, "xml2")
   }
 
   close(body)

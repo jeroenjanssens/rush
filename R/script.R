@@ -57,6 +57,10 @@ clean_names_simple <- function(x) {
   make.unique(x, sep = "_")
 }
 
+format_supports_nesting <- function(fmt) {
+  fmt %in% c("json", "jsonl", "yaml", "toml", "xml", "rds")
+}
+
 file_kind <- function(path, input_format = "auto") {
   if (!identical(input_format, "auto")) {
     if (input_format %in% c("csv", "tsv")) return("delim")
@@ -82,6 +86,9 @@ file_kind <- function(path, input_format = "auto") {
   if (ext == "ods") return("ods")
   if (ext %in% c("fasta", "fa", "fna")) return("fasta")
   if (ext %in% c("fastq", "fq")) return("fastq")
+  if (ext %in% c("yaml", "yml")) return("yaml")
+  if (ext == "toml") return("toml")
+  if (ext == "xml") return("xml")
   "delim"
 }
 
@@ -107,6 +114,9 @@ resolve_output_format <- function(output, output_format) {
     if (ext == "ods") return("ods")
     if (ext %in% c("fasta", "fa", "fna")) return("fasta")
     if (ext %in% c("fastq", "fq")) return("fastq")
+    if (ext %in% c("yaml", "yml")) return("yaml")
+    if (ext == "toml") return("toml")
+    if (ext == "xml") return("xml")
   }
   "delim"
 }
@@ -136,13 +146,13 @@ emit_read_files <- function(con, files, flags) {
     } else if (kind == "json") {
       read_pkgs <- "jsonlite"
       read_expr <- expr(jsonlite::fromJSON(!!path))
-      if (flags$resolved_output_format == "delim") {
+      if (!format_supports_nesting(flags$resolved_output_format)) {
         read_expr <- expr(jsonlite::flatten(!!read_expr))
       }
     } else if (kind == "jsonl") {
       read_pkgs <- "jsonlite"
       read_expr <- expr(jsonlite::stream_in(file(!!path), verbose = FALSE))
-      if (flags$resolved_output_format == "delim") {
+      if (!format_supports_nesting(flags$resolved_output_format)) {
         read_expr <- expr(jsonlite::flatten(!!read_expr))
       }
     } else if (kind == "xlsx") {
@@ -183,6 +193,15 @@ emit_read_files <- function(con, files, flags) {
     } else if (kind == "fastq") {
       read_pkgs <- "microseq"
       read_expr <- expr(microseq::readFastq(!!path))
+    } else if (kind == "yaml") {
+      read_pkgs <- "yaml"
+      read_expr <- expr(as.data.frame(yaml::read_yaml(!!path)))
+    } else if (kind == "toml") {
+      read_pkgs <- "RcppTOML"
+      read_expr <- expr(as.data.frame(RcppTOML::parseTOML(!!path)))
+    } else if (kind == "xml") {
+      read_pkgs <- "xml2"
+      read_expr <- expr(xml2::as_list(xml2::read_xml(!!path)))
     } else {
       if (path == "-") {
         path <- expr(file("stdin", "rb", raw = TRUE))
@@ -454,6 +473,15 @@ if (is.data.frame(result)) {
     microseq::writeFasta(result, .rush$output)
   } else if (identical(.rush$output_format, "fastq")) {
     microseq::writeFastq(result, .rush$output)
+  } else if (identical(.rush$output_format, "yaml")) {
+    yaml_out <- yaml::as.yaml(result)
+    if (is.null(.rush$output)) cat(yaml_out) else writeLines(yaml_out, .rush$output)
+  } else if (identical(.rush$output_format, "toml")) {
+    toml_out <- RcppTOML::writeTOML(result)
+    if (is.null(.rush$output)) cat(toml_out) else writeLines(toml_out, .rush$output)
+  } else if (identical(.rush$output_format, "xml")) {
+    xml_doc <- xml2::as_xml_document(list(data = as.list(result)))
+    xml2::write_xml(xml_doc, if (is.null(.rush$output)) stdout() else .rush$output)
   } else {
     con <- if (is.null(.rush$output)) .stdout_binary() else .rush$output
     readr::write_delim(result, con, delim = .rush$delimiter)
