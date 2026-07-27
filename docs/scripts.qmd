@@ -19,8 +19,13 @@ Run it with `ir run`. The `#|` frontmatter declares the script's dependencies,
 so `ir` installs any missing packages and executes it — the saved script carries
 its own dependencies and needs nothing but `ir` on the target machine:
 
+```bash
+ir run analysis.R
+```
+
 ```{bash}
-ir run analysis.R 2>/dev/null
+#| echo: false
+Rscript analysis.R 2>/dev/null
 ```
 
 The `#!/usr/bin/env -S ir run` shebang also makes the file directly executable
