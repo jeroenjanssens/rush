@@ -15,19 +15,18 @@ rush run --dry-run 'df |> dplyr::filter(body_mass_g > 5000)' penguins.csv > anal
 head -3 analysis.R
 ```
 
-The `#!/usr/bin/env -S ir run` shebang on the first line makes the file
-directly executable. `ir` reads the `#|` frontmatter, installs any packages the
-script declares, and runs it — so the saved script carries its own
-dependencies and needs nothing but `ir` on the target machine:
+Run it with `ir run`. The `#|` frontmatter declares the script's dependencies,
+so `ir` installs any missing packages and executes it — the saved script carries
+its own dependencies and needs nothing but `ir` on the target machine:
 
 ```{bash}
-chmod +x analysis.R
-./analysis.R 2>/dev/null
+ir run analysis.R 2>/dev/null
 ```
 
-This is also handy for tweaking: dump a `rush` one-liner to a file, edit the
-generated R to do something `rush` does not express directly, and run it with
-`ir run analysis.R`.
+The `#!/usr/bin/env -S ir run` shebang also makes the file directly executable
+(`chmod +x analysis.R && ./analysis.R`). This is handy for tweaking: dump a
+`rush` one-liner to a file, edit the generated R to do something `rush` does not
+express directly, and run it later.
 
 ## Formatting with air
 
