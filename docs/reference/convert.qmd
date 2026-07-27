@@ -1,5 +1,7 @@
 ---
 title: "rush convert"
+execute:
+  eval: false
 ---
 
 {{< include ../_setup.qmd >}}

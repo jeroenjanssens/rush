@@ -97,6 +97,7 @@ rush run -O json 'head(df, 3)' penguins.csv | rush run -F json 'dplyr::select(df
 Point `rush` at a `.duckdb` file and all tables are loaded into `dfs`:
 
 ```{bash}
+#| eval: false
 rush run 'names(dfs$shop)' shop.duckdb
 ```
 

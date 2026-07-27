@@ -98,6 +98,7 @@ rush run --head 3 -O tsv 'df' penguins.csv
 Combined with SQL:
 
 ```{bash}
+#| eval: false
 rush sql --head 3 "SELECT * FROM penguins ORDER BY body_mass_g DESC" penguins.csv
 ```
 
