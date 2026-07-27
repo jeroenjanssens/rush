@@ -46,8 +46,10 @@ just to run a one-liner.
 - **Pipeline-native.** Reads from standard input and writes to standard output,
   so it composes with every other command-line tool.
 - **Reads what you have.** CSV and other delimited text, [Parquet](#parquet),
-  [JSON/JSONL](#json), [Excel](#excel), [Arrow IPC](#arrow), and
-  [DuckDB](#duckdb) databases — chosen automatically by file extension.
+  [JSON/JSONL](#json), [Excel](#excel), [Arrow IPC](#arrow),
+  [DuckDB](#duckdb), [SPSS/Stata/SAS](#haven), [SQLite](#sqlite),
+  [RDS](#rds), [ODS](#ods), [FASTA/FASTQ](#fasta), and more — chosen
+  automatically by file extension.
 - **Converts between formats.** The [`convert`](#format-conversion) command
   converts files directly between any supported format.
 - **Query with SQL.** The [`sql`](#querying-with-sql) command runs DuckDB
@@ -117,6 +119,67 @@ Load extra packages with `-l`, or enter the whole Tidyverse with `-t`:
 
 ```{bash}
 rush run -t 'starwars |> count(species, sort = TRUE) |> head(3)'
+```
+
+## Supported formats
+
+`rush` can read and write a wide range of data formats. The file extension
+determines which reader or writer is used automatically — override with `-F`
+(input) or `-O` (output).
+
+| Format | Extensions | Read | Write | Package |
+|--------|-----------|:----:|:-----:|---------|
+| Delimited text | `.csv`, `.tsv` | yes | yes | readr |
+| Parquet | `.parquet`, `.pq` | yes | yes | nanoparquet |
+| JSON | `.json` | yes | yes | jsonlite |
+| JSON Lines | `.jsonl`, `.ndjson` | yes | yes | jsonlite |
+| Excel | `.xlsx`, `.xls` | yes | yes | readxl / writexl |
+| Arrow IPC | `.arrow`, `.ipc`, `.feather` | yes | yes | arrow |
+| DuckDB | `.duckdb`, `.ddb` | yes | — | duckdb |
+| SPSS | `.sav`, `.zsav`, `.por` | yes | yes | haven |
+| Stata | `.dta` | yes | yes | haven |
+| SAS | `.sas7bdat`, `.xpt` | yes | yes | haven |
+| SQLite | `.sqlite`, `.db` | yes | yes | RSQLite |
+| Fixed-width | `.fwf` | yes | — | readr |
+| RDS | `.rds` | yes | yes | *(base R)* |
+| ODS | `.ods` | yes | yes | readODS |
+| FASTA | `.fasta`, `.fa`, `.fna` | yes | yes | microseq |
+| FASTQ | `.fastq`, `.fq` | yes | yes | microseq |
+
+Any readable format can be converted to any writable format (through a data
+frame). The diagram below shows the full conversion graph:
+
+```{mermaid}
+graph LR
+  CSV_in[CSV/TSV] --> rush((rush))
+  Parquet_in[Parquet] --> rush
+  JSON_in[JSON/JSONL] --> rush
+  Excel_in[Excel] --> rush
+  Arrow_in[Arrow IPC] --> rush
+  DuckDB_in[DuckDB] --> rush
+  SPSS_in[SPSS] --> rush
+  Stata_in[Stata] --> rush
+  SAS_in[SAS] --> rush
+  SQLite_in[SQLite] --> rush
+  FWF_in[FWF] --> rush
+  RDS_in[RDS] --> rush
+  ODS_in[ODS] --> rush
+  FASTA_in[FASTA] --> rush
+  FASTQ_in[FASTQ] --> rush
+
+  rush --> CSV_out[CSV/TSV]
+  rush --> Parquet_out[Parquet]
+  rush --> JSON_out[JSON/JSONL]
+  rush --> Excel_out[Excel]
+  rush --> Arrow_out[Arrow IPC]
+  rush --> SPSS_out[SPSS]
+  rush --> Stata_out[Stata]
+  rush --> SAS_out[SAS]
+  rush --> SQLite_out[SQLite]
+  rush --> RDS_out[RDS]
+  rush --> ODS_out[ODS]
+  rush --> FASTA_out[FASTA]
+  rush --> FASTQ_out[FASTQ]
 ```
 
 ## Working with data files
@@ -235,6 +298,97 @@ Files ending in `.arrow`, `.ipc`, or `.feather` are read with
 rush run -o mtcars.arrow 'head(mtcars, 5)'
 rush run 'nrow(df)' mtcars.arrow
 #> 5
+```
+
+<a id="haven"></a>
+
+### SPSS, Stata, and SAS
+
+Files ending in `.sav`, `.zsav`, `.por` (SPSS), `.dta` (Stata), `.sas7bdat`, or
+`.xpt` (SAS) are read with [haven](https://haven.tidyverse.org/). Labelled
+columns are kept as-is — apply `haven::as_factor()` in your expression if you
+want to convert them to factors.
+
+```bash
+rush run 'head(df)' survey.sav
+rush run -o clean.dta 'df |> mutate(age = as.integer(age))' patients.sav
+```
+
+Write SPSS, Stata, or SAS files with `-O` or by naming the output accordingly:
+
+```bash
+rush convert -o output.sav data.csv
+rush convert -o output.dta data.csv
+rush convert -o output.xpt data.csv
+```
+
+<a id="sqlite"></a>
+
+### SQLite
+
+Files ending in `.sqlite` or `.db` are read with
+[RSQLite](https://rsqlite.r-dbi.org/). All tables are loaded into the `dfs`
+list, similar to DuckDB:
+
+```bash
+rush run 'names(dfs)' mydb.sqlite
+rush run 'nrow(dfs$users)' app.db
+```
+
+Write to SQLite with `-O sqlite`:
+
+```bash
+rush convert -o output.sqlite data.csv
+```
+
+<a id="fwf"></a>
+
+### Fixed-width files
+
+Files ending in `.fwf` are read with `readr::read_fwf()`. Column positions are
+auto-detected:
+
+```bash
+rush run 'head(df)' data.fwf
+rush run -F fwf 'head(df)' legacy_data.txt
+```
+
+<a id="rds"></a>
+
+### RDS
+
+R's native serialisation format. Files ending in `.rds` are read with
+`readRDS()` and written with `saveRDS()` — no extra packages needed:
+
+```bash
+rush run -o model_data.rds 'df |> filter(!is.na(y))' raw.csv
+rush run 'summary(df)' model_data.rds
+```
+
+<a id="ods"></a>
+
+### ODS
+
+OpenDocument Spreadsheet files (`.ods`) are read and written with
+[readODS](https://docs.ropensci.org/readODS/):
+
+```bash
+rush run 'head(df)' data.ods
+rush convert -o output.ods data.csv
+```
+
+<a id="fasta"></a>
+
+### FASTA and FASTQ
+
+Sequence files (`.fasta`, `.fa`, `.fna`, `.fastq`, `.fq`) are read and written
+with [microseq](https://github.com/larssnip/microseq). FASTA files produce a
+data frame with `Header` and `Sequence` columns; FASTQ adds a `Quality` column:
+
+```bash
+rush run 'nrow(df)' sequences.fasta
+rush run 'df |> filter(nchar(Sequence) > 100)' reads.fastq
+rush convert -o filtered.fasta data.csv
 ```
 
 ## Format conversion

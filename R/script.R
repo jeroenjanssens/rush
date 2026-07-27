@@ -60,6 +60,7 @@ clean_names_simple <- function(x) {
 file_kind <- function(path, input_format = "auto") {
   if (!identical(input_format, "auto")) {
     if (input_format %in% c("csv", "tsv")) return("delim")
+    if (input_format == "zsav") return("sav")
     return(input_format)
   }
   if (path == "-") return("stdin")
@@ -70,6 +71,17 @@ file_kind <- function(path, input_format = "auto") {
   if (ext %in% c("jsonl", "ndjson")) return("jsonl")
   if (ext %in% c("xlsx", "xls")) return("xlsx")
   if (ext %in% c("arrow", "ipc", "feather")) return("arrow")
+  if (ext %in% c("sav", "zsav")) return("sav")
+  if (ext == "por") return("por")
+  if (ext == "dta") return("dta")
+  if (ext == "sas7bdat") return("sas7bdat")
+  if (ext == "xpt") return("xpt")
+  if (ext %in% c("sqlite", "db")) return("sqlite")
+  if (ext == "fwf") return("fwf")
+  if (ext == "rds") return("rds")
+  if (ext == "ods") return("ods")
+  if (ext %in% c("fasta", "fa", "fna")) return("fasta")
+  if (ext %in% c("fastq", "fq")) return("fastq")
   "delim"
 }
 
@@ -85,6 +97,16 @@ resolve_output_format <- function(output, output_format) {
     if (ext %in% c("jsonl", "ndjson")) return("jsonl")
     if (ext %in% c("arrow", "ipc", "feather")) return("arrow")
     if (ext == "xlsx") return("xlsx")
+    if (ext == "sav") return("sav")
+    if (ext == "zsav") return("zsav")
+    if (ext == "dta") return("dta")
+    if (ext == "sas7bdat") return("sas7bdat")
+    if (ext == "xpt") return("xpt")
+    if (ext %in% c("sqlite", "db")) return("sqlite")
+    if (ext == "rds") return("rds")
+    if (ext == "ods") return("ods")
+    if (ext %in% c("fasta", "fa", "fna")) return("fasta")
+    if (ext %in% c("fastq", "fq")) return("fastq")
   }
   "delim"
 }
@@ -133,6 +155,34 @@ emit_read_files <- function(con, files, flags) {
     } else if (kind == "arrow") {
       read_pkgs <- "arrow"
       read_expr <- expr(arrow::read_ipc_file(!!path))
+    } else if (kind == "sav") {
+      read_pkgs <- "haven"
+      read_expr <- expr(haven::read_sav(!!path))
+    } else if (kind == "por") {
+      read_pkgs <- "haven"
+      read_expr <- expr(haven::read_por(!!path))
+    } else if (kind == "dta") {
+      read_pkgs <- "haven"
+      read_expr <- expr(haven::read_dta(!!path))
+    } else if (kind == "sas7bdat") {
+      read_pkgs <- "haven"
+      read_expr <- expr(haven::read_sas(!!path))
+    } else if (kind == "xpt") {
+      read_pkgs <- "haven"
+      read_expr <- expr(haven::read_xpt(!!path))
+    } else if (kind == "fwf") {
+      read_expr <- expr(readr::read_fwf(!!path, col_positions = readr::fwf_empty(!!path)))
+    } else if (kind == "rds") {
+      read_expr <- expr(readRDS(!!path))
+    } else if (kind == "ods") {
+      read_pkgs <- "readODS"
+      read_expr <- expr(readODS::read_ods(!!path))
+    } else if (kind == "fasta") {
+      read_pkgs <- "microseq"
+      read_expr <- expr(microseq::readFasta(!!path))
+    } else if (kind == "fastq") {
+      read_pkgs <- "microseq"
+      read_expr <- expr(microseq::readFastq(!!path))
     } else {
       if (path == "-") {
         path <- expr(file("stdin", "rb", raw = TRUE))
@@ -174,7 +224,32 @@ emit_read_files <- function(con, files, flags) {
     c("duckdb", "DBI")
   }
 
-  if (length(files) == 1 && file_kind(files[[1]], flags$input_format %||% "auto") != "duckdb") {
+  emit_sqlite <- function(path) {
+    read <- if (!flags$no_clean_names) {
+      "    dfs[[.t]] <<- janitor::clean_names(DBI::dbReadTable(.con, .t))"
+    } else {
+      "    dfs[[.t]] <<- DBI::dbReadTable(.con, .t)"
+    }
+    writeLines(
+      c(
+        "local({",
+        paste0(
+          "  .con <- DBI::dbConnect(RSQLite::SQLite(), ",
+          encodeString(path, quote = "\""),
+          ")"
+        ),
+        "  on.exit(DBI::dbDisconnect(.con))",
+        "  for (.t in DBI::dbListTables(.con)) {",
+        read,
+        "  }",
+        "})"
+      ),
+      con
+    )
+    c("RSQLite", "DBI")
+  }
+
+  if (length(files) == 1 && !file_kind(files[[1]], flags$input_format %||% "auto") %in% c("duckdb", "sqlite")) {
     rc <- read_call(files)
     pkgs <- c(pkgs, rc$packages)
     code_expression(con, `<-`(df, !!rc$expr))
@@ -185,6 +260,8 @@ emit_read_files <- function(con, files, flags) {
     for (i in seq_along(files)) {
       if (file_kind(files[[i]], flags$input_format %||% "auto") == "duckdb") {
         pkgs <- c(pkgs, emit_duckdb(files[[i]]))
+      } else if (file_kind(files[[i]], flags$input_format %||% "auto") == "sqlite") {
+        pkgs <- c(pkgs, emit_sqlite(files[[i]]))
       } else {
         rc <- read_call(files[[i]])
         pkgs <- c(pkgs, rc$packages)
@@ -355,6 +432,28 @@ if (is.data.frame(result)) {
     arrow::write_ipc_file(result, .rush$output)
   } else if (identical(.rush$output_format, "xlsx")) {
     writexl::write_xlsx(result, .rush$output)
+  } else if (identical(.rush$output_format, "sav")) {
+    haven::write_sav(result, .rush$output)
+  } else if (identical(.rush$output_format, "zsav")) {
+    haven::write_sav(result, .rush$output, compress = "zsav")
+  } else if (identical(.rush$output_format, "dta")) {
+    haven::write_dta(result, .rush$output)
+  } else if (identical(.rush$output_format, "sas7bdat")) {
+    haven::write_sas(result, .rush$output)
+  } else if (identical(.rush$output_format, "xpt")) {
+    haven::write_xpt(result, .rush$output)
+  } else if (identical(.rush$output_format, "sqlite")) {
+    .con <- DBI::dbConnect(RSQLite::SQLite(), .rush$output)
+    on.exit(DBI::dbDisconnect(.con))
+    DBI::dbWriteTable(.con, "data", result)
+  } else if (identical(.rush$output_format, "rds")) {
+    saveRDS(result, .rush$output)
+  } else if (identical(.rush$output_format, "ods")) {
+    readODS::write_ods(result, .rush$output)
+  } else if (identical(.rush$output_format, "fasta")) {
+    microseq::writeFasta(result, .rush$output)
+  } else if (identical(.rush$output_format, "fastq")) {
+    microseq::writeFastq(result, .rush$output)
   } else {
     con <- if (is.null(.rush$output)) .stdout_binary() else .rush$output
     readr::write_delim(result, con, delim = .rush$delimiter)

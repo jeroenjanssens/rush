@@ -616,3 +616,243 @@ test_that("plot --pre and --post wrap the plot call", {
   expect_lt(grep("head\\(df\\)", script)[[1]], ggplot_line)
   expect_gt(grep("theme_bw", script), ggplot_line)
 })
+
+# Haven: SPSS ----------------------------------------------------------------
+
+test_that("run reads a .sav file with haven", {
+  script <- dry_run("run", "-n", "head(df)", "data.sav")
+  expect_true(any(grepl("haven::read_sav\\(\"data.sav\"\\)", script)))
+  expect_true(any(grepl("^#\\|   - haven$", script)))
+  expect_false(any(grepl("read_delim", script)))
+})
+
+test_that("run reads a .zsav file with haven::read_sav", {
+
+  script <- dry_run("run", "-n", "head(df)", "data.zsav")
+  expect_true(any(grepl("haven::read_sav\\(\"data.zsav\"\\)", script)))
+  expect_true(any(grepl("^#\\|   - haven$", script)))
+})
+
+test_that("run reads a .por file with haven", {
+  script <- dry_run("run", "-n", "head(df)", "data.por")
+  expect_true(any(grepl("haven::read_por\\(\"data.por\"\\)", script)))
+  expect_true(any(grepl("^#\\|   - haven$", script)))
+})
+
+test_that("-O sav emits haven::write_sav", {
+  script <- dry_run("run", "-n", "-O", "sav", "-o", "out.sav", "df", "data.csv")
+  expect_true(any(grepl('output_format = "sav"', script)))
+  expect_true(any(grepl("haven::write_sav", script)))
+  expect_true(any(grepl("^#\\|   - haven$", script)))
+})
+
+test_that("-o out.zsav emits haven::write_sav with compress", {
+  script <- dry_run("run", "-n", "-o", "out.zsav", "df", "data.csv")
+  expect_true(any(grepl('output_format = "zsav"', script)))
+  expect_true(any(grepl('compress = "zsav"', script)))
+})
+
+test_that("-F sav overrides extension for reading", {
+  script <- dry_run("run", "-n", "-F", "sav", "head(df)", "data.txt")
+  expect_true(any(grepl("haven::read_sav\\(\"data.txt\"\\)", script)))
+})
+
+test_that("-F zsav normalizes to sav for reading", {
+  script <- dry_run("run", "-n", "-F", "zsav", "head(df)", "data.txt")
+  expect_true(any(grepl("haven::read_sav\\(\"data.txt\"\\)", script)))
+})
+
+# Haven: Stata ----------------------------------------------------------------
+
+test_that("run reads a .dta file with haven", {
+  script <- dry_run("run", "-n", "head(df)", "data.dta")
+  expect_true(any(grepl("haven::read_dta\\(\"data.dta\"\\)", script)))
+  expect_true(any(grepl("^#\\|   - haven$", script)))
+})
+
+test_that("-O dta emits haven::write_dta", {
+  script <- dry_run("run", "-n", "-O", "dta", "-o", "out.dta", "df", "data.csv")
+  expect_true(any(grepl('output_format = "dta"', script)))
+  expect_true(any(grepl("haven::write_dta", script)))
+})
+
+# Haven: SAS ------------------------------------------------------------------
+
+test_that("run reads a .sas7bdat file with haven", {
+  script <- dry_run("run", "-n", "head(df)", "data.sas7bdat")
+  expect_true(any(grepl("haven::read_sas\\(\"data.sas7bdat\"\\)", script)))
+  expect_true(any(grepl("^#\\|   - haven$", script)))
+})
+
+test_that("run reads a .xpt file with haven", {
+  script <- dry_run("run", "-n", "head(df)", "data.xpt")
+  expect_true(any(grepl("haven::read_xpt\\(\"data.xpt\"\\)", script)))
+  expect_true(any(grepl("^#\\|   - haven$", script)))
+})
+
+test_that("-O sas7bdat emits haven::write_sas", {
+  script <- dry_run("run", "-n", "-O", "sas7bdat", "-o", "out.sas7bdat", "df", "data.csv")
+  expect_true(any(grepl('output_format = "sas7bdat"', script)))
+  expect_true(any(grepl("haven::write_sas", script)))
+})
+
+test_that("-O xpt emits haven::write_xpt", {
+  script <- dry_run("run", "-n", "-O", "xpt", "-o", "out.xpt", "df", "data.csv")
+  expect_true(any(grepl('output_format = "xpt"', script)))
+  expect_true(any(grepl("haven::write_xpt", script)))
+})
+
+# SQLite ----------------------------------------------------------------------
+
+test_that("run reads a SQLite database into a dfs list", {
+  script <- dry_run("run", "-n", "nrow(df)", "mydb.sqlite")
+  expect_true(any(grepl("DBI::dbConnect\\(RSQLite::SQLite\\(\\)", script)))
+  expect_true(any(grepl("dbListTables", script)))
+  expect_true(any(grepl("dbReadTable", script)))
+  expect_true(any(grepl("^#\\|   - RSQLite$", script)))
+  expect_true(any(grepl("^#\\|   - DBI$", script)))
+})
+
+test_that("run reads a .db file as SQLite", {
+  script <- dry_run("run", "-n", "nrow(df)", "mydb.db")
+  expect_true(any(grepl("RSQLite::SQLite\\(\\)", script)))
+})
+
+test_that("-O sqlite emits SQLite write via DBI", {
+  script <- dry_run("run", "-n", "-O", "sqlite", "-o", "out.sqlite", "df", "data.csv")
+  expect_true(any(grepl('output_format = "sqlite"', script)))
+  expect_true(any(grepl("RSQLite::SQLite", script)))
+  expect_true(any(grepl("dbWriteTable", script)))
+  expect_true(any(grepl("^#\\|   - RSQLite$", script)))
+  expect_true(any(grepl("^#\\|   - DBI$", script)))
+})
+
+# FWF (read-only) -------------------------------------------------------------
+
+test_that("run reads a .fwf file with readr::read_fwf", {
+  script <- dry_run("run", "-n", "head(df)", "data.fwf")
+  expect_true(any(grepl("readr::read_fwf", script)))
+  expect_true(any(grepl("readr::fwf_empty", script)))
+  expect_false(any(grepl("read_delim", script)))
+})
+
+test_that("-F fwf overrides extension for reading", {
+  script <- dry_run("run", "-n", "-F", "fwf", "head(df)", "data.txt")
+  expect_true(any(grepl("readr::read_fwf\\(\"data.txt\"", script)))
+})
+
+# RDS -------------------------------------------------------------------------
+
+test_that("run reads a .rds file with readRDS", {
+  script <- dry_run("run", "-n", "head(df)", "data.rds")
+  expect_true(any(grepl("readRDS\\(\"data.rds\"\\)", script)))
+  expect_false(any(grepl("read_delim", script)))
+})
+
+test_that("rds reader does not add extra packages to frontmatter", {
+  script <- dry_run("run", "-n", "-C", "head(df)", "data.rds")
+  expect_false(any(grepl("^#\\|   - haven$", script)))
+  expect_false(any(grepl("^#\\|   - readODS$", script)))
+})
+
+test_that("-O rds emits saveRDS", {
+  script <- dry_run("run", "-n", "-O", "rds", "-o", "out.rds", "df", "data.csv")
+  expect_true(any(grepl('output_format = "rds"', script)))
+  expect_true(any(grepl("saveRDS", script)))
+})
+
+# ODS -------------------------------------------------------------------------
+
+test_that("run reads a .ods file with readODS", {
+  script <- dry_run("run", "-n", "head(df)", "data.ods")
+  expect_true(any(grepl("readODS::read_ods\\(\"data.ods\"\\)", script)))
+  expect_true(any(grepl("^#\\|   - readODS$", script)))
+})
+
+test_that("-O ods emits readODS::write_ods", {
+  script <- dry_run("run", "-n", "-O", "ods", "-o", "out.ods", "df", "data.csv")
+  expect_true(any(grepl('output_format = "ods"', script)))
+  expect_true(any(grepl("readODS::write_ods", script)))
+  expect_true(any(grepl("^#\\|   - readODS$", script)))
+})
+
+# FASTA -----------------------------------------------------------------------
+
+test_that("run reads a .fasta file with microseq", {
+  script <- dry_run("run", "-n", "head(df)", "seqs.fasta")
+  expect_true(any(grepl("microseq::readFasta\\(\"seqs.fasta\"\\)", script)))
+  expect_true(any(grepl("^#\\|   - microseq$", script)))
+})
+
+test_that("run reads .fa and .fna as FASTA", {
+  script_fa <- dry_run("run", "-n", "head(df)", "seqs.fa")
+  script_fna <- dry_run("run", "-n", "head(df)", "seqs.fna")
+  expect_true(any(grepl("microseq::readFasta", script_fa)))
+  expect_true(any(grepl("microseq::readFasta", script_fna)))
+})
+
+test_that("-O fasta emits microseq::writeFasta", {
+  script <- dry_run("run", "-n", "-O", "fasta", "-o", "out.fasta", "df", "data.csv")
+  expect_true(any(grepl('output_format = "fasta"', script)))
+  expect_true(any(grepl("microseq::writeFasta", script)))
+  expect_true(any(grepl("^#\\|   - microseq$", script)))
+})
+
+# FASTQ -----------------------------------------------------------------------
+
+test_that("run reads a .fastq file with microseq", {
+  script <- dry_run("run", "-n", "head(df)", "reads.fastq")
+  expect_true(any(grepl("microseq::readFastq\\(\"reads.fastq\"\\)", script)))
+  expect_true(any(grepl("^#\\|   - microseq$", script)))
+})
+
+test_that("run reads .fq as FASTQ", {
+  script <- dry_run("run", "-n", "head(df)", "reads.fq")
+  expect_true(any(grepl("microseq::readFastq", script)))
+})
+
+test_that("-O fastq emits microseq::writeFastq", {
+  script <- dry_run("run", "-n", "-O", "fastq", "-o", "out.fastq", "df", "data.csv")
+  expect_true(any(grepl('output_format = "fastq"', script)))
+  expect_true(any(grepl("microseq::writeFastq", script)))
+})
+
+# Convert: new formats --------------------------------------------------------
+
+test_that("convert csv to sav", {
+  script <- dry_run("convert", "-n", "-o", "out.sav", "data.csv")
+  expect_true(any(grepl("read_delim", script)))
+  expect_true(any(grepl("haven::write_sav", script)))
+})
+
+test_that("convert sav to csv", {
+  script <- dry_run("convert", "-n", "-o", "out.csv", "data.sav")
+  expect_true(any(grepl("haven::read_sav", script)))
+  expect_true(any(grepl("write_delim", script)))
+})
+
+test_that("convert csv to dta", {
+  script <- dry_run("convert", "-n", "-o", "out.dta", "data.csv")
+  expect_true(any(grepl("haven::write_dta", script)))
+})
+
+test_that("convert csv to sqlite", {
+  script <- dry_run("convert", "-n", "-o", "out.sqlite", "data.csv")
+  expect_true(any(grepl("RSQLite::SQLite", script)))
+  expect_true(any(grepl("dbWriteTable", script)))
+})
+
+test_that("convert csv to rds", {
+  script <- dry_run("convert", "-n", "-o", "out.rds", "data.csv")
+  expect_true(any(grepl("saveRDS", script)))
+})
+
+test_that("convert csv to ods", {
+  script <- dry_run("convert", "-n", "-o", "out.ods", "data.csv")
+  expect_true(any(grepl("readODS::write_ods", script)))
+})
+
+test_that("convert csv to fasta", {
+  script <- dry_run("convert", "-n", "-o", "out.fasta", "data.csv")
+  expect_true(any(grepl("microseq::writeFasta", script)))
+})

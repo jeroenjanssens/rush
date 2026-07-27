@@ -42,6 +42,10 @@ Suggests:
     arrow,
     duckdb,
     DBI,
+    haven,
+    RSQLite,
+    readODS,
+    microseq,
     testthat (>= 3.0.0),
     roxygen2
 SystemRequirements: ir (https://r-lib.github.io/ir/)

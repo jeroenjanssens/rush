@@ -834,6 +834,139 @@ rm flights.feather flights.ipc
 
 ---
 
+## SPSS, Stata, and SAS (haven)
+
+### Reading SPSS files
+
+```{bash}
+rush run -n 'head(df)' survey.sav
+```
+
+### Reading Stata files
+
+```{bash}
+rush run -n 'head(df)' data.dta
+```
+
+### Reading SAS files
+
+```{bash}
+rush run -n 'head(df)' data.sas7bdat
+rush run -n 'head(df)' data.xpt
+```
+
+### Writing SPSS
+
+```{bash}
+rush run -n -o result.sav 'df' data.csv
+```
+
+### Writing Stata
+
+```{bash}
+rush run -n -o result.dta 'df' data.csv
+```
+
+### Writing SAS transport
+
+```{bash}
+rush run -n -o result.xpt 'df' data.csv
+```
+
+---
+
+## SQLite
+
+### Reading SQLite databases
+
+```{bash}
+rush run -n 'names(dfs)' app.sqlite
+```
+
+### Writing SQLite
+
+```{bash}
+rush run -n -O sqlite -o output.sqlite 'df' data.csv
+```
+
+---
+
+## Fixed-width files
+
+### Reading FWF
+
+```{bash}
+rush run -n 'head(df)' data.fwf
+```
+
+### Using -F fwf for files without .fwf extension
+
+```{bash}
+rush run -n -F fwf 'head(df)' legacy.txt
+```
+
+---
+
+## RDS
+
+### Reading RDS files
+
+```{bash}
+rush run -n 'head(df)' data.rds
+```
+
+### Writing RDS
+
+```{bash}
+rush run -n -o output.rds 'df' data.csv
+```
+
+---
+
+## ODS (OpenDocument Spreadsheet)
+
+### Reading ODS files
+
+```{bash}
+rush run -n 'head(df)' data.ods
+```
+
+### Writing ODS
+
+```{bash}
+rush run -n -o output.ods 'df' data.csv
+```
+
+---
+
+## FASTA and FASTQ
+
+### Reading FASTA
+
+```{bash}
+rush run -n 'head(df)' sequences.fasta
+```
+
+### Reading FASTQ
+
+```{bash}
+rush run -n 'head(df)' reads.fastq
+```
+
+### Writing FASTA
+
+```{bash}
+rush run -n -O fasta -o output.fasta 'df' data.csv
+```
+
+### Writing FASTQ
+
+```{bash}
+rush run -n -O fastq -o output.fastq 'df' data.csv
+```
+
+---
+
 ## rush convert
 
 The `convert` command converts between formats without writing an expression.

@@ -53,6 +53,14 @@ rush <- function(...) {
     pkgs <- c(pkgs, "arrow")
   } else if (identical(flags$resolved_output_format, "xlsx")) {
     pkgs <- c(pkgs, "writexl")
+  } else if (flags$resolved_output_format %in% c("sav", "zsav", "dta", "sas7bdat", "xpt")) {
+    pkgs <- c(pkgs, "haven")
+  } else if (identical(flags$resolved_output_format, "sqlite")) {
+    pkgs <- c(pkgs, "RSQLite", "DBI")
+  } else if (identical(flags$resolved_output_format, "ods")) {
+    pkgs <- c(pkgs, "readODS")
+  } else if (flags$resolved_output_format %in% c("fasta", "fastq")) {
+    pkgs <- c(pkgs, "microseq")
   }
 
   close(body)
