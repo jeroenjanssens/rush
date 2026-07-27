@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>rush</title>
+<title>Scripts – rush</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -209,7 +209,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span class="menu-text">Pipelines</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="./scripts.html"> 
+    <a class="nav-link active" href="./scripts.html" aria-current="page"> 
 <span class="menu-text">Scripts</span></a>
   </li>  
 </ul>
@@ -239,18 +239,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#highlights" id="toc-highlights" class="nav-link active" data-scroll-target="#highlights">Highlights</a></li>
-  <li><a href="#how-it-works" id="toc-how-it-works" class="nav-link" data-scroll-target="#how-it-works">How it works</a></li>
+  <li><a href="#saving-and-reusing-scripts" id="toc-saving-and-reusing-scripts" class="nav-link active" data-scroll-target="#saving-and-reusing-scripts">Saving and reusing scripts</a></li>
+  <li><a href="#formatting-with-air" id="toc-formatting-with-air" class="nav-link" data-scroll-target="#formatting-with-air">Formatting with air</a></li>
+  <li><a href="#running-without-ir" id="toc-running-without-ir" class="nav-link" data-scroll-target="#running-without-ir">Running without <code>ir</code></a></li>
   </ul>
-<div class="toc-actions"><ul><li><a href="https://github.com/jeroenjanssens/rush/edit/main/index.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/jeroenjanssens/rush/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+<div class="toc-actions"><ul><li><a href="https://github.com/jeroenjanssens/rush/edit/main/scripts.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/jeroenjanssens/rush/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">rush</h1>
-<p class="subtitle lead">R Scripting at the Command Line</p>
+<h1 class="title">Scripts</h1>
 </div>
 
 
@@ -267,43 +267,96 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="https://github.com/jeroenjanssens/rush/actions/workflows/R-CMD-check.yaml"><img src="https://github.com/jeroenjanssens/rush/actions/workflows/R-CMD-check.yaml/badge.svg" class="img-fluid figure-img"></a></p>
-<figcaption>R-CMD-check</figcaption>
-</figure>
+<section id="saving-and-reusing-scripts" class="level2">
+<h2 class="anchored" data-anchor-id="saving-and-reusing-scripts">Saving and reusing scripts</h2>
+<p>The script that <code>--dry-run</code> prints is not a throwaway — it is a complete, self-contained <code>ir</code> script. Redirect it to a file and you have a reproducible artifact you can version, share, or run again later:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> run <span class="at">--dry-run</span> <span class="st">'df |&gt; dplyr::filter(body_mass_g &gt; 5000)'</span> penguins.csv <span class="op">&gt;</span> analysis.R</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span> <span class="at">-3</span> analysis.R</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; #!/usr/bin/env -S ir run</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; #| packages:</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; #|   - rlang</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p><strong><code>rush</code> brings R to the command line.</strong> Run an R expression, wrangle a CSV, query a Parquet file with SQL, or draw a plot right in your terminal — all without opening an R session or writing a script.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> run <span class="st">'penguins |&gt; dplyr::filter(body_mass_g &gt; 5000) |&gt; head()'</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>R has a wonderful ecosystem for working with data, but reaching for it usually means launching R, loading packages, and reading files by hand. <code>rush</code> collapses that into a single command you can pipe, redirect, and drop into any shell pipeline — so R becomes just another Unix tool, at home next to <code>grep</code>, <code>awk</code>, and <code>jq</code>.</p>
-<section id="highlights" class="level2">
-<h2 class="anchored" data-anchor-id="highlights">Highlights</h2>
-<ul>
-<li><strong>One-liners, not scripts.</strong> Evaluate any R expression straight from the shell.</li>
-<li><strong>Pipeline-native.</strong> Reads from standard input and writes to standard output, so it composes with every other command-line tool.</li>
-<li><strong>Reads what you have.</strong> CSV, Parquet, JSON/JSONL, Excel, Arrow IPC, DuckDB, SPSS/Stata/SAS, SQLite, YAML, TOML, XML, and more — chosen automatically by file extension.</li>
-<li><strong>Converts between formats.</strong> The <a href="./reference/convert.html"><code>convert</code></a> command converts files directly between any supported format.</li>
-<li><strong>Query with SQL.</strong> The <a href="./reference/sql.html"><code>sql</code></a> command runs DuckDB queries directly against your files, no import step required.</li>
-<li><strong>Plots in your terminal.</strong> The <a href="./reference/plot.html"><code>plot</code></a> command renders ggplot2 graphics as ANSI/ASCII art, or saves them to PNG, PDF, and more.</li>
-<li><strong>Zero dependency management.</strong> Packages are resolved on demand by <code>ir</code>.</li>
-</ul>
+<p>Run it with <code>ir run</code>. The <code>#|</code> frontmatter declares the script’s dependencies, so <code>ir</code> installs any missing packages and executes it — the saved script carries its own dependencies and needs nothing but <code>ir</code> on the target machine:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">ir</span> run analysis.R</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell">
+<pre><code>#&gt; species,island,bill_length_mm,bill_depth_mm,flipper_length_mm,body_mass_g,sex,year
+#&gt; Gentoo,Biscoe,50,16.3,230,5700,male,2007
+#&gt; Gentoo,Biscoe,50,15.2,218,5700,male,2007
+#&gt; Gentoo,Biscoe,47.6,14.5,215,5400,male,2007
+#&gt; Gentoo,Biscoe,46.7,15.3,219,5200,male,2007
+#&gt; Gentoo,Biscoe,46.8,15.4,215,5150,male,2007
+#&gt; Gentoo,Biscoe,49,16.1,216,5550,male,2007
+#&gt; Gentoo,Biscoe,48.4,14.6,213,5850,male,2007
+#&gt; Gentoo,Biscoe,49.3,15.7,217,5850,male,2007
+#&gt; Gentoo,Biscoe,49.2,15.2,221,6300,male,2007
+#&gt; Gentoo,Biscoe,48.7,15.1,222,5350,male,2007
+#&gt; Gentoo,Biscoe,50.2,14.3,218,5700,male,2007
+#&gt; Gentoo,Biscoe,46.3,15.8,215,5050,male,2007
+#&gt; Gentoo,Biscoe,46.1,15.1,215,5100,male,2007
+#&gt; Gentoo,Biscoe,47.8,15,215,5650,male,2007
+#&gt; Gentoo,Biscoe,50,15.3,220,5550,male,2007
+#&gt; Gentoo,Biscoe,47.3,15.3,222,5250,male,2007
+#&gt; Gentoo,Biscoe,45.1,14.5,207,5050,female,2007
+#&gt; Gentoo,Biscoe,59.6,17,230,6050,male,2007
+#&gt; Gentoo,Biscoe,49.1,14.8,220,5150,female,2008
+#&gt; Gentoo,Biscoe,48.4,16.3,220,5400,male,2008
+#&gt; Gentoo,Biscoe,44.4,17.3,219,5250,male,2008
+#&gt; Gentoo,Biscoe,48.7,15.7,208,5350,male,2008
+#&gt; Gentoo,Biscoe,49.6,16,225,5700,male,2008
+#&gt; Gentoo,Biscoe,50.5,15.9,222,5550,male,2008
+#&gt; Gentoo,Biscoe,50.5,15.9,225,5400,male,2008
+#&gt; Gentoo,Biscoe,44.9,13.3,213,5100,female,2008
+#&gt; Gentoo,Biscoe,45.2,15.8,215,5300,male,2008
+#&gt; Gentoo,Biscoe,48.5,14.1,220,5300,male,2008
+#&gt; Gentoo,Biscoe,45,15.4,220,5050,male,2008
+#&gt; Gentoo,Biscoe,50.4,15.3,224,5550,male,2008
+#&gt; Gentoo,Biscoe,46.2,14.9,221,5300,male,2008
+#&gt; Gentoo,Biscoe,54.3,15.7,231,5650,male,2008
+#&gt; Gentoo,Biscoe,49.8,16.8,230,5700,male,2008
+#&gt; Gentoo,Biscoe,49.5,16.2,229,5800,male,2008
+#&gt; Gentoo,Biscoe,50.7,15,223,5550,male,2008
+#&gt; Gentoo,Biscoe,48.2,15.6,221,5100,male,2008
+#&gt; Gentoo,Biscoe,46.5,14.8,217,5200,female,2008
+#&gt; Gentoo,Biscoe,48.6,16,230,5800,male,2008
+#&gt; Gentoo,Biscoe,51.1,16.3,220,6000,male,2008
+#&gt; Gentoo,Biscoe,45.2,16.4,223,5950,male,2008
+#&gt; Gentoo,Biscoe,52.5,15.6,221,5450,male,2009
+#&gt; Gentoo,Biscoe,50,15.9,224,5350,male,2009
+#&gt; Gentoo,Biscoe,50.8,17.3,228,5600,male,2009
+#&gt; Gentoo,Biscoe,51.3,14.2,218,5300,male,2009
+#&gt; Gentoo,Biscoe,52.1,17,230,5550,male,2009
+#&gt; Gentoo,Biscoe,52.2,17.1,228,5400,male,2009
+#&gt; Gentoo,Biscoe,49.5,16.1,224,5650,male,2009
+#&gt; Gentoo,Biscoe,50.8,15.7,226,5200,male,2009
+#&gt; Gentoo,Biscoe,51.1,16.5,225,5250,male,2009
+#&gt; Gentoo,Biscoe,55.9,17,228,5600,male,2009
+#&gt; Gentoo,Biscoe,49.1,15,228,5500,male,2009
+#&gt; Gentoo,Biscoe,46.8,16.1,215,5500,male,2009
+#&gt; Gentoo,Biscoe,53.4,15.8,219,5500,male,2009
+#&gt; Gentoo,Biscoe,48.1,15.1,209,5500,male,2009
+#&gt; Gentoo,Biscoe,49.8,15.9,229,5950,male,2009
+#&gt; Gentoo,Biscoe,51.5,16.3,230,5500,male,2009
+#&gt; Gentoo,Biscoe,55.1,16,230,5850,male,2009
+#&gt; Gentoo,Biscoe,48.8,16.2,222,6000,male,2009
+#&gt; Gentoo,Biscoe,50.4,15.7,222,5750,male,2009
+#&gt; Gentoo,Biscoe,45.2,14.8,212,5200,female,2009
+#&gt; Gentoo,Biscoe,49.9,16.1,213,5400,male,2009</code></pre>
+</div>
+<p>The <code>#!/usr/bin/env -S ir run</code> shebang also makes the file directly executable (<code>chmod +x analysis.R &amp;&amp; ./analysis.R</code>). This is handy for tweaking: dump a <code>rush</code> one-liner to a file, edit the generated R to do something <code>rush</code> does not express directly, and run it later.</p>
 </section>
-<section id="how-it-works" class="level2">
-<h2 class="anchored" data-anchor-id="how-it-works">How it works</h2>
-<p>Under the hood, each invocation assembles a small, self-contained R script and runs it with <a href="https://r-lib.github.io/ir/"><code>ir</code></a>, the R interpreter launcher from r-lib. The script declares its own package dependencies in <code>#|</code> frontmatter, and <code>ir</code> installs whatever it needs on the fly. That means <code>rush</code> itself stays lightweight, and you never have to manage a library of packages just to run a one-liner.</p>
-<div class="callout callout-style-default callout-tip callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
+<section id="formatting-with-air" class="level2">
+<h2 class="anchored" data-anchor-id="formatting-with-air">Formatting with air</h2>
+<p>If the <a href="https://posit-dev.github.io/air/">air</a> formatter is on your <code>PATH</code>, <code>rush</code> runs the <code>--dry-run</code> output through it, so the printed script is neatly formatted and ready to save. This affects only what <code>--dry-run</code> shows; the script that actually runs is never reformatted.</p>
+</section>
+<section id="running-without-ir" class="level2">
+<h2 class="anchored" data-anchor-id="running-without-ir">Running without <code>ir</code></h2>
+<p>By default <code>rush</code> runs each script with <code>ir</code>, which resolves the packages declared in the frontmatter on the fly. If you would rather run against the packages already installed in your library — for speed, to work offline, or in an environment where dependencies are pinned — pass <code>--no-ir</code> (<code>-I</code>) and <code>rush</code> runs the script with plain <code>Rscript</code> instead:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> run <span class="at">--no-ir</span> <span class="st">'6 * 7'</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 42</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Tip</span>Ready to try it?
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>Head over to <a href="./get-started.html">Get started</a> for installation instructions and a quick tour.</p>
-</div>
-</div>
+<p>In this mode the <code>#|</code> frontmatter is left as inert comments and nothing is installed, so every package the script needs must already be present. The generated script itself is unchanged, so the same file still runs under <code>ir</code> later.</p>
 
 
 </section>
@@ -714,4 +767,4 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 
-<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/jeroenjanssens/rush/edit/main/index.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/jeroenjanssens/rush/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/jeroenjanssens/rush/edit/main/scripts.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/jeroenjanssens/rush/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>

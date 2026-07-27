@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>rush</title>
+<title>Changelog – rush</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -25,41 +25,6 @@ ul.task-list li input[type="checkbox"] {
   width: 0.8em;
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
-}
-/* CSS for syntax highlighting */
-html { -webkit-text-size-adjust: 100%; }
-pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
-pre > code.sourceCode > span:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
-div.sourceCode { margin: 1em 0; }
-pre.sourceCode { margin: 0; }
-@media screen {
-div.sourceCode { overflow: auto; }
-}
-@media print {
-pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
-}
-pre.numberSource code
-  { counter-reset: source-line 0; }
-pre.numberSource code > span
-  { position: relative; left: -4em; counter-increment: source-line; }
-pre.numberSource code > span > a:first-child::before
-  { content: counter(source-line);
-    position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; display: inline-block;
-    -webkit-touch-callout: none; -webkit-user-select: none;
-    -khtml-user-select: none; -moz-user-select: none;
-    -ms-user-select: none; user-select: none;
-    padding: 0 4px; width: 4em;
-  }
-pre.numberSource { margin-left: 3em;  padding-left: 4px; }
-div.sourceCode
-  {   }
-@media screen {
-pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
 
@@ -215,7 +180,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </ul>
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
   <li class="nav-item">
-    <a class="nav-link" href="./changelog.html"> 
+    <a class="nav-link active" href="./changelog.html" aria-current="page"> 
 <span class="menu-text">Changelog</span></a>
   </li>  
   <li class="nav-item compact">
@@ -239,18 +204,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#highlights" id="toc-highlights" class="nav-link active" data-scroll-target="#highlights">Highlights</a></li>
-  <li><a href="#how-it-works" id="toc-how-it-works" class="nav-link" data-scroll-target="#how-it-works">How it works</a></li>
+  <li><a href="#rush-0.1.0" id="toc-rush-0.1.0" class="nav-link active" data-scroll-target="#rush-0.1.0">rush 0.1.0</a></li>
+  <li><a href="#rush-0.0.0.9000" id="toc-rush-0.0.0.9000" class="nav-link" data-scroll-target="#rush-0.0.0.9000">rush 0.0.0.9000</a></li>
   </ul>
-<div class="toc-actions"><ul><li><a href="https://github.com/jeroenjanssens/rush/edit/main/index.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/jeroenjanssens/rush/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+<div class="toc-actions"><ul><li><a href="https://github.com/jeroenjanssens/rush/edit/main/changelog.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/jeroenjanssens/rush/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">rush</h1>
-<p class="subtitle lead">R Scripting at the Command Line</p>
+<h1 class="title">Changelog</h1>
 </div>
 
 
@@ -267,43 +231,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="https://github.com/jeroenjanssens/rush/actions/workflows/R-CMD-check.yaml"><img src="https://github.com/jeroenjanssens/rush/actions/workflows/R-CMD-check.yaml/badge.svg" class="img-fluid figure-img"></a></p>
-<figcaption>R-CMD-check</figcaption>
-</figure>
-</div>
-<p><strong><code>rush</code> brings R to the command line.</strong> Run an R expression, wrangle a CSV, query a Parquet file with SQL, or draw a plot right in your terminal — all without opening an R session or writing a script.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> run <span class="st">'penguins |&gt; dplyr::filter(body_mass_g &gt; 5000) |&gt; head()'</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>R has a wonderful ecosystem for working with data, but reaching for it usually means launching R, loading packages, and reading files by hand. <code>rush</code> collapses that into a single command you can pipe, redirect, and drop into any shell pipeline — so R becomes just another Unix tool, at home next to <code>grep</code>, <code>awk</code>, and <code>jq</code>.</p>
-<section id="highlights" class="level2">
-<h2 class="anchored" data-anchor-id="highlights">Highlights</h2>
+<section id="rush-0.1.0" class="level1">
+<h1>rush 0.1.0</h1>
 <ul>
-<li><strong>One-liners, not scripts.</strong> Evaluate any R expression straight from the shell.</li>
-<li><strong>Pipeline-native.</strong> Reads from standard input and writes to standard output, so it composes with every other command-line tool.</li>
-<li><strong>Reads what you have.</strong> CSV, Parquet, JSON/JSONL, Excel, Arrow IPC, DuckDB, SPSS/Stata/SAS, SQLite, YAML, TOML, XML, and more — chosen automatically by file extension.</li>
-<li><strong>Converts between formats.</strong> The <a href="./reference/convert.html"><code>convert</code></a> command converts files directly between any supported format.</li>
-<li><strong>Query with SQL.</strong> The <a href="./reference/sql.html"><code>sql</code></a> command runs DuckDB queries directly against your files, no import step required.</li>
-<li><strong>Plots in your terminal.</strong> The <a href="./reference/plot.html"><code>plot</code></a> command renders ggplot2 graphics as ANSI/ASCII art, or saves them to PNG, PDF, and more.</li>
-<li><strong>Zero dependency management.</strong> Packages are resolved on demand by <code>ir</code>.</li>
+<li>Initial release of rush</li>
 </ul>
 </section>
-<section id="how-it-works" class="level2">
-<h2 class="anchored" data-anchor-id="how-it-works">How it works</h2>
-<p>Under the hood, each invocation assembles a small, self-contained R script and runs it with <a href="https://r-lib.github.io/ir/"><code>ir</code></a>, the R interpreter launcher from r-lib. The script declares its own package dependencies in <code>#|</code> frontmatter, and <code>ir</code> installs whatever it needs on the fly. That means <code>rush</code> itself stays lightweight, and you never have to manage a library of packages just to run a one-liner.</p>
-<div class="callout callout-style-default callout-tip callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Tip</span>Ready to try it?
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>Head over to <a href="./get-started.html">Get started</a> for installation instructions and a quick tour.</p>
-</div>
-</div>
+<section id="rush-0.0.0.9000" class="level1">
+<h1>rush 0.0.0.9000</h1>
+<ul>
+<li>Added a <code>NEWS.md</code> file to track changes to the package.</li>
+</ul>
 
 
 </section>
@@ -714,4 +652,4 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 
-<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/jeroenjanssens/rush/edit/main/index.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/jeroenjanssens/rush/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/jeroenjanssens/rush/edit/main/changelog.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/jeroenjanssens/rush/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>

@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>rush</title>
+<title>Supported formats – rush</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -25,41 +25,6 @@ ul.task-list li input[type="checkbox"] {
   width: 0.8em;
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
-}
-/* CSS for syntax highlighting */
-html { -webkit-text-size-adjust: 100%; }
-pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
-pre > code.sourceCode > span:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
-div.sourceCode { margin: 1em 0; }
-pre.sourceCode { margin: 0; }
-@media screen {
-div.sourceCode { overflow: auto; }
-}
-@media print {
-pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
-}
-pre.numberSource code
-  { counter-reset: source-line 0; }
-pre.numberSource code > span
-  { position: relative; left: -4em; counter-increment: source-line; }
-pre.numberSource code > span > a:first-child::before
-  { content: counter(source-line);
-    position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; display: inline-block;
-    -webkit-touch-callout: none; -webkit-user-select: none;
-    -khtml-user-select: none; -moz-user-select: none;
-    -ms-user-select: none; user-select: none;
-    padding: 0 4px; width: 4em;
-  }
-pre.numberSource { margin-left: 3em;  padding-left: 4px; }
-div.sourceCode
-  {   }
-@media screen {
-pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
 
@@ -108,6 +73,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     "search-label": "Search"
   }
 }</script>
+<script src="site_libs/quarto-diagram/mermaid.min.js"></script>
+<script src="site_libs/quarto-diagram/mermaid-init.js"></script>
+<link href="site_libs/quarto-diagram/mermaid.css" rel="stylesheet">
 
 
 </head>
@@ -239,18 +207,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#highlights" id="toc-highlights" class="nav-link active" data-scroll-target="#highlights">Highlights</a></li>
-  <li><a href="#how-it-works" id="toc-how-it-works" class="nav-link" data-scroll-target="#how-it-works">How it works</a></li>
+  <li><a href="#format-specific-documentation" id="toc-format-specific-documentation" class="nav-link active" data-scroll-target="#format-specific-documentation">Format-specific documentation</a></li>
   </ul>
-<div class="toc-actions"><ul><li><a href="https://github.com/jeroenjanssens/rush/edit/main/index.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/jeroenjanssens/rush/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+<div class="toc-actions"><ul><li><a href="https://github.com/jeroenjanssens/rush/edit/main/formats.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/jeroenjanssens/rush/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">rush</h1>
-<p class="subtitle lead">R Scripting at the Command Line</p>
+<h1 class="title">Supported formats</h1>
 </div>
 
 
@@ -267,43 +233,216 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="https://github.com/jeroenjanssens/rush/actions/workflows/R-CMD-check.yaml"><img src="https://github.com/jeroenjanssens/rush/actions/workflows/R-CMD-check.yaml/badge.svg" class="img-fluid figure-img"></a></p>
-<figcaption>R-CMD-check</figcaption>
-</figure>
+<p><code>rush</code> can read and write a wide range of data formats. The file extension determines which reader or writer is used automatically — override with <code>-F</code> (input) or <code>-O</code> (output).</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Format</th>
+<th>Extensions</th>
+<th style="text-align: center;">Read</th>
+<th style="text-align: center;">Write</th>
+<th>Package</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Delimited text</td>
+<td><code>.csv</code>, <code>.tsv</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td>readr</td>
+</tr>
+<tr class="even">
+<td>Parquet</td>
+<td><code>.parquet</code>, <code>.pq</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td>nanoparquet</td>
+</tr>
+<tr class="odd">
+<td>JSON</td>
+<td><code>.json</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td>jsonlite</td>
+</tr>
+<tr class="even">
+<td>JSON Lines</td>
+<td><code>.jsonl</code>, <code>.ndjson</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td>jsonlite</td>
+</tr>
+<tr class="odd">
+<td>Excel</td>
+<td><code>.xlsx</code>, <code>.xls</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td>readxl / writexl</td>
+</tr>
+<tr class="even">
+<td>Arrow IPC</td>
+<td><code>.arrow</code>, <code>.ipc</code>, <code>.feather</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td>arrow</td>
+</tr>
+<tr class="odd">
+<td>DuckDB</td>
+<td><code>.duckdb</code>, <code>.ddb</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td>duckdb</td>
+</tr>
+<tr class="even">
+<td>SPSS</td>
+<td><code>.sav</code>, <code>.zsav</code>, <code>.por</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td>haven</td>
+</tr>
+<tr class="odd">
+<td>Stata</td>
+<td><code>.dta</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td>haven</td>
+</tr>
+<tr class="even">
+<td>SAS</td>
+<td><code>.sas7bdat</code>, <code>.xpt</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td>haven</td>
+</tr>
+<tr class="odd">
+<td>SQLite</td>
+<td><code>.sqlite</code>, <code>.db</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td>RSQLite</td>
+</tr>
+<tr class="even">
+<td>Fixed-width</td>
+<td><code>.fwf</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">—</td>
+<td>readr</td>
+</tr>
+<tr class="odd">
+<td>RDS</td>
+<td><code>.rds</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td><em>(base R)</em></td>
+</tr>
+<tr class="even">
+<td>ODS</td>
+<td><code>.ods</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td>readODS</td>
+</tr>
+<tr class="odd">
+<td>FASTA</td>
+<td><code>.fasta</code>, <code>.fa</code>, <code>.fna</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td>microseq</td>
+</tr>
+<tr class="even">
+<td>FASTQ</td>
+<td><code>.fastq</code>, <code>.fq</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td>microseq</td>
+</tr>
+<tr class="odd">
+<td>YAML</td>
+<td><code>.yaml</code>, <code>.yml</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td>yaml</td>
+</tr>
+<tr class="even">
+<td>TOML</td>
+<td><code>.toml</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td>RcppTOML</td>
+</tr>
+<tr class="odd">
+<td>XML</td>
+<td><code>.xml</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td>xml2</td>
+</tr>
+</tbody>
+</table>
+<p>Any readable format can be converted to any writable format (through a data frame). The diagram below shows the full conversion graph:</p>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">graph LR
+  CSV_in[CSV/TSV] --&gt; rush((rush))
+  Parquet_in[Parquet] --&gt; rush
+  JSON_in[JSON/JSONL] --&gt; rush
+  Excel_in[Excel] --&gt; rush
+  Arrow_in[Arrow IPC] --&gt; rush
+  DuckDB_in[DuckDB] --&gt; rush
+  SPSS_in[SPSS] --&gt; rush
+  Stata_in[Stata] --&gt; rush
+  SAS_in[SAS] --&gt; rush
+  SQLite_in[SQLite] --&gt; rush
+  FWF_in[FWF] --&gt; rush
+  RDS_in[RDS] --&gt; rush
+  ODS_in[ODS] --&gt; rush
+  FASTA_in[FASTA] --&gt; rush
+  FASTQ_in[FASTQ] --&gt; rush
+  YAML_in[YAML] --&gt; rush
+  TOML_in[TOML] --&gt; rush
+  XML_in[XML] --&gt; rush
+
+  rush --&gt; CSV_out[CSV/TSV]
+  rush --&gt; Parquet_out[Parquet]
+  rush --&gt; JSON_out[JSON/JSONL]
+  rush --&gt; Excel_out[Excel]
+  rush --&gt; Arrow_out[Arrow IPC]
+  rush --&gt; DuckDB_out[DuckDB]
+  rush --&gt; SPSS_out[SPSS]
+  rush --&gt; Stata_out[Stata]
+  rush --&gt; SAS_out[SAS]
+  rush --&gt; SQLite_out[SQLite]
+  rush --&gt; RDS_out[RDS]
+  rush --&gt; ODS_out[ODS]
+  rush --&gt; FASTA_out[FASTA]
+  rush --&gt; FASTQ_out[FASTQ]
+  rush --&gt; YAML_out[YAML]
+  rush --&gt; TOML_out[TOML]
+  rush --&gt; XML_out[XML]
+</pre>
 </div>
-<p><strong><code>rush</code> brings R to the command line.</strong> Run an R expression, wrangle a CSV, query a Parquet file with SQL, or draw a plot right in your terminal — all without opening an R session or writing a script.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> run <span class="st">'penguins |&gt; dplyr::filter(body_mass_g &gt; 5000) |&gt; head()'</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>R has a wonderful ecosystem for working with data, but reaching for it usually means launching R, loading packages, and reading files by hand. <code>rush</code> collapses that into a single command you can pipe, redirect, and drop into any shell pipeline — so R becomes just another Unix tool, at home next to <code>grep</code>, <code>awk</code>, and <code>jq</code>.</p>
-<section id="highlights" class="level2">
-<h2 class="anchored" data-anchor-id="highlights">Highlights</h2>
+<p></p></figure><p></p>
+</div>
+</div>
+</div>
+<section id="format-specific-documentation" class="level2">
+<h2 class="anchored" data-anchor-id="format-specific-documentation">Format-specific documentation</h2>
+<p>Each format has detailed documentation with examples:</p>
 <ul>
-<li><strong>One-liners, not scripts.</strong> Evaluate any R expression straight from the shell.</li>
-<li><strong>Pipeline-native.</strong> Reads from standard input and writes to standard output, so it composes with every other command-line tool.</li>
-<li><strong>Reads what you have.</strong> CSV, Parquet, JSON/JSONL, Excel, Arrow IPC, DuckDB, SPSS/Stata/SAS, SQLite, YAML, TOML, XML, and more — chosen automatically by file extension.</li>
-<li><strong>Converts between formats.</strong> The <a href="./reference/convert.html"><code>convert</code></a> command converts files directly between any supported format.</li>
-<li><strong>Query with SQL.</strong> The <a href="./reference/sql.html"><code>sql</code></a> command runs DuckDB queries directly against your files, no import step required.</li>
-<li><strong>Plots in your terminal.</strong> The <a href="./reference/plot.html"><code>plot</code></a> command renders ggplot2 graphics as ANSI/ASCII art, or saves them to PNG, PDF, and more.</li>
-<li><strong>Zero dependency management.</strong> Packages are resolved on demand by <code>ir</code>.</li>
+<li><a href="./formats/delimited.html">Delimited (CSV/TSV)</a> — delimiter control, format flags, <code>--head</code></li>
+<li><a href="./formats/parquet.html">Parquet</a> — columnar storage via nanoparquet</li>
+<li><a href="./formats/json.html">JSON / JSONL</a> — nested data, flattening, streaming</li>
+<li><a href="./formats/excel.html">Excel / ODS</a> — sheets, spreadsheets</li>
+<li><a href="./formats/arrow.html">Arrow IPC</a> — Feather / IPC format</li>
+<li><a href="./formats/databases.html">DuckDB / SQLite</a> — multi-table databases, combining files</li>
+<li><a href="./formats/statistical.html">Statistical (SPSS, Stata, SAS)</a> — labelled data via haven</li>
+<li><a href="./formats/bioinformatics.html">Bioinformatics (FASTA/FASTQ)</a> — sequence data</li>
+<li><a href="./formats/structured.html">Structured (YAML, TOML, XML, RDS, FWF)</a> — config files, serialization</li>
 </ul>
-</section>
-<section id="how-it-works" class="level2">
-<h2 class="anchored" data-anchor-id="how-it-works">How it works</h2>
-<p>Under the hood, each invocation assembles a small, self-contained R script and runs it with <a href="https://r-lib.github.io/ir/"><code>ir</code></a>, the R interpreter launcher from r-lib. The script declares its own package dependencies in <code>#|</code> frontmatter, and <code>ir</code> installs whatever it needs on the fly. That means <code>rush</code> itself stays lightweight, and you never have to manage a library of packages just to run a one-liner.</p>
-<div class="callout callout-style-default callout-tip callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Tip</span>Ready to try it?
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>Head over to <a href="./get-started.html">Get started</a> for installation instructions and a quick tour.</p>
-</div>
-</div>
 
 
 </section>
@@ -714,4 +853,4 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 
-<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/jeroenjanssens/rush/edit/main/index.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/jeroenjanssens/rush/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/jeroenjanssens/rush/edit/main/formats.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/jeroenjanssens/rush/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>
