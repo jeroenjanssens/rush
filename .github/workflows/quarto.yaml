@@ -16,6 +16,7 @@ jobs:
       group: quarto-${{ github.event_name != 'pull_request' || github.run_id }}
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      PKG_CRAN_MIRROR: https://packagemanager.posit.co/cran/__linux__/noble/latest
     permissions:
       contents: write
     steps:
@@ -40,12 +41,6 @@ jobs:
           curl -fsSL https://github.com/r-lib/ir/releases/latest/download/ir-x86_64-unknown-linux-gnu.tar.gz | sudo tar -xz --strip-components=1 -C /usr/local/bin
           chmod +x exec/rush.R
           sudo ln -sf $(pwd)/exec/rush.R /usr/local/bin/rush
-        shell: bash
-
-      - name: Verify ir installation
-        run: |
-          ir --version
-          ir run -e 'cat(.libPaths(), sep="\n")'
         shell: bash
 
       - name: Set up Quarto
