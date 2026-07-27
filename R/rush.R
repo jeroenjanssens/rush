@@ -327,7 +327,7 @@ print_dry_run <- function(filename) {
 }
 
 run_generated_script <- function(filename, flags) {
-  if (flags$no_ir) {
+  if (flags$no_ir || nzchar(Sys.getenv("RUSH_NO_IR", ""))) {
     exe <- Sys.which("Rscript")
     if (exe == "") {
       cli::cli_abort(c(

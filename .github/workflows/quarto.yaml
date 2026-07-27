@@ -44,6 +44,8 @@ jobs:
 
       - name: Build website
         run: quarto render docs
+        env:
+          RUSH_NO_IR: "true"
 
       - name: Deploy to GitHub Pages
         if: github.event_name != 'pull_request'
