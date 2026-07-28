@@ -33,3 +33,15 @@ jobs:
           EOF
           chmod +x test.R
           ./test.R
+
+      - name: Test ir (tidyverse reuse)
+        run: |
+          cat > test2.R << 'EOF'
+          #!/usr/bin/env -S ir run
+          #| packages:
+          #|   - tidyverse
+          library(tidyverse)
+          iris |> as_tibble() |> group_by(Species) |> summarise(mean_sepal = mean(Sepal.Length)) |> print()
+          EOF
+          chmod +x test2.R
+          ./test2.R
