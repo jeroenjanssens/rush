@@ -23,4 +23,9 @@ jobs:
         run: ir run -e 'print(head(iris))'
 
       - name: Test ir (tidyverse)
-        run: ir run -e 'library(tidyverse); iris |> as_tibble() |> filter(Sepal.Length > 7) |> select(Species, Sepal.Length) |> print()'
+        run: |
+          cat > test.R << 'EOF'
+          library(tidyverse)
+          iris |> as_tibble() |> filter(Sepal.Length > 7) |> select(Species, Sepal.Length) |> print()
+          EOF
+          ir run test.R
