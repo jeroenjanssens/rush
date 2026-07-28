@@ -7,6 +7,10 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+
       - name: Install ir
         run: |
           curl -fsSL https://raw.githubusercontent.com/r-lib/ir/main/scripts/install.sh | sh
