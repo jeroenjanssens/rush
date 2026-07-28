@@ -24,31 +24,31 @@ jobs:
 
       - name: Test ir (tidyverse)
         run: |
-          cat > test.R << 'EOF'
+          cat > test_tidy.R << 'EOF'
           #!/usr/bin/env -S ir run
           #| packages:
           #|   - tidyverse
           library(tidyverse)
           iris |> as_tibble() |> filter(Sepal.Length > 7) |> select(Species, Sepal.Length) |> print()
           EOF
-          chmod +x test.R
-          ./test.R
+          chmod +x test_tidy.R
+          ./test_tidy.R
 
       - name: Test ir (tidyverse reuse)
         run: |
-          cat > test2.R << 'EOF'
+          cat > test_tidy2.R << 'EOF'
           #!/usr/bin/env -S ir run
           #| packages:
           #|   - tidyverse
           library(tidyverse)
           iris |> as_tibble() |> group_by(Species) |> summarise(mean_sepal = mean(Sepal.Length)) |> print()
           EOF
-          chmod +x test2.R
-          ./test2.R
+          chmod +x test_tidy2.R
+          ./test_tidy2.R
 
       - name: Test ir (duckdb)
         run: |
-          cat > test3.R << 'EOF'
+          cat > test_duckdb.R << 'EOF'
           #!/usr/bin/env -S ir run
           #| packages:
           #|   - duckdb
@@ -58,5 +58,5 @@ jobs:
           print(DBI::dbGetQuery(con, "SELECT Species, AVG(\"Sepal.Length\") as mean_sl FROM iris GROUP BY Species"))
           DBI::dbDisconnect(con, shutdown = TRUE)
           EOF
-          chmod +x test3.R
-          ./test3.R
+          chmod +x test_duckdb.R
+          ./test_duckdb.R
