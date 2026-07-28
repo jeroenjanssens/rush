@@ -1,3 +1,142 @@
+build_flags <- function(
+    command,
+    expr = NULL,
+    query = NULL,
+    file = character(),
+    output = NULL,
+    output_format = "auto",
+    input_format = "auto",
+    delimiter = ",",
+    input_delimiter = NULL,
+    output_delimiter = NULL,
+    header = TRUE,
+    clean_names = TRUE,
+    library = NULL,
+    tidyverse = FALSE,
+    head = NULL,
+    sheet = NULL,
+    seed = NULL,
+    dry_run = FALSE,
+    no_ir = FALSE,
+    verbose = FALSE,
+    x = NULL,
+    y = NULL,
+    z = NULL,
+    color = NULL,
+    fill = NULL,
+    alpha = NULL,
+    size = NULL,
+    shape = NULL,
+    group = NULL,
+    aes = NULL,
+    geom = "auto",
+    facets = NULL,
+    log = NULL,
+    title = NULL,
+    xlab = NULL,
+    ylab = NULL,
+    margins = FALSE,
+    pre = NULL,
+    post = NULL,
+    width = NULL,
+    height = NULL,
+    units = "in",
+    dpi = 300) {
+  expression <- if (!is.null(expr)) {
+    if (is.character(expr)) {
+      rlang::parse_exprs(expr)
+    } else if (is.language(expr)) {
+      list(expr)
+    } else if (is.list(expr)) {
+      expr
+    } else {
+      cli::cli_abort("{.arg expr} must be a character string or language object.")
+    }
+  }
+
+  query_val <- if (!is.null(query)) {
+    if (!is.character(query) || length(query) != 1) {
+      cli::cli_abort("{.arg query} must be a single character string.")
+    }
+    query
+  }
+
+  lib_syms <- if (!is.null(library)) {
+    purrr::map(library, rlang::sym)
+  }
+
+  seed_val <- if (!is.null(seed)) as.integer(seed)
+  head_val <- if (!is.null(head)) as.integer(head)
+
+  aes_sym <- function(val) {
+    if (is.null(val)) return(NULL)
+    if (is.character(val)) return(rlang::sym(val))
+    val
+  }
+
+  facets_val <- if (!is.null(facets)) {
+    if (is.character(facets)) {
+      rlang::parse_expr(facets)
+    } else {
+      facets
+    }
+  }
+
+  pre_val <- if (!is.null(pre)) {
+    if (is.character(pre)) rlang::parse_exprs(pre) else pre
+  }
+
+  post_val <- if (!is.null(post)) {
+    if (is.character(post)) rlang::parse_exprs(post) else post
+  }
+
+  list(
+    command = command,
+    expression = expression,
+    query = query_val,
+    file = file,
+    output = output,
+    output_format = output_format,
+    input_format = input_format,
+    delimiter = delimiter,
+    input_delimiter = input_delimiter,
+    output_delimiter = output_delimiter,
+    no_header = !header,
+    no_clean_names = !clean_names,
+    library = lib_syms,
+    tidyverse = tidyverse,
+    head = head_val,
+    sheet = sheet,
+    seed = seed_val,
+    dry_run = dry_run,
+    no_ir = no_ir,
+    verbose = verbose,
+    x = aes_sym(x),
+    y = aes_sym(y),
+    z = aes_sym(z),
+    color = aes_sym(color),
+    fill = aes_sym(fill),
+    alpha = aes_sym(alpha),
+    size = aes_sym(size),
+    shape = aes_sym(shape),
+    group = aes_sym(group),
+    aes = aes,
+    geom = geom,
+    facets = facets_val,
+    log = log,
+    title = title,
+    xlab = xlab,
+    ylab = ylab,
+    margins = margins,
+    pre = pre_val,
+    post = post_val,
+    width = width,
+    height = height,
+    units = units,
+    dpi = dpi
+  )
+}
+
 resolve_flags <- function(flags) {
   flags$resolved_input_delimiter <- flags$input_delimiter %||% flags$delimiter
   flags$resolved_output_delimiter <- flags$output_delimiter %||% flags$delimiter
