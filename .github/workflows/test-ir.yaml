@@ -25,6 +25,8 @@ jobs:
       - name: Test ir (tidyverse)
         run: |
           cat > test.R << 'EOF'
+          #| packages:
+          #|   - tidyverse
           library(tidyverse)
           iris |> as_tibble() |> filter(Sepal.Length > 7) |> select(Species, Sepal.Length) |> print()
           EOF
