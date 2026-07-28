@@ -1757,115 +1757,160 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> plot <span class="at">-x</span> bill_length_mm <span class="at">-y</span> body_mass_g <span class="at">-c</span> species <span class="at">-o</span> scatter.png penguins.csv <span class="dv">2</span><span class="op">&gt;</span>/dev/null</span>
 <span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ls</span> <span class="at">-la</span> scatter.png</span>
 <span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span> <span class="at">-f</span> scatter.png</span>
-<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; The following package(s) will be installed:</span></span>
-<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - bit          [4.6.0]</span></span>
-<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - bit64        [4.8.2]</span></span>
-<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - cli          [3.6.6]</span></span>
-<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - clipr        [0.8.1]</span></span>
-<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - cpp11        [0.5.5]</span></span>
-<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - crayon       [1.5.3]</span></span>
-<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - devout       [coolbutuseless/devout]</span></span>
-<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - devoutansi   [coolbutuseless/devoutansi]</span></span>
-<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - dplyr        [1.2.1]</span></span>
-<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - farver       [2.1.2]</span></span>
-<span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - fs           [2.1.0]</span></span>
-<span id="cb20-16"><a href="#cb20-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - generics     [0.1.4]</span></span>
-<span id="cb20-17"><a href="#cb20-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - ggplot2      [4.0.3]</span></span>
-<span id="cb20-18"><a href="#cb20-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - glue         [1.8.1]</span></span>
-<span id="cb20-19"><a href="#cb20-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - gtable       [0.3.6]</span></span>
-<span id="cb20-20"><a href="#cb20-20" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - hms          [1.1.4]</span></span>
-<span id="cb20-21"><a href="#cb20-21" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - isoband      [0.3.0]</span></span>
-<span id="cb20-22"><a href="#cb20-22" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - janitor      [2.2.1]</span></span>
-<span id="cb20-23"><a href="#cb20-23" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - labeling     [0.4.3]</span></span>
-<span id="cb20-24"><a href="#cb20-24" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - lifecycle    [1.0.5]</span></span>
-<span id="cb20-25"><a href="#cb20-25" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - lubridate    [1.9.5]</span></span>
-<span id="cb20-26"><a href="#cb20-26" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - magrittr     [2.0.5]</span></span>
-<span id="cb20-27"><a href="#cb20-27" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - miniansi     [jeroenjanssens/miniansi]</span></span>
-<span id="cb20-28"><a href="#cb20-28" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - pillar       [1.11.1]</span></span>
-<span id="cb20-29"><a href="#cb20-29" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - pkgconfig    [2.0.3]</span></span>
-<span id="cb20-30"><a href="#cb20-30" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - prettyunits  [1.2.0]</span></span>
-<span id="cb20-31"><a href="#cb20-31" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - progress     [1.2.3]</span></span>
-<span id="cb20-32"><a href="#cb20-32" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - purrr        [1.2.2]</span></span>
-<span id="cb20-33"><a href="#cb20-33" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - R6           [2.6.1]</span></span>
-<span id="cb20-34"><a href="#cb20-34" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - RColorBrewer [1.1-3]</span></span>
-<span id="cb20-35"><a href="#cb20-35" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - Rcpp         [1.1.2]</span></span>
-<span id="cb20-36"><a href="#cb20-36" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - readr        [2.2.0]</span></span>
-<span id="cb20-37"><a href="#cb20-37" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - rlang        [1.3.0]</span></span>
-<span id="cb20-38"><a href="#cb20-38" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - S7           [0.2.2]</span></span>
-<span id="cb20-39"><a href="#cb20-39" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - scales       [1.4.0]</span></span>
-<span id="cb20-40"><a href="#cb20-40" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - snakecase    [0.11.1]</span></span>
-<span id="cb20-41"><a href="#cb20-41" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - stringi      [1.8.7]</span></span>
-<span id="cb20-42"><a href="#cb20-42" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - stringr      [1.6.0]</span></span>
-<span id="cb20-43"><a href="#cb20-43" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - tibble       [3.3.1]</span></span>
-<span id="cb20-44"><a href="#cb20-44" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - tidyr        [1.3.2]</span></span>
-<span id="cb20-45"><a href="#cb20-45" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - tidyselect   [1.2.1]</span></span>
-<span id="cb20-46"><a href="#cb20-46" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - timechange   [0.4.0]</span></span>
-<span id="cb20-47"><a href="#cb20-47" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - tzdb         [0.5.0]</span></span>
-<span id="cb20-48"><a href="#cb20-48" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - utf8         [1.2.6]</span></span>
-<span id="cb20-49"><a href="#cb20-49" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - vctrs        [0.7.3]</span></span>
-<span id="cb20-50"><a href="#cb20-50" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - viridisLite  [0.4.3]</span></span>
-<span id="cb20-51"><a href="#cb20-51" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - vroom        [1.7.1]</span></span>
-<span id="cb20-52"><a href="#cb20-52" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - withr        [3.0.3]</span></span>
-<span id="cb20-53"><a href="#cb20-53" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; These packages will be installed into "~/.cache/R/ir/libraries/c06f271d192adec34259c562e6392fcce26387234687b756578b9b56d1ed01d4".</span></span>
-<span id="cb20-54"><a href="#cb20-54" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb20-55"><a href="#cb20-55" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # Downloading packages -------------------------------------------------------</span></span>
-<span id="cb20-56"><a href="#cb20-56" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m Rcpp 1.1.2                               [2.3 MB in 0.21s]</span></span>
-<span id="cb20-57"><a href="#cb20-57" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m devoutansi 0.1.0                         [256 kB in 0.52s]</span></span>
-<span id="cb20-58"><a href="#cb20-58" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m miniansi 0.1.1                           [443 kB in 0.56s]</span></span>
-<span id="cb20-59"><a href="#cb20-59" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m devout 0.2.9                             [770 kB in 0.6s]</span></span>
-<span id="cb20-60"><a href="#cb20-60" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Successfully downloaded 4 packages in 0.81 seconds.</span></span>
-<span id="cb20-61"><a href="#cb20-61" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb20-62"><a href="#cb20-62" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # Installing packages --------------------------------------------------------</span></span>
-<span id="cb20-63"><a href="#cb20-63" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m bit 4.6.0                                [linked from cache]</span></span>
-<span id="cb20-64"><a href="#cb20-64" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m cpp11 0.5.5                              [linked from cache]</span></span>
-<span id="cb20-65"><a href="#cb20-65" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m gtable 0.3.6                             [linked from cache]</span></span>
-<span id="cb20-66"><a href="#cb20-66" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m dplyr 1.2.1                              [linked from cache]</span></span>
-<span id="cb20-67"><a href="#cb20-67" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m crayon 1.5.3                             [linked from cache]</span></span>
-<span id="cb20-68"><a href="#cb20-68" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m tidyselect 1.2.1                         [linked from cache]</span></span>
-<span id="cb20-69"><a href="#cb20-69" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m stringr 1.6.0                            [linked from cache]</span></span>
-<span id="cb20-70"><a href="#cb20-70" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m clipr 0.8.1                              [linked from cache]</span></span>
-<span id="cb20-71"><a href="#cb20-71" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m snakecase 0.11.1                         [linked from cache]</span></span>
-<span id="cb20-72"><a href="#cb20-72" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m tidyr 1.3.2                              [linked from cache]</span></span>
-<span id="cb20-73"><a href="#cb20-73" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m progress 1.2.3                           [linked from cache]</span></span>
-<span id="cb20-74"><a href="#cb20-74" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m scales 1.4.0                             [linked from cache]</span></span>
-<span id="cb20-75"><a href="#cb20-75" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m ggplot2 4.0.3                            [linked from cache]</span></span>
-<span id="cb20-76"><a href="#cb20-76" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m readr 2.2.0                              [linked from cache]</span></span>
-<span id="cb20-77"><a href="#cb20-77" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m R6 2.6.1                                 [linked from cache]</span></span>
-<span id="cb20-78"><a href="#cb20-78" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m labeling 0.4.3                           [linked from cache]</span></span>
-<span id="cb20-79"><a href="#cb20-79" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m generics 0.1.4                           [linked from cache]</span></span>
-<span id="cb20-80"><a href="#cb20-80" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m isoband 0.3.0                            [linked from cache]</span></span>
-<span id="cb20-81"><a href="#cb20-81" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m tibble 3.3.1                             [linked from cache]</span></span>
-<span id="cb20-82"><a href="#cb20-82" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m janitor 2.2.1                            [linked from cache]</span></span>
-<span id="cb20-83"><a href="#cb20-83" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m lubridate 1.9.5                          [linked from cache]</span></span>
-<span id="cb20-84"><a href="#cb20-84" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m pillar 1.11.1                            [linked from cache]</span></span>
-<span id="cb20-85"><a href="#cb20-85" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m RColorBrewer 1.1-3                       [linked from cache]</span></span>
-<span id="cb20-86"><a href="#cb20-86" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m tzdb 0.5.0                               [linked from cache]</span></span>
-<span id="cb20-87"><a href="#cb20-87" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m rlang 1.3.0                              [linked from cache]</span></span>
-<span id="cb20-88"><a href="#cb20-88" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m utf8 1.2.6                               [linked from cache]</span></span>
-<span id="cb20-89"><a href="#cb20-89" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m stringi 1.8.7                            [linked from cache]</span></span>
-<span id="cb20-90"><a href="#cb20-90" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m fs 2.1.0                                 [linked from cache]</span></span>
-<span id="cb20-91"><a href="#cb20-91" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m S7 0.2.2                                 [linked from cache]</span></span>
-<span id="cb20-92"><a href="#cb20-92" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m bit64 4.8.2                              [linked from cache]</span></span>
-<span id="cb20-93"><a href="#cb20-93" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m viridisLite 0.4.3                        [linked from cache]</span></span>
-<span id="cb20-94"><a href="#cb20-94" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m timechange 0.4.0                         [linked from cache]</span></span>
-<span id="cb20-95"><a href="#cb20-95" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m cli 3.6.6                                [linked from cache]</span></span>
-<span id="cb20-96"><a href="#cb20-96" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m withr 3.0.3                              [linked from cache]</span></span>
-<span id="cb20-97"><a href="#cb20-97" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m magrittr 2.0.5                           [linked from cache]</span></span>
-<span id="cb20-98"><a href="#cb20-98" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m vroom 1.7.1                              [linked from cache]</span></span>
-<span id="cb20-99"><a href="#cb20-99" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m hms 1.1.4                                [linked from cache]</span></span>
-<span id="cb20-100"><a href="#cb20-100" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m lifecycle 1.0.5                          [linked from cache]</span></span>
-<span id="cb20-101"><a href="#cb20-101" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m prettyunits 1.2.0                        [linked from cache]</span></span>
-<span id="cb20-102"><a href="#cb20-102" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m vctrs 0.7.3                              [linked from cache]</span></span>
-<span id="cb20-103"><a href="#cb20-103" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m glue 1.8.1                               [linked from cache]</span></span>
-<span id="cb20-104"><a href="#cb20-104" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m farver 2.1.2                             [linked from cache]</span></span>
-<span id="cb20-105"><a href="#cb20-105" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m purrr 1.2.2                              [linked from cache]</span></span>
-<span id="cb20-106"><a href="#cb20-106" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m pkgconfig 2.0.3                          [linked from cache]</span></span>
-<span id="cb20-107"><a href="#cb20-107" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m Rcpp 1.1.2                               [installed binary]</span></span>
-<span id="cb20-108"><a href="#cb20-108" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m miniansi 0.1.1                           [built from source in 1.8s]</span></span>
-<span id="cb20-109"><a href="#cb20-109" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m devout 0.2.9                             [built from source in 11s]</span></span>
-<span id="cb20-110"><a href="#cb20-110" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m devoutansi 0.1.0                         [built from source in 1.5s]</span></span>
-<span id="cb20-111"><a href="#cb20-111" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Successfully installed 48 packages in 13 seconds.</span></span>
-<span id="cb20-112"><a href="#cb20-112" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; -rw-r--r-- 1 runner runner 149622 Jul 27 16:04 scatter.png</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - Querying repositories for available source packages ... Done!</span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; The following package(s) will be installed:</span></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - bit          [4.6.0]</span></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - bit64        [4.8.2]</span></span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - cli          [3.6.6]</span></span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - clipr        [0.8.1]</span></span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - cpp11        [0.5.5]</span></span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - crayon       [1.5.3]</span></span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - devout       [coolbutuseless/devout]</span></span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - devoutansi   [coolbutuseless/devoutansi]</span></span>
+<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - dplyr        [1.2.1]</span></span>
+<span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - farver       [2.1.2]</span></span>
+<span id="cb20-16"><a href="#cb20-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - fs           [2.1.0]</span></span>
+<span id="cb20-17"><a href="#cb20-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - generics     [0.1.4]</span></span>
+<span id="cb20-18"><a href="#cb20-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - ggplot2      [4.0.3]</span></span>
+<span id="cb20-19"><a href="#cb20-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - glue         [1.8.1]</span></span>
+<span id="cb20-20"><a href="#cb20-20" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - gtable       [0.3.6]</span></span>
+<span id="cb20-21"><a href="#cb20-21" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - hms          [1.1.4]</span></span>
+<span id="cb20-22"><a href="#cb20-22" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - isoband      [0.3.0]</span></span>
+<span id="cb20-23"><a href="#cb20-23" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - janitor      [2.2.1]</span></span>
+<span id="cb20-24"><a href="#cb20-24" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - labeling     [0.4.3]</span></span>
+<span id="cb20-25"><a href="#cb20-25" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - lifecycle    [1.0.5]</span></span>
+<span id="cb20-26"><a href="#cb20-26" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - lubridate    [1.9.5]</span></span>
+<span id="cb20-27"><a href="#cb20-27" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - magrittr     [2.0.5]</span></span>
+<span id="cb20-28"><a href="#cb20-28" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - miniansi     [jeroenjanssens/miniansi]</span></span>
+<span id="cb20-29"><a href="#cb20-29" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - pillar       [1.11.1]</span></span>
+<span id="cb20-30"><a href="#cb20-30" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - pkgconfig    [2.0.3]</span></span>
+<span id="cb20-31"><a href="#cb20-31" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - prettyunits  [1.2.0]</span></span>
+<span id="cb20-32"><a href="#cb20-32" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - progress     [1.2.3]</span></span>
+<span id="cb20-33"><a href="#cb20-33" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - purrr        [1.2.2]</span></span>
+<span id="cb20-34"><a href="#cb20-34" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - R6           [2.6.1]</span></span>
+<span id="cb20-35"><a href="#cb20-35" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - RColorBrewer [1.1-3]</span></span>
+<span id="cb20-36"><a href="#cb20-36" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - Rcpp         [1.1.2]</span></span>
+<span id="cb20-37"><a href="#cb20-37" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - readr        [2.2.0]</span></span>
+<span id="cb20-38"><a href="#cb20-38" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - rlang        [1.3.0]</span></span>
+<span id="cb20-39"><a href="#cb20-39" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - S7           [0.2.2]</span></span>
+<span id="cb20-40"><a href="#cb20-40" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - scales       [1.4.0]</span></span>
+<span id="cb20-41"><a href="#cb20-41" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - snakecase    [0.11.1]</span></span>
+<span id="cb20-42"><a href="#cb20-42" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - stringi      [1.8.7]</span></span>
+<span id="cb20-43"><a href="#cb20-43" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - stringr      [1.6.0]</span></span>
+<span id="cb20-44"><a href="#cb20-44" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - tibble       [3.3.1]</span></span>
+<span id="cb20-45"><a href="#cb20-45" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - tidyr        [1.3.2]</span></span>
+<span id="cb20-46"><a href="#cb20-46" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - tidyselect   [1.2.1]</span></span>
+<span id="cb20-47"><a href="#cb20-47" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - timechange   [0.4.0]</span></span>
+<span id="cb20-48"><a href="#cb20-48" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - tzdb         [0.5.0]</span></span>
+<span id="cb20-49"><a href="#cb20-49" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - utf8         [1.2.6]</span></span>
+<span id="cb20-50"><a href="#cb20-50" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - vctrs        [0.7.3]</span></span>
+<span id="cb20-51"><a href="#cb20-51" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - viridisLite  [0.4.3]</span></span>
+<span id="cb20-52"><a href="#cb20-52" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - vroom        [1.7.1]</span></span>
+<span id="cb20-53"><a href="#cb20-53" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - withr        [3.0.3]</span></span>
+<span id="cb20-54"><a href="#cb20-54" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; These packages will be installed into "~/.cache/R/ir/libraries/c06f271d192adec34259c562e6392fcce26387234687b756578b9b56d1ed01d4".</span></span>
+<span id="cb20-55"><a href="#cb20-55" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb20-56"><a href="#cb20-56" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # Downloading packages -------------------------------------------------------</span></span>
+<span id="cb20-57"><a href="#cb20-57" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m progress 1.2.3                           [92 kB in 0.81s]</span></span>
+<span id="cb20-58"><a href="#cb20-58" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m R6 2.6.1                                 [90 kB in 0.82s]</span></span>
+<span id="cb20-59"><a href="#cb20-59" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m clipr 0.8.1                              [57 kB in 0.82s]</span></span>
+<span id="cb20-60"><a href="#cb20-60" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m crayon 1.5.3                             [168 kB in 0.84s]</span></span>
+<span id="cb20-61"><a href="#cb20-61" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m gtable 0.3.6                             [228 kB in 0.85s]</span></span>
+<span id="cb20-62"><a href="#cb20-62" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m tidyselect 1.2.1                         [228 kB in 0.85s]</span></span>
+<span id="cb20-63"><a href="#cb20-63" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m cpp11 0.5.5                              [309 kB in 0.86s]</span></span>
+<span id="cb20-64"><a href="#cb20-64" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m stringr 1.6.0                            [342 kB in 0.87s]</span></span>
+<span id="cb20-65"><a href="#cb20-65" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m snakecase 0.11.1                         [164 kB in 0.87s]</span></span>
+<span id="cb20-66"><a href="#cb20-66" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m bit 4.6.0                                [629 kB in 0.88s]</span></span>
+<span id="cb20-67"><a href="#cb20-67" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m generics 0.1.4                           [83 kB in 67s]</span></span>
+<span id="cb20-68"><a href="#cb20-68" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m readr 2.2.0                              [851 kB in 0.89s]</span></span>
+<span id="cb20-69"><a href="#cb20-69" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m scales 1.4.0                             [848 kB in 0.9s]</span></span>
+<span id="cb20-70"><a href="#cb20-70" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m labeling 0.4.3                           [63 kB in 85s]</span></span>
+<span id="cb20-71"><a href="#cb20-71" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m dplyr 1.2.1                              [1.5 MB in 0.93s]</span></span>
+<span id="cb20-72"><a href="#cb20-72" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m tidyr 1.3.2                              [1.2 MB in 0.93s]</span></span>
+<span id="cb20-73"><a href="#cb20-73" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m Rcpp 1.1.2                               [2.3 MB in 0.97s]</span></span>
+<span id="cb20-74"><a href="#cb20-74" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m ggplot2 4.0.3                            [8.5 MB in 1.0s]</span></span>
+<span id="cb20-75"><a href="#cb20-75" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m janitor 2.2.1                            [295 kB in 0.19s]</span></span>
+<span id="cb20-76"><a href="#cb20-76" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m tibble 3.3.1                             [654 kB in 0.2s]</span></span>
+<span id="cb20-77"><a href="#cb20-77" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m RColorBrewer 1.1-3                       [53 kB in 0.17s]</span></span>
+<span id="cb20-78"><a href="#cb20-78" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m utf8 1.2.6                               [156 kB in 0.16s]</span></span>
+<span id="cb20-79"><a href="#cb20-79" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m fs 2.1.0                                 [247 kB in 0.16s]</span></span>
+<span id="cb20-80"><a href="#cb20-80" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m pillar 1.11.1                            [665 kB in 0.2s]</span></span>
+<span id="cb20-81"><a href="#cb20-81" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m isoband 0.3.0                            [1.7 MB in 0.24s]</span></span>
+<span id="cb20-82"><a href="#cb20-82" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m tzdb 0.5.0                               [675 kB in 0.19s]</span></span>
+<span id="cb20-83"><a href="#cb20-83" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m lubridate 1.9.5                          [993 kB in 0.23s]</span></span>
+<span id="cb20-84"><a href="#cb20-84" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m bit64 4.8.2                              [565 kB in 0.14s]</span></span>
+<span id="cb20-85"><a href="#cb20-85" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m S7 0.2.2                                 [330 kB in 0.14s]</span></span>
+<span id="cb20-86"><a href="#cb20-86" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m viridisLite 0.4.3                        [1.3 MB in 0.13s]</span></span>
+<span id="cb20-87"><a href="#cb20-87" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m stringi 1.8.7                            [3.5 MB in 0.21s]</span></span>
+<span id="cb20-88"><a href="#cb20-88" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m timechange 0.4.0                         [184 kB in 81s]</span></span>
+<span id="cb20-89"><a href="#cb20-89" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m cli 3.6.6                                [1.4 MB in 74s]</span></span>
+<span id="cb20-90"><a href="#cb20-90" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m withr 3.0.3                              [229 kB in 71s]</span></span>
+<span id="cb20-91"><a href="#cb20-91" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m magrittr 2.0.5                           [226 kB in 70s]</span></span>
+<span id="cb20-92"><a href="#cb20-92" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m vroom 1.7.1                              [1.0 MB in 62s]</span></span>
+<span id="cb20-93"><a href="#cb20-93" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m rlang 1.3.0                              [1.6 MB in 0.23s]</span></span>
+<span id="cb20-94"><a href="#cb20-94" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m hms 1.1.4                                [106 kB in 62s]</span></span>
+<span id="cb20-95"><a href="#cb20-95" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m lifecycle 1.0.5                          [135 kB in 59s]</span></span>
+<span id="cb20-96"><a href="#cb20-96" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m prettyunits 1.2.0                        [158 kB in 66s]</span></span>
+<span id="cb20-97"><a href="#cb20-97" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m vctrs 0.7.3                              [1.9 MB in 66s]</span></span>
+<span id="cb20-98"><a href="#cb20-98" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m glue 1.8.1                               [178 kB in 61s]</span></span>
+<span id="cb20-99"><a href="#cb20-99" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m farver 2.1.2                             [1.5 MB in 58s]</span></span>
+<span id="cb20-100"><a href="#cb20-100" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m pkgconfig 2.0.3                          [20 kB in 57s]</span></span>
+<span id="cb20-101"><a href="#cb20-101" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m purrr 1.2.2                              [558 kB in 65s]</span></span>
+<span id="cb20-102"><a href="#cb20-102" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m miniansi 0.1.1                           [443 kB in 0.82s]</span></span>
+<span id="cb20-103"><a href="#cb20-103" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m devoutansi 0.1.0                         [256 kB in 0.64s]</span></span>
+<span id="cb20-104"><a href="#cb20-104" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m devout 0.2.9                             [770 kB in 0.69s]</span></span>
+<span id="cb20-105"><a href="#cb20-105" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Successfully downloaded 48 packages in 2 seconds.</span></span>
+<span id="cb20-106"><a href="#cb20-106" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb20-107"><a href="#cb20-107" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # Installing packages --------------------------------------------------------</span></span>
+<span id="cb20-108"><a href="#cb20-108" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m bit 4.6.0                                [installed binary]</span></span>
+<span id="cb20-109"><a href="#cb20-109" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m cli 3.6.6                                [installed binary]</span></span>
+<span id="cb20-110"><a href="#cb20-110" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m clipr 0.8.1                              [installed binary]</span></span>
+<span id="cb20-111"><a href="#cb20-111" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m cpp11 0.5.5                              [installed binary]</span></span>
+<span id="cb20-112"><a href="#cb20-112" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m crayon 1.5.3                             [installed binary]</span></span>
+<span id="cb20-113"><a href="#cb20-113" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m farver 2.1.2                             [installed binary]</span></span>
+<span id="cb20-114"><a href="#cb20-114" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m fs 2.1.0                                 [installed binary]</span></span>
+<span id="cb20-115"><a href="#cb20-115" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m generics 0.1.4                           [installed binary]</span></span>
+<span id="cb20-116"><a href="#cb20-116" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m glue 1.8.1                               [installed binary]</span></span>
+<span id="cb20-117"><a href="#cb20-117" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m labeling 0.4.3                           [installed binary]</span></span>
+<span id="cb20-118"><a href="#cb20-118" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m magrittr 2.0.5                           [installed binary]</span></span>
+<span id="cb20-119"><a href="#cb20-119" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m pkgconfig 2.0.3                          [installed binary]</span></span>
+<span id="cb20-120"><a href="#cb20-120" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m prettyunits 1.2.0                        [installed binary]</span></span>
+<span id="cb20-121"><a href="#cb20-121" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m R6 2.6.1                                 [installed binary]</span></span>
+<span id="cb20-122"><a href="#cb20-122" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m RColorBrewer 1.1-3                       [installed binary]</span></span>
+<span id="cb20-123"><a href="#cb20-123" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m Rcpp 1.1.2                               [installed binary]</span></span>
+<span id="cb20-124"><a href="#cb20-124" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m rlang 1.3.0                              [installed binary]</span></span>
+<span id="cb20-125"><a href="#cb20-125" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m S7 0.2.2                                 [installed binary]</span></span>
+<span id="cb20-126"><a href="#cb20-126" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m stringi 1.8.7                            [installed binary]</span></span>
+<span id="cb20-127"><a href="#cb20-127" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m utf8 1.2.6                               [installed binary]</span></span>
+<span id="cb20-128"><a href="#cb20-128" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m viridisLite 0.4.3                        [installed binary]</span></span>
+<span id="cb20-129"><a href="#cb20-129" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m withr 3.0.3                              [installed binary]</span></span>
+<span id="cb20-130"><a href="#cb20-130" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m bit64 4.8.2                              [installed binary]</span></span>
+<span id="cb20-131"><a href="#cb20-131" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m timechange 0.4.0                         [installed binary]</span></span>
+<span id="cb20-132"><a href="#cb20-132" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m tzdb 0.5.0                               [installed binary]</span></span>
+<span id="cb20-133"><a href="#cb20-133" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m isoband 0.3.0                            [installed binary]</span></span>
+<span id="cb20-134"><a href="#cb20-134" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m lifecycle 1.0.5                          [installed binary]</span></span>
+<span id="cb20-135"><a href="#cb20-135" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m lubridate 1.9.5                          [installed binary]</span></span>
+<span id="cb20-136"><a href="#cb20-136" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m gtable 0.3.6                             [installed binary]</span></span>
+<span id="cb20-137"><a href="#cb20-137" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m scales 1.4.0                             [installed binary]</span></span>
+<span id="cb20-138"><a href="#cb20-138" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m vctrs 0.7.3                              [installed binary]</span></span>
+<span id="cb20-139"><a href="#cb20-139" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m ggplot2 4.0.3                            [installed binary]</span></span>
+<span id="cb20-140"><a href="#cb20-140" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m hms 1.1.4                                [installed binary]</span></span>
+<span id="cb20-141"><a href="#cb20-141" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m pillar 1.11.1                            [installed binary]</span></span>
+<span id="cb20-142"><a href="#cb20-142" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m purrr 1.2.2                              [installed binary]</span></span>
+<span id="cb20-143"><a href="#cb20-143" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m stringr 1.6.0                            [installed binary]</span></span>
+<span id="cb20-144"><a href="#cb20-144" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m tidyselect 1.2.1                         [installed binary]</span></span>
+<span id="cb20-145"><a href="#cb20-145" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m progress 1.2.3                           [installed binary]</span></span>
+<span id="cb20-146"><a href="#cb20-146" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m tibble 3.3.1                             [installed binary]</span></span>
+<span id="cb20-147"><a href="#cb20-147" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m snakecase 0.11.1                         [installed binary]</span></span>
+<span id="cb20-148"><a href="#cb20-148" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m dplyr 1.2.1                              [installed binary]</span></span>
+<span id="cb20-149"><a href="#cb20-149" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m vroom 1.7.1                              [installed binary]</span></span>
+<span id="cb20-150"><a href="#cb20-150" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m tidyr 1.3.2                              [installed binary]</span></span>
+<span id="cb20-151"><a href="#cb20-151" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m readr 2.2.0                              [installed binary]</span></span>
+<span id="cb20-152"><a href="#cb20-152" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m janitor 2.2.1                            [installed binary]</span></span>
+<span id="cb20-153"><a href="#cb20-153" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m miniansi 0.1.1                           [built from source in 8.5s]</span></span>
+<span id="cb20-154"><a href="#cb20-154" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m devout 0.2.9                             [built from source in 13s]</span></span>
+<span id="cb20-155"><a href="#cb20-155" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [32m✔[0m devoutansi 0.1.0                         [built from source in 1.4s]</span></span>
+<span id="cb20-156"><a href="#cb20-156" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Successfully installed 48 packages in 21 seconds.</span></span>
+<span id="cb20-157"><a href="#cb20-157" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; -rw-r--r-- 1 runner runner 149622 Jul 28 07:01 scatter.png</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="width---height---units---dpi" class="level3">
@@ -1875,7 +1920,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> plot <span class="at">-x</span> bill_length_mm <span class="at">-y</span> body_mass_g <span class="at">-o</span> hires.png <span class="at">--width</span> 10 <span class="at">--height</span> 6 <span class="at">--units</span> in <span class="at">--dpi</span> 150 penguins.csv <span class="dv">2</span><span class="op">&gt;</span>/dev/null</span>
 <span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ls</span> <span class="at">-la</span> hires.png</span>
 <span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span> <span class="at">-f</span> hires.png</span>
-<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; -rw-r--r-- 1 runner runner 93207 Jul 27 16:04 hires.png</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; -rw-r--r-- 1 runner runner 93207 Jul 28 07:01 hires.png</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 </section>
