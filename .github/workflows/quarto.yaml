@@ -36,7 +36,6 @@ jobs:
             any::secretbase
             any::palmerpenguins
             any::tidyverse
-            any::glue
           needs: website
 
       - name: Install ir and set up rush
