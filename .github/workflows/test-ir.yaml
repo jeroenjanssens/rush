@@ -11,6 +11,9 @@ jobs:
         with:
           use-public-rspm: true
 
+      - name: Install system dependencies for ir
+        run: sudo apt-get install -y libcurl4-openssl-dev
+
       - name: Install ir
         run: |
           curl -fsSL https://raw.githubusercontent.com/r-lib/ir/main/scripts/install.sh | sh
