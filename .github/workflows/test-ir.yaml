@@ -1,0 +1,18 @@
+name: Test ir
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install ir
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/r-lib/ir/main/scripts/install.sh | sh
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Test ir (no deps)
+        run: |
+          ir --version
+          ir run -e 'print(head(iris))'
