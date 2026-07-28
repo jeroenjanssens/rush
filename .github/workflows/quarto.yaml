@@ -37,7 +37,6 @@ jobs:
             any::palmerpenguins
             any::tidyverse
             any::glue
-            any::ggplot2
           needs: website
 
       - name: Install ir and set up rush
