@@ -10,4 +10,20 @@
 
 0 errors | 0 warnings | 1 note
 
-* This is a new release.
+* checking for future file timestamps ... NOTE
+  unable to verify current time
+
+This NOTE is a transient network issue (DNS/NTP) and does not indicate
+a problem with the package.
+
+## Notes for reviewers
+
+* This package requires the `ir` command-line tool (SystemRequirements) to
+  execute generated scripts. All examples and tests use `dry_run = TRUE`
+  which only prints the generated script, so they work without `ir` installed.
+
+* Packages listed in Suggests (readr, nanoparquet, jsonlite, etc.) are
+  runtime dependencies of the *generated scripts*, resolved by `ir` at
+  execution time. They are not needed to install or test this package.
+
+* This is a new submission.
