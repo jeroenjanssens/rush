@@ -31,6 +31,8 @@ Imports:
     tools,
     utils
 Suggests:
+    knitr,
+    rmarkdown,
     prettycode,
     janitor,
     readr,
@@ -50,6 +52,7 @@ Suggests:
     xml2,
     testthat (>= 3.0.0),
     roxygen2
+VignetteBuilder: knitr
 SystemRequirements: ir (https://r-lib.github.io/ir/)
 Config/testthat/edition: 3
 URL: https://jeroenjanssens.github.io/rush/, https://github.com/jeroenjanssens/rush

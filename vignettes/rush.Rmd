@@ -1,0 +1,159 @@
+---
+title: "Getting Started with rush"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Getting Started with rush}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(rush)
+```
+
+## Overview
+
+rush lets you run R expressions, query data with SQL, create plots, and convert
+between file formats -- all from a single function call. Each function assembles
+a self-contained R script and executes it with
+[ir](https://r-lib.github.io/ir/), which resolves package dependencies on the
+fly.
+
+The four main functions are:
+
+- `rush_run()` -- run an R expression on data files
+- `rush_sql()` -- query files with SQL via DuckDB
+- `rush_plot()` -- create a quick ggplot2 visualization
+- `rush_convert()` -- convert between file formats
+
+All examples below use `dry_run = TRUE` to show the generated script without
+executing it (which would require `ir` to be installed).
+
+## Running R expressions
+
+The simplest use case is evaluating an R expression:
+
+```{r}
+rush_run("1 + 1", dry_run = TRUE)
+```
+
+When you provide input files, they're read into `df` (the first file) and `dfs`
+(a named list of all files):
+```{r}
+rush_run("head(df)", file = "data.csv", dry_run = TRUE)
+```
+
+Multiple files are supported. The format is detected from the file extension:
+
+```{r}
+rush_run("nrow(dfs$sales)", file = c("sales.parquet", "products.csv"),
+         dry_run = TRUE)
+```
+
+You can write results to a file -- the output format is inferred from the
+extension:
+
+```{r}
+rush_run("dplyr::filter(df, amount > 100)",
+         file = "sales.csv", output = "big_sales.parquet",
+         dry_run = TRUE)
+```
+
+### Loading packages
+
+Use `library` to load packages, or `tidyverse = TRUE` as a shortcut:
+
+```{r}
+rush_run("df |> filter(x > 0) |> mutate(y = x^2)",
+         file = "data.csv", tidyverse = TRUE, dry_run = TRUE)
+```
+
+## Querying with SQL
+
+`rush_sql()` runs a DuckDB SQL query. Input files are registered as relations
+that you can reference in your query:
+
+```{r}
+rush_sql("SELECT name, SUM(amount) AS total FROM sales GROUP BY name",
+         file = "sales.csv", dry_run = TRUE)
+```
+
+You can join across files of different formats:
+
+```{r}
+rush_sql("SELECT s.*, p.category FROM sales s JOIN products p USING (id)",
+         file = c("sales.csv", "products.parquet"), dry_run = TRUE)
+```
+
+## Creating plots
+
+`rush_plot()` generates a ggplot2 visualization. In a terminal it renders as
+ANSI art; with an output file it saves as PNG, PDF, etc.:
+
+```{r}
+rush_plot("mtcars.csv", x = "wt", y = "mpg", dry_run = TRUE)
+```
+
+The geometry is guessed automatically (`geom_point` when both x and y are
+given, `geom_histogram` for just x), but you can override it:
+
+```{r}
+rush_plot("mtcars.csv", x = "mpg", color = "cyl",
+          geom = "density", dry_run = TRUE)
+```
+
+Faceting and labels:
+
+```{r}
+rush_plot("mtcars.csv", x = "wt", y = "mpg",
+          facets = "~ cyl", title = "Cars by Cylinder Count",
+          xlab = "Weight", ylab = "Miles per Gallon", dry_run = TRUE)
+```
+
+## Converting between formats
+
+`rush_convert()` reads one or more files and writes them in a different format:
+
+```{r}
+rush_convert("data.csv", output = "data.parquet", dry_run = TRUE)
+```
+
+For multiple files, use a template with `%(file_name)s` or `%(file_index)d`:
+
+```{r}
+rush_convert(c("jan.csv", "feb.csv"),
+             output = "%(file_name)s.parquet", dry_run = TRUE)
+```
+
+## Supported formats
+
+rush supports a wide range of formats for both reading and writing:
+
+| Format | Extensions | Read | Write |
+|--------|-----------|------|-------|
+| Delimited (CSV/TSV) | .csv, .tsv, .txt | Yes | Yes |
+| Parquet | .parquet, .pq | Yes | Yes |
+| JSON | .json | Yes | Yes |
+| JSONL/NDJSON | .jsonl, .ndjson | Yes | Yes |
+| Excel | .xlsx, .xls | Yes | Yes |
+| Arrow IPC | .arrow, .feather, .ipc | Yes | Yes |
+| DuckDB | .duckdb, .ddb | Yes | Yes |
+| SQLite | .sqlite, .db | Yes | Yes |
+| SPSS | .sav, .zsav, .por | Yes | Yes |
+| Stata | .dta | Yes | Yes |
+| SAS | .sas7bdat, .xpt | Yes | Yes |
+| RDS | .rds | Yes | Yes |
+| ODS | .ods | Yes | Yes |
+| FASTA | .fasta, .fa, .fna | Yes | Yes |
+| FASTQ | .fastq, .fq | Yes | Yes |
+| YAML | .yaml, .yml | Yes | Yes |
+| TOML | .toml | Yes | Yes |
+| XML | .xml | Yes | Yes |
+| Fixed-width | .fwf | Yes | -- |
