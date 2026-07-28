@@ -98,3 +98,52 @@ test_that("no_ir flag is propagated (script is still identical)", {
   expect_equal(script[[1]], "#!/usr/bin/env -S ir run")
   expect_true(any(grepl("^#\\| packages:$", script)))
 })
+
+test_that("delimiter sets both input and output delimiters", {
+  script <- capture_script(rush_run, expr = "head(df)", file = "data.csv",
+                           delimiter = "\t")
+  expect_true(any(grepl('delim = "\\\\t"', script)))
+  expect_true(any(grepl('delimiter = "\\\\t"', script)))
+})
+
+test_that("output_delimiter overrides only the output delimiter", {
+  script <- capture_script(rush_run, expr = "head(df)", file = "data.csv",
+                           output_delimiter = "\t")
+  read_line <- script[grepl("read_delim", script)]
+  expect_true(any(grepl('delim = ","', read_line)))
+  expect_true(any(grepl('delimiter = "\\\\t"', script)))
+})
+
+test_that("input_delimiter overrides only the input delimiter", {
+  script <- capture_script(rush_run, expr = "head(df)", file = "data.csv",
+                           input_delimiter = "\t")
+  read_line <- script[grepl("read_delim", script)]
+  expect_true(any(grepl('delim = "\\\\t"', read_line)))
+  expect_true(any(grepl('delimiter = ","', script)))
+})
+
+test_that("input_format = 'tsv' implies tab as input delimiter", {
+  script <- capture_script(rush_run, expr = "head(df)", file = "data.tsv",
+                           input_format = "tsv")
+  read_line <- script[grepl("read_delim", script)]
+  expect_true(any(grepl('delim = "\\\\t"', read_line)))
+})
+
+test_that("output_format = 'tsv' implies tab as output delimiter", {
+  script <- capture_script(rush_run, expr = "head(df)", file = "data.csv",
+                           output_format = "tsv")
+  expect_true(any(grepl('delimiter = "\\\\t"', script)))
+})
+
+test_that("digit-prefixed file names generate parseable code", {
+  script <- capture_script(rush_run, expr = "head(df)", file = "2024.csv")
+  expect_silent(parse(text = script))
+})
+
+test_that("multi-file digit-prefixed names use valid dfs indexing", {
+  script <- capture_script(rush_run, expr = "nrow(dfs)",
+                           file = c("2024.csv", "2025.csv"))
+  expect_true(any(grepl('dfs\\[\\["x2024"\\]\\]', script)))
+  expect_true(any(grepl('dfs\\[\\["x2025"\\]\\]', script)))
+  expect_silent(parse(text = script))
+})
