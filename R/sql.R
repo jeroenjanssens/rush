@@ -4,7 +4,7 @@
 #' executes it with [ir](https://r-lib.github.io/ir/). Input files are
 #' registered as relations that can be referenced in the query.
 #'
-#' @param query A character string containing a DuckDB SQL query.
+#' @param query A character string containing a DuckDB SQL query. Required.
 #' @param file Character vector of file paths to expose to the query. Each file
 #'   becomes a DuckDB relation named after its base name (lowercased,
 #'   non-alphanumeric characters become underscores). CSV files are read with
@@ -51,7 +51,7 @@
 #' @seealso [rush_run()], [rush_plot()], [rush_convert()]
 #' @export
 rush_sql <- function(
-    query,
+    query = NULL,
     file = character(),
     output = NULL,
     output_format = "auto",

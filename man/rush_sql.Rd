@@ -5,7 +5,7 @@
 \title{Query files with SQL}
 \usage{
 rush_sql(
-  query,
+  query = NULL,
   file = character(),
   output = NULL,
   output_format = "auto",
@@ -21,7 +21,7 @@ rush_sql(
 )
 }
 \arguments{
-\item{query}{A character string containing a DuckDB SQL query.}
+\item{query}{A character string containing a DuckDB SQL query. Required.}
 
 \item{file}{Character vector of file paths to expose to the query. Each file
 becomes a DuckDB relation named after its base name (lowercased,

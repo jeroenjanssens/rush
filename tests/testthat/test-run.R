@@ -1,0 +1,100 @@
+test_that("rush_run without an expression or file errors gracefully", {
+  expect_error(rush_run(), "No expression to run")
+})
+
+test_that("rush_run generates a script with shebang and frontmatter", {
+  script <- capture_script(rush_run, expr = "head(df)", file = "data.csv")
+  expect_equal(script[[1]], "#!/usr/bin/env -S ir run")
+  expect_true(any(grepl("^#\\| packages:$", script)))
+})
+
+test_that("rush_run evaluates a simple expression", {
+  script <- capture_script(rush_run, expr = "1 + 1")
+  expect_true(any(grepl("result <- 1 \\+ 1", script)))
+})
+
+test_that("rush_run reads a file into df and dfs", {
+  script <- capture_script(rush_run, expr = "head(df)", file = "data.csv")
+  expect_true(any(grepl("read_delim", script)))
+  expect_true(any(grepl("^dfs <- list\\(\\)$", script)))
+  expect_true(any(grepl('dfs\\[\\["data"\\]\\] <-', script)))
+  expect_true(any(grepl("df <- dfs\\[\\[1(L)?\\]\\]", script)))
+})
+
+test_that("rush_run reads multiple files into a dfs list", {
+  script <- capture_script(rush_run, expr = "nrow(dfs$a)", file = c("a.csv", "b.csv"))
+  expect_true(any(grepl('dfs\\[\\["a"\\]\\] <- .*read_delim\\("a.csv"', script)))
+  expect_true(any(grepl('dfs\\[\\["b"\\]\\] <- .*read_delim\\("b.csv"', script)))
+})
+
+test_that("rush_run with file but no expr passes through df", {
+  script <- capture_script(rush_run, file = "data.csv")
+  expect_true(any(grepl("result <- df", script)))
+})
+
+test_that("rush_run reads from stdin with '-'", {
+  script <- capture_script(rush_run, expr = "head(df)", file = "-")
+  expect_true(any(grepl("stdin", script)))
+})
+
+test_that("seed emits set.seed before other code", {
+  script <- capture_script(rush_run, expr = "1 + 1", file = "data.csv", seed = 7)
+  expect_true(any(grepl("set.seed\\(7\\)", script)))
+  expect_lt(grep("set.seed", script), grep("read_delim", script))
+})
+
+test_that("library loads requested packages", {
+  script <- capture_script(rush_run, expr = "head(df)", file = "data.csv",
+                           library = "stringr")
+  expect_true(any(grepl("^library\\(stringr\\)$", script)))
+})
+
+test_that("library accepts a vector of packages", {
+  script <- capture_script(rush_run, expr = "head(df)", file = "data.csv",
+                           library = c("stringr", "dplyr"))
+  expect_true(any(grepl("^library\\(stringr\\)$", script)))
+  expect_true(any(grepl("^library\\(dplyr\\)$", script)))
+})
+
+test_that("tidyverse = TRUE loads tidyverse and glue", {
+  script <- capture_script(rush_run, expr = "head(df)", file = "data.csv",
+                           tidyverse = TRUE)
+  expect_true(any(grepl("^library\\(tidyverse\\)$", script)))
+  expect_true(any(grepl("^library\\(glue\\)$", script)))
+})
+
+test_that("header = FALSE reads without column names", {
+  script <- capture_script(rush_run, expr = "head(df)", file = "data.csv",
+                           header = FALSE)
+  expect_true(any(grepl("col_names = FALSE", script)))
+})
+
+test_that("clean_names = FALSE omits the janitor call", {
+  script <- capture_script(rush_run, expr = "head(df)", file = "data.csv",
+                           clean_names = FALSE)
+  expect_false(any(grepl("clean_names", script)))
+})
+
+test_that("head limits output rows", {
+  script <- capture_script(rush_run, expr = "df", file = "data.csv", head = 3)
+  expect_true(any(grepl("head = 3L", script)))
+})
+
+test_that("expr accepts a language object", {
+  script <- capture_script(rush_run, expr = quote(head(df)), file = "data.csv")
+  expect_true(any(grepl("result <- head\\(df\\)", script)))
+})
+
+test_that("expr accepts a list of expressions", {
+  script <- capture_script(rush_run,
+                           expr = rlang::exprs(x <- 1, x + 1),
+                           file = "data.csv")
+  expect_true(any(grepl("x <- 1", script)))
+  expect_true(any(grepl("result <- x \\+ 1", script)))
+})
+
+test_that("no_ir flag is propagated (script is still identical)", {
+  script <- capture_script(rush_run, expr = "1 + 1", no_ir = TRUE)
+  expect_equal(script[[1]], "#!/usr/bin/env -S ir run")
+  expect_true(any(grepl("^#\\| packages:$", script)))
+})

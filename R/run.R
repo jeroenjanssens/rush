@@ -31,7 +31,6 @@
 #' @param tidyverse If `TRUE`, loads the tidyverse and glue packages.
 #' @param head Integer. Limit the output to this many rows.
 #' @param sheet Sheet to read from an Excel file. Either a string (sheet name)
-#'
 #'   or an integer (sheet index).
 #' @param seed Integer seed for the random number generator.
 #' @param dry_run If `TRUE`, print the generated script instead of executing

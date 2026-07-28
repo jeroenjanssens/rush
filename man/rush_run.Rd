@@ -66,7 +66,6 @@ script.}
 \item{head}{Integer. Limit the output to this many rows.}
 
 \item{sheet}{Sheet to read from an Excel file. Either a string (sheet name)
-
 or an integer (sheet index).}
 
 \item{seed}{Integer seed for the random number generator.}
