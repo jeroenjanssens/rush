@@ -1,47 +1,48 @@
 build_flags <- function(
-    command,
-    expr = NULL,
-    query = NULL,
-    file = character(),
-    output = NULL,
-    output_format = "auto",
-    input_format = "auto",
-    delimiter = ",",
-    input_delimiter = NULL,
-    output_delimiter = NULL,
-    header = TRUE,
-    clean_names = TRUE,
-    library = NULL,
-    tidyverse = FALSE,
-    head = NULL,
-    sheet = NULL,
-    seed = NULL,
-    dry_run = FALSE,
-    no_ir = FALSE,
-    verbose = FALSE,
-    x = NULL,
-    y = NULL,
-    z = NULL,
-    color = NULL,
-    fill = NULL,
-    alpha = NULL,
-    size = NULL,
-    shape = NULL,
-    group = NULL,
-    aes = NULL,
-    geom = "auto",
-    facets = NULL,
-    log = NULL,
-    title = NULL,
-    xlab = NULL,
-    ylab = NULL,
-    margins = FALSE,
-    pre = NULL,
-    post = NULL,
-    width = NULL,
-    height = NULL,
-    units = "in",
-    dpi = 300) {
+  command,
+  expr = NULL,
+  query = NULL,
+  file = character(),
+  output = NULL,
+  output_format = "auto",
+  input_format = "auto",
+  delimiter = ",",
+  input_delimiter = NULL,
+  output_delimiter = NULL,
+  header = TRUE,
+  clean_names = TRUE,
+  library = NULL,
+  tidyverse = FALSE,
+  head = NULL,
+  sheet = NULL,
+  seed = NULL,
+  dry_run = FALSE,
+  no_ir = FALSE,
+  verbose = FALSE,
+  x = NULL,
+  y = NULL,
+  z = NULL,
+  color = NULL,
+  fill = NULL,
+  alpha = NULL,
+  size = NULL,
+  shape = NULL,
+  group = NULL,
+  aes = NULL,
+  geom = "auto",
+  facets = NULL,
+  log = NULL,
+  title = NULL,
+  xlab = NULL,
+  ylab = NULL,
+  margins = FALSE,
+  pre = NULL,
+  post = NULL,
+  width = NULL,
+  height = NULL,
+  units = "in",
+  dpi = 300
+) {
   expression <- if (!is.null(expr)) {
     if (is.character(expr)) {
       rlang::parse_exprs(expr)
@@ -50,7 +51,9 @@ build_flags <- function(
     } else if (is.list(expr)) {
       expr
     } else {
-      cli::cli_abort("{.arg expr} must be a character string or language object.")
+      cli::cli_abort(
+        "{.arg expr} must be a character string or language object."
+      )
     }
   }
 
@@ -69,8 +72,12 @@ build_flags <- function(
   head_val <- if (!is.null(head)) as.integer(head)
 
   aes_sym <- function(val) {
-    if (is.null(val)) return(NULL)
-    if (is.character(val)) return(rlang::sym(val))
+    if (is.null(val)) {
+      return(NULL)
+    }
+    if (is.character(val)) {
+      return(rlang::sym(val))
+    }
     val
   }
 

@@ -50,20 +50,21 @@
 #' @seealso [rush_run()], [rush_sql()], [rush_plot()]
 #' @export
 rush_convert <- function(
-    file,
-    output = NULL,
-    output_format = "auto",
-    input_format = "auto",
-    delimiter = ",",
-    input_delimiter = NULL,
-    output_delimiter = NULL,
-    header = TRUE,
-    clean_names = TRUE,
-    head = NULL,
-    sheet = NULL,
-    dry_run = FALSE,
-    no_ir = FALSE,
-    verbose = FALSE) {
+  file,
+  output = NULL,
+  output_format = "auto",
+  input_format = "auto",
+  delimiter = ",",
+  input_delimiter = NULL,
+  output_delimiter = NULL,
+  header = TRUE,
+  clean_names = TRUE,
+  head = NULL,
+  sheet = NULL,
+  dry_run = FALSE,
+  no_ir = FALSE,
+  verbose = FALSE
+) {
   flags <- build_flags(
     command = "convert",
     file = file,

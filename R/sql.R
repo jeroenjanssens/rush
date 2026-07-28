@@ -50,19 +50,20 @@
 #' @seealso [rush_run()], [rush_plot()], [rush_convert()]
 #' @export
 rush_sql <- function(
-    query = NULL,
-    file = character(),
-    output = NULL,
-    output_format = "auto",
-    delimiter = ",",
-    output_delimiter = NULL,
-    library = NULL,
-    tidyverse = FALSE,
-    head = NULL,
-    seed = NULL,
-    dry_run = FALSE,
-    no_ir = FALSE,
-    verbose = FALSE) {
+  query = NULL,
+  file = character(),
+  output = NULL,
+  output_format = "auto",
+  delimiter = ",",
+  output_delimiter = NULL,
+  library = NULL,
+  tidyverse = FALSE,
+  head = NULL,
+  seed = NULL,
+  dry_run = FALSE,
+  no_ir = FALSE,
+  verbose = FALSE
+) {
   flags <- build_flags(
     command = "sql",
     query = query,

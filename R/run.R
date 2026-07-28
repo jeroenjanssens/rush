@@ -61,24 +61,25 @@
 #' @seealso [rush_sql()], [rush_plot()], [rush_convert()]
 #' @export
 rush_run <- function(
-    expr = NULL,
-    file = character(),
-    output = NULL,
-    output_format = "auto",
-    input_format = "auto",
-    delimiter = ",",
-    input_delimiter = NULL,
-    output_delimiter = NULL,
-    header = TRUE,
-    clean_names = TRUE,
-    library = NULL,
-    tidyverse = FALSE,
-    head = NULL,
-    sheet = NULL,
-    seed = NULL,
-    dry_run = FALSE,
-    no_ir = FALSE,
-    verbose = FALSE) {
+  expr = NULL,
+  file = character(),
+  output = NULL,
+  output_format = "auto",
+  input_format = "auto",
+  delimiter = ",",
+  input_delimiter = NULL,
+  output_delimiter = NULL,
+  header = TRUE,
+  clean_names = TRUE,
+  library = NULL,
+  tidyverse = FALSE,
+  head = NULL,
+  sheet = NULL,
+  seed = NULL,
+  dry_run = FALSE,
+  no_ir = FALSE,
+  verbose = FALSE
+) {
   flags <- build_flags(
     command = "run",
     expr = expr,

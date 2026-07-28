@@ -6,3 +6,5 @@
 ^\.github$
 ^cran-comments\.md$
 ^air\.toml$
+^doc$
+^Meta$

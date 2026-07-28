@@ -1,16 +1,25 @@
 # Parquet --------------------------------------------------------------------
 
 test_that("writes Parquet when output ends in .parquet", {
-  script <- capture_script(rush_run, expr = "df", file = "data.csv",
-                           output = "out.parquet")
+  script <- capture_script(
+    rush_run,
+    expr = "df",
+    file = "data.csv",
+    output = "out.parquet"
+  )
   expect_true(any(grepl('output_format = "parquet"', script)))
   expect_true(any(grepl("nanoparquet::write_parquet", script)))
   expect_true(any(grepl("^#\\|   - nanoparquet$", script)))
 })
 
 test_that("output_format = 'parquet' works with explicit output", {
-  script <- capture_script(rush_run, expr = "df", file = "data.csv",
-                           output_format = "parquet", output = "out.parquet")
+  script <- capture_script(
+    rush_run,
+    expr = "df",
+    file = "data.csv",
+    output_format = "parquet",
+    output = "out.parquet"
+  )
   expect_true(any(grepl('output_format = "parquet"', script)))
   expect_true(any(grepl("nanoparquet::write_parquet", script)))
 })
@@ -18,31 +27,47 @@ test_that("output_format = 'parquet' works with explicit output", {
 # JSON -----------------------------------------------------------------------
 
 test_that("output_format = 'json' emits JSON output", {
-  script <- capture_script(rush_run, expr = "df", file = "data.csv",
-                           output_format = "json")
+  script <- capture_script(
+    rush_run,
+    expr = "df",
+    file = "data.csv",
+    output_format = "json"
+  )
   expect_true(any(grepl('output_format = "json"', script)))
   expect_true(any(grepl("jsonlite::toJSON", script)))
   expect_true(any(grepl("^#\\|   - jsonlite$", script)))
 })
 
 test_that("output_format = 'jsonl' emits JSONL output", {
-  script <- capture_script(rush_run, expr = "df", file = "data.csv",
-                           output_format = "jsonl")
+  script <- capture_script(
+    rush_run,
+    expr = "df",
+    file = "data.csv",
+    output_format = "jsonl"
+  )
   expect_true(any(grepl('output_format = "jsonl"', script)))
   expect_true(any(grepl("jsonlite::stream_out", script)))
   expect_true(any(grepl("^#\\|   - jsonlite$", script)))
 })
 
 test_that("output = 'data.json' infers JSON format", {
-  script <- capture_script(rush_run, expr = "df", file = "data.csv",
-                           output = "data.json")
+  script <- capture_script(
+    rush_run,
+    expr = "df",
+    file = "data.csv",
+    output = "data.json"
+  )
   expect_true(any(grepl('output_format = "json"', script)))
   expect_true(any(grepl("jsonlite::toJSON", script)))
 })
 
 test_that("output = 'data.jsonl' infers JSONL format", {
-  script <- capture_script(rush_run, expr = "df", file = "data.csv",
-                           output = "data.jsonl")
+  script <- capture_script(
+    rush_run,
+    expr = "df",
+    file = "data.csv",
+    output = "data.jsonl"
+  )
   expect_true(any(grepl('output_format = "jsonl"', script)))
   expect_true(any(grepl("jsonlite::stream_out", script)))
 })
@@ -50,16 +75,25 @@ test_that("output = 'data.jsonl' infers JSONL format", {
 # Arrow ----------------------------------------------------------------------
 
 test_that("output_format = 'arrow' emits Arrow IPC output", {
-  script <- capture_script(rush_run, expr = "df", file = "data.csv",
-                           output_format = "arrow", output = "out.arrow")
+  script <- capture_script(
+    rush_run,
+    expr = "df",
+    file = "data.csv",
+    output_format = "arrow",
+    output = "out.arrow"
+  )
   expect_true(any(grepl('output_format = "arrow"', script)))
   expect_true(any(grepl("arrow::write_ipc_file", script)))
   expect_true(any(grepl("^#\\|   - arrow$", script)))
 })
 
 test_that("output = 'out.feather' infers Arrow format", {
-  script <- capture_script(rush_run, expr = "df", file = "data.csv",
-                           output = "out.feather")
+  script <- capture_script(
+    rush_run,
+    expr = "df",
+    file = "data.csv",
+    output = "out.feather"
+  )
   expect_true(any(grepl('output_format = "arrow"', script)))
   expect_true(any(grepl("arrow::write_ipc_file", script)))
 })
@@ -67,16 +101,25 @@ test_that("output = 'out.feather' infers Arrow format", {
 # Excel ----------------------------------------------------------------------
 
 test_that("output_format = 'xlsx' emits Excel output", {
-  script <- capture_script(rush_run, expr = "df", file = "data.csv",
-                           output_format = "xlsx", output = "out.xlsx")
+  script <- capture_script(
+    rush_run,
+    expr = "df",
+    file = "data.csv",
+    output_format = "xlsx",
+    output = "out.xlsx"
+  )
   expect_true(any(grepl('output_format = "xlsx"', script)))
   expect_true(any(grepl("writexl::write_xlsx", script)))
   expect_true(any(grepl("^#\\|   - writexl$", script)))
 })
 
 test_that("output = 'out.xlsx' infers Excel format", {
-  script <- capture_script(rush_run, expr = "df", file = "data.csv",
-                           output = "out.xlsx")
+  script <- capture_script(
+    rush_run,
+    expr = "df",
+    file = "data.csv",
+    output = "out.xlsx"
+  )
   expect_true(any(grepl('output_format = "xlsx"', script)))
   expect_true(any(grepl("writexl::write_xlsx", script)))
 })
@@ -84,16 +127,25 @@ test_that("output = 'out.xlsx' infers Excel format", {
 # Haven: SPSS ----------------------------------------------------------------
 
 test_that("output_format = 'sav' emits haven::write_sav", {
-  script <- capture_script(rush_run, expr = "df", file = "data.csv",
-                           output_format = "sav", output = "out.sav")
+  script <- capture_script(
+    rush_run,
+    expr = "df",
+    file = "data.csv",
+    output_format = "sav",
+    output = "out.sav"
+  )
   expect_true(any(grepl('output_format = "sav"', script)))
   expect_true(any(grepl("haven::write_sav", script)))
   expect_true(any(grepl("^#\\|   - haven$", script)))
 })
 
 test_that("output = 'out.zsav' emits haven::write_sav with compress", {
-  script <- capture_script(rush_run, expr = "df", file = "data.csv",
-                           output = "out.zsav")
+  script <- capture_script(
+    rush_run,
+    expr = "df",
+    file = "data.csv",
+    output = "out.zsav"
+  )
   expect_true(any(grepl('output_format = "zsav"', script)))
   expect_true(any(grepl('compress = "zsav"', script)))
 })
@@ -101,8 +153,13 @@ test_that("output = 'out.zsav' emits haven::write_sav with compress", {
 # Haven: Stata ----------------------------------------------------------------
 
 test_that("output_format = 'dta' emits haven::write_dta", {
-  script <- capture_script(rush_run, expr = "df", file = "data.csv",
-                           output_format = "dta", output = "out.dta")
+  script <- capture_script(
+    rush_run,
+    expr = "df",
+    file = "data.csv",
+    output_format = "dta",
+    output = "out.dta"
+  )
   expect_true(any(grepl('output_format = "dta"', script)))
   expect_true(any(grepl("haven::write_dta", script)))
 })
@@ -110,15 +167,25 @@ test_that("output_format = 'dta' emits haven::write_dta", {
 # Haven: SAS ------------------------------------------------------------------
 
 test_that("output_format = 'sas7bdat' emits haven::write_sas", {
-  script <- capture_script(rush_run, expr = "df", file = "data.csv",
-                           output_format = "sas7bdat", output = "out.sas7bdat")
+  script <- capture_script(
+    rush_run,
+    expr = "df",
+    file = "data.csv",
+    output_format = "sas7bdat",
+    output = "out.sas7bdat"
+  )
   expect_true(any(grepl('output_format = "sas7bdat"', script)))
   expect_true(any(grepl("haven::write_sas", script)))
 })
 
 test_that("output_format = 'xpt' emits haven::write_xpt", {
-  script <- capture_script(rush_run, expr = "df", file = "data.csv",
-                           output_format = "xpt", output = "out.xpt")
+  script <- capture_script(
+    rush_run,
+    expr = "df",
+    file = "data.csv",
+    output_format = "xpt",
+    output = "out.xpt"
+  )
   expect_true(any(grepl('output_format = "xpt"', script)))
   expect_true(any(grepl("haven::write_xpt", script)))
 })
@@ -126,8 +193,13 @@ test_that("output_format = 'xpt' emits haven::write_xpt", {
 # DuckDB ---------------------------------------------------------------------
 
 test_that("output_format = 'duckdb' emits DuckDB write", {
-  script <- capture_script(rush_run, expr = "df", file = "data.csv",
-                           output_format = "duckdb", output = "out.duckdb")
+  script <- capture_script(
+    rush_run,
+    expr = "df",
+    file = "data.csv",
+    output_format = "duckdb",
+    output = "out.duckdb"
+  )
   expect_true(any(grepl('output_format = "duckdb"', script)))
   expect_true(any(grepl("duckdb::duckdb\\(\\)", script)))
   expect_true(any(grepl("dbWriteTable", script)))
@@ -136,16 +208,25 @@ test_that("output_format = 'duckdb' emits DuckDB write", {
 })
 
 test_that(".ddb extension resolves to duckdb format", {
-  script <- capture_script(rush_run, expr = "df", file = "data.csv",
-                           output = "out.ddb")
+  script <- capture_script(
+    rush_run,
+    expr = "df",
+    file = "data.csv",
+    output = "out.ddb"
+  )
   expect_true(any(grepl('output_format = "duckdb"', script)))
 })
 
 # SQLite ---------------------------------------------------------------------
 
 test_that("output_format = 'sqlite' emits SQLite write", {
-  script <- capture_script(rush_run, expr = "df", file = "data.csv",
-                           output_format = "sqlite", output = "out.sqlite")
+  script <- capture_script(
+    rush_run,
+    expr = "df",
+    file = "data.csv",
+    output_format = "sqlite",
+    output = "out.sqlite"
+  )
   expect_true(any(grepl('output_format = "sqlite"', script)))
   expect_true(any(grepl("RSQLite::SQLite", script)))
   expect_true(any(grepl("dbWriteTable", script)))
@@ -156,8 +237,13 @@ test_that("output_format = 'sqlite' emits SQLite write", {
 # RDS -------------------------------------------------------------------------
 
 test_that("output_format = 'rds' emits saveRDS", {
-  script <- capture_script(rush_run, expr = "df", file = "data.csv",
-                           output_format = "rds", output = "out.rds")
+  script <- capture_script(
+    rush_run,
+    expr = "df",
+    file = "data.csv",
+    output_format = "rds",
+    output = "out.rds"
+  )
   expect_true(any(grepl('output_format = "rds"', script)))
   expect_true(any(grepl("saveRDS", script)))
 })
@@ -165,8 +251,13 @@ test_that("output_format = 'rds' emits saveRDS", {
 # ODS -------------------------------------------------------------------------
 
 test_that("output_format = 'ods' emits readODS::write_ods", {
-  script <- capture_script(rush_run, expr = "df", file = "data.csv",
-                           output_format = "ods", output = "out.ods")
+  script <- capture_script(
+    rush_run,
+    expr = "df",
+    file = "data.csv",
+    output_format = "ods",
+    output = "out.ods"
+  )
   expect_true(any(grepl('output_format = "ods"', script)))
   expect_true(any(grepl("readODS::write_ods", script)))
   expect_true(any(grepl("^#\\|   - readODS$", script)))
@@ -175,8 +266,13 @@ test_that("output_format = 'ods' emits readODS::write_ods", {
 # FASTA -----------------------------------------------------------------------
 
 test_that("output_format = 'fasta' emits microseq::writeFasta", {
-  script <- capture_script(rush_run, expr = "df", file = "data.csv",
-                           output_format = "fasta", output = "out.fasta")
+  script <- capture_script(
+    rush_run,
+    expr = "df",
+    file = "data.csv",
+    output_format = "fasta",
+    output = "out.fasta"
+  )
   expect_true(any(grepl('output_format = "fasta"', script)))
   expect_true(any(grepl("microseq::writeFasta", script)))
   expect_true(any(grepl("^#\\|   - microseq$", script)))
@@ -185,8 +281,13 @@ test_that("output_format = 'fasta' emits microseq::writeFasta", {
 # FASTQ -----------------------------------------------------------------------
 
 test_that("output_format = 'fastq' emits microseq::writeFastq", {
-  script <- capture_script(rush_run, expr = "df", file = "data.csv",
-                           output_format = "fastq", output = "out.fastq")
+  script <- capture_script(
+    rush_run,
+    expr = "df",
+    file = "data.csv",
+    output_format = "fastq",
+    output = "out.fastq"
+  )
   expect_true(any(grepl('output_format = "fastq"', script)))
   expect_true(any(grepl("microseq::writeFastq", script)))
 })
@@ -194,8 +295,13 @@ test_that("output_format = 'fastq' emits microseq::writeFastq", {
 # YAML ------------------------------------------------------------------------
 
 test_that("output_format = 'yaml' emits yaml::as.yaml", {
-  script <- capture_script(rush_run, expr = "df", file = "data.csv",
-                           output_format = "yaml", output = "out.yaml")
+  script <- capture_script(
+    rush_run,
+    expr = "df",
+    file = "data.csv",
+    output_format = "yaml",
+    output = "out.yaml"
+  )
   expect_true(any(grepl('output_format = "yaml"', script)))
   expect_true(any(grepl("yaml::as.yaml", script)))
   expect_true(any(grepl("^#\\|   - yaml$", script)))
@@ -204,8 +310,13 @@ test_that("output_format = 'yaml' emits yaml::as.yaml", {
 # TOML ------------------------------------------------------------------------
 
 test_that("output_format = 'toml' emits RcppTOML::writeTOML", {
-  script <- capture_script(rush_run, expr = "df", file = "data.csv",
-                           output_format = "toml", output = "out.toml")
+  script <- capture_script(
+    rush_run,
+    expr = "df",
+    file = "data.csv",
+    output_format = "toml",
+    output = "out.toml"
+  )
   expect_true(any(grepl('output_format = "toml"', script)))
   expect_true(any(grepl("RcppTOML::writeTOML", script)))
   expect_true(any(grepl("^#\\|   - RcppTOML$", script)))
@@ -214,8 +325,13 @@ test_that("output_format = 'toml' emits RcppTOML::writeTOML", {
 # XML -------------------------------------------------------------------------
 
 test_that("output_format = 'xml' emits xml2::write_xml", {
-  script <- capture_script(rush_run, expr = "df", file = "data.csv",
-                           output_format = "xml", output = "out.xml")
+  script <- capture_script(
+    rush_run,
+    expr = "df",
+    file = "data.csv",
+    output_format = "xml",
+    output = "out.xml"
+  )
   expect_true(any(grepl('output_format = "xml"', script)))
   expect_true(any(grepl("xml2::write_xml", script)))
   expect_true(any(grepl("^#\\|   - xml2$", script)))
@@ -224,37 +340,61 @@ test_that("output_format = 'xml' emits xml2::write_xml", {
 # Nesting behavior ------------------------------------------------------------
 
 test_that("json is flattened when output is a flat format", {
-  script <- capture_script(rush_run, expr = "df", file = "data.json",
-                           output = "out.parquet")
+  script <- capture_script(
+    rush_run,
+    expr = "df",
+    file = "data.json",
+    output = "out.parquet"
+  )
   expect_true(any(grepl("jsonlite::flatten", script)))
 })
 
 test_that("json is NOT flattened when output is json", {
-  script <- capture_script(rush_run, expr = "df", file = "data.json",
-                           output_format = "json")
+  script <- capture_script(
+    rush_run,
+    expr = "df",
+    file = "data.json",
+    output_format = "json"
+  )
   expect_false(any(grepl("jsonlite::flatten", script)))
 })
 
 test_that("json is NOT flattened when output is yaml", {
-  script <- capture_script(rush_run, expr = "df", file = "data.json",
-                           output = "out.yaml")
+  script <- capture_script(
+    rush_run,
+    expr = "df",
+    file = "data.json",
+    output = "out.yaml"
+  )
   expect_false(any(grepl("jsonlite::flatten", script)))
 })
 
 test_that("json is NOT flattened when output is rds", {
-  script <- capture_script(rush_run, expr = "df", file = "data.json",
-                           output = "out.rds")
+  script <- capture_script(
+    rush_run,
+    expr = "df",
+    file = "data.json",
+    output = "out.rds"
+  )
   expect_false(any(grepl("jsonlite::flatten", script)))
 })
 
 test_that("jsonl is flattened when output is xlsx", {
-  script <- capture_script(rush_run, expr = "df", file = "data.jsonl",
-                           output = "out.xlsx")
+  script <- capture_script(
+    rush_run,
+    expr = "df",
+    file = "data.jsonl",
+    output = "out.xlsx"
+  )
   expect_true(any(grepl("jsonlite::flatten", script)))
 })
 
 test_that("jsonl is NOT flattened when output is toml", {
-  script <- capture_script(rush_run, expr = "df", file = "data.jsonl",
-                           output = "out.toml")
+  script <- capture_script(
+    rush_run,
+    expr = "df",
+    file = "data.jsonl",
+    output = "out.toml"
+  )
   expect_false(any(grepl("jsonlite::flatten", script)))
 })

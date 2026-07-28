@@ -22,9 +22,19 @@ test_that("rush_run reads a file into df and dfs", {
 })
 
 test_that("rush_run reads multiple files into a dfs list", {
-  script <- capture_script(rush_run, expr = "nrow(dfs$a)", file = c("a.csv", "b.csv"))
-  expect_true(any(grepl('dfs\\[\\["a"\\]\\] <- .*read_delim\\("a.csv"', script)))
-  expect_true(any(grepl('dfs\\[\\["b"\\]\\] <- .*read_delim\\("b.csv"', script)))
+  script <- capture_script(
+    rush_run,
+    expr = "nrow(dfs$a)",
+    file = c("a.csv", "b.csv")
+  )
+  expect_true(any(grepl(
+    'dfs\\[\\["a"\\]\\] <- .*read_delim\\("a.csv"',
+    script
+  )))
+  expect_true(any(grepl(
+    'dfs\\[\\["b"\\]\\] <- .*read_delim\\("b.csv"',
+    script
+  )))
 })
 
 test_that("rush_run with file but no expr passes through df", {
@@ -38,40 +48,65 @@ test_that("rush_run reads from stdin with '-'", {
 })
 
 test_that("seed emits set.seed before other code", {
-  script <- capture_script(rush_run, expr = "1 + 1", file = "data.csv", seed = 7)
+  script <- capture_script(
+    rush_run,
+    expr = "1 + 1",
+    file = "data.csv",
+    seed = 7
+  )
   expect_true(any(grepl("set.seed\\(7\\)", script)))
   expect_lt(grep("set.seed", script), grep("read_delim", script))
 })
 
 test_that("library loads requested packages", {
-  script <- capture_script(rush_run, expr = "head(df)", file = "data.csv",
-                           library = "stringr")
+  script <- capture_script(
+    rush_run,
+    expr = "head(df)",
+    file = "data.csv",
+    library = "stringr"
+  )
   expect_true(any(grepl("^library\\(stringr\\)$", script)))
 })
 
 test_that("library accepts a vector of packages", {
-  script <- capture_script(rush_run, expr = "head(df)", file = "data.csv",
-                           library = c("stringr", "dplyr"))
+  script <- capture_script(
+    rush_run,
+    expr = "head(df)",
+    file = "data.csv",
+    library = c("stringr", "dplyr")
+  )
   expect_true(any(grepl("^library\\(stringr\\)$", script)))
   expect_true(any(grepl("^library\\(dplyr\\)$", script)))
 })
 
 test_that("tidyverse = TRUE loads tidyverse and glue", {
-  script <- capture_script(rush_run, expr = "head(df)", file = "data.csv",
-                           tidyverse = TRUE)
+  script <- capture_script(
+    rush_run,
+    expr = "head(df)",
+    file = "data.csv",
+    tidyverse = TRUE
+  )
   expect_true(any(grepl("^library\\(tidyverse\\)$", script)))
   expect_true(any(grepl("^library\\(glue\\)$", script)))
 })
 
 test_that("header = FALSE reads without column names", {
-  script <- capture_script(rush_run, expr = "head(df)", file = "data.csv",
-                           header = FALSE)
+  script <- capture_script(
+    rush_run,
+    expr = "head(df)",
+    file = "data.csv",
+    header = FALSE
+  )
   expect_true(any(grepl("col_names = FALSE", script)))
 })
 
 test_that("clean_names = FALSE omits the janitor call", {
-  script <- capture_script(rush_run, expr = "head(df)", file = "data.csv",
-                           clean_names = FALSE)
+  script <- capture_script(
+    rush_run,
+    expr = "head(df)",
+    file = "data.csv",
+    clean_names = FALSE
+  )
   expect_false(any(grepl("clean_names", script)))
 })
 
@@ -86,9 +121,11 @@ test_that("expr accepts a language object", {
 })
 
 test_that("expr accepts a list of expressions", {
-  script <- capture_script(rush_run,
-                           expr = rlang::exprs(x <- 1, x + 1),
-                           file = "data.csv")
+  script <- capture_script(
+    rush_run,
+    expr = rlang::exprs(x <- 1, x + 1),
+    file = "data.csv"
+  )
   expect_true(any(grepl("x <- 1", script)))
   expect_true(any(grepl("result <- x \\+ 1", script)))
 })
@@ -100,38 +137,58 @@ test_that("no_ir flag is propagated (script is still identical)", {
 })
 
 test_that("delimiter sets both input and output delimiters", {
-  script <- capture_script(rush_run, expr = "head(df)", file = "data.csv",
-                           delimiter = "\t")
+  script <- capture_script(
+    rush_run,
+    expr = "head(df)",
+    file = "data.csv",
+    delimiter = "\t"
+  )
   expect_true(any(grepl('delim = "\\\\t"', script)))
   expect_true(any(grepl('delimiter = "\\\\t"', script)))
 })
 
 test_that("output_delimiter overrides only the output delimiter", {
-  script <- capture_script(rush_run, expr = "head(df)", file = "data.csv",
-                           output_delimiter = "\t")
+  script <- capture_script(
+    rush_run,
+    expr = "head(df)",
+    file = "data.csv",
+    output_delimiter = "\t"
+  )
   read_line <- script[grepl("read_delim", script)]
   expect_true(any(grepl('delim = ","', read_line)))
   expect_true(any(grepl('delimiter = "\\\\t"', script)))
 })
 
 test_that("input_delimiter overrides only the input delimiter", {
-  script <- capture_script(rush_run, expr = "head(df)", file = "data.csv",
-                           input_delimiter = "\t")
+  script <- capture_script(
+    rush_run,
+    expr = "head(df)",
+    file = "data.csv",
+    input_delimiter = "\t"
+  )
   read_line <- script[grepl("read_delim", script)]
   expect_true(any(grepl('delim = "\\\\t"', read_line)))
   expect_true(any(grepl('delimiter = ","', script)))
 })
 
 test_that("input_format = 'tsv' implies tab as input delimiter", {
-  script <- capture_script(rush_run, expr = "head(df)", file = "data.tsv",
-                           input_format = "tsv")
+  script <- capture_script(
+    rush_run,
+    expr = "head(df)",
+    file = "data.tsv",
+    input_format = "tsv"
+  )
   read_line <- script[grepl("read_delim", script)]
   expect_true(any(grepl('delim = "\\\\t"', read_line)))
 })
 
 test_that("output_format = 'tsv' implies tab as output delimiter", {
-  script <- capture_script(rush_run, expr = "head(df)", file = "data.csv",
-                           output_format = "tsv")
+  script <- capture_script(
+    rush_run,
+    expr = "head(df)",
+    file = "data.csv",
+    output_format = "tsv"
+  )
   expect_true(any(grepl('delimiter = "\\\\t"', script)))
 })
 
@@ -141,8 +198,11 @@ test_that("digit-prefixed file names generate parseable code", {
 })
 
 test_that("multi-file digit-prefixed names use valid dfs indexing", {
-  script <- capture_script(rush_run, expr = "nrow(dfs)",
-                           file = c("2024.csv", "2025.csv"))
+  script <- capture_script(
+    rush_run,
+    expr = "nrow(dfs)",
+    file = c("2024.csv", "2025.csv")
+  )
   expect_true(any(grepl('dfs\\[\\["x2024"\\]\\]', script)))
   expect_true(any(grepl('dfs\\[\\["x2025"\\]\\]', script)))
   expect_silent(parse(text = script))

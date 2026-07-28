@@ -1,3 +1,5 @@
+#' @keywords internal
+#' @export
 rush <- function(...) {
   flags <- parse_arguments(...)
   flags <- resolve_flags(flags)

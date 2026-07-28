@@ -5,3 +5,5 @@
 .DS_Store
 exec/*
 !exec/rush.R
+/doc/
+/Meta/
