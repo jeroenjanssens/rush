@@ -20,6 +20,7 @@ jobs:
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Test ir (no deps)
-        run: |
-          ir --version
-          ir run -e 'print(head(iris))'
+        run: ir run -e 'print(head(iris))'
+
+      - name: Test ir (tidyverse)
+        run: ir run -e 'library(tidyverse); iris |> as_tibble() |> filter(Sepal.Length > 7) |> select(Species, Sepal.Length) |> print()'
