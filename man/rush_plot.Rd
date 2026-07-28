@@ -128,23 +128,22 @@ When writing to a terminal, the plot is rendered as ANSI art; otherwise it
 is saved to a file or streamed as PNG.
 }
 \examples{
-\dontrun{
-# Scatter plot
-rush_plot("mtcars.csv", x = "wt", y = "mpg")
+# Preview a scatter plot script
+rush_plot("mtcars.csv", x = "wt", y = "mpg", dry_run = TRUE)
 
 # Histogram with color
-rush_plot("mtcars.csv", x = "mpg", color = "cyl", geom = "histogram")
+rush_plot("mtcars.csv", x = "mpg", color = "cyl",
+          geom = "histogram", dry_run = TRUE)
 
 # Faceted plot with title
 rush_plot("mtcars.csv", x = "wt", y = "mpg",
-          facets = "~ cyl", title = "Weight vs MPG")
+          facets = "~ cyl", title = "Weight vs MPG", dry_run = TRUE)
 
-# Save to file
+\dontrun{
+# Actually execute (requires ir on PATH)
+rush_plot("mtcars.csv", x = "wt", y = "mpg")
 rush_plot("mtcars.csv", x = "wt", y = "mpg",
           output = "plot.png", width = 8, height = 6)
-
-# Preview the generated script
-rush_plot("mtcars.csv", x = "wt", y = "mpg", dry_run = TRUE)
 }
 
 }

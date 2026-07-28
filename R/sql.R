@@ -32,20 +32,19 @@
 #'   `NULL` when `dry_run = TRUE`.
 #'
 #' @examples
-#' \dontrun{
-#' # Query a CSV file
-#' rush_sql("SELECT * FROM data WHERE x > 10", file = "data.csv")
-#'
-#' # Join two files
-#' rush_sql("SELECT * FROM a JOIN b USING (id)",
-#'          file = c("a.csv", "b.parquet"))
-#'
-#' # Write query results to Parquet
-#' rush_sql("SELECT * FROM data", file = "data.csv",
-#'          output = "result.parquet")
-#'
 #' # Preview the generated script
 #' rush_sql("SELECT 1 AS x", dry_run = TRUE)
+#'
+#' # Query a CSV file
+#' rush_sql("SELECT * FROM data WHERE x > 10",
+#'          file = "data.csv", dry_run = TRUE)
+#'
+#' \dontrun{
+#' # Actually execute (requires ir on PATH)
+#' rush_sql("SELECT * FROM a JOIN b USING (id)",
+#'          file = c("a.csv", "b.parquet"))
+#' rush_sql("SELECT * FROM data", file = "data.csv",
+#'          output = "result.parquet")
 #' }
 #'
 #' @seealso [rush_run()], [rush_plot()], [rush_convert()]

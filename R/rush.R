@@ -212,7 +212,7 @@ print_dry_run <- function(filename) {
     )
   }
   code <- readLines(filename)
-  if (isatty(stdout())) {
+  if (isatty(stdout()) && requireNamespace("prettycode", quietly = TRUE)) {
     code <- prettycode::highlight(code)
   }
   cat(code, sep = "\n")

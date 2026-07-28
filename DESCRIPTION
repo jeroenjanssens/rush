@@ -13,7 +13,6 @@ Description: Run R expressions and create plots directly from the shell.
     dependencies on the fly.
 License: MIT + file LICENSE
 Encoding: UTF-8
-LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 Depends:
@@ -21,7 +20,6 @@ Depends:
 Imports:
     rlang (>= 0.1.2),
     docopt,
-    prettycode,
     glue,
     stringr,
     purrr,
@@ -33,6 +31,7 @@ Imports:
     tools,
     utils
 Suggests:
+    prettycode,
     janitor,
     readr,
     nanoparquet,

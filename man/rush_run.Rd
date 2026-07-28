@@ -87,19 +87,20 @@ files, then executes it with \href{https://r-lib.github.io/ir/}{ir}. The value
 of the last expression is printed to stdout or written to \code{output}.
 }
 \examples{
+# Preview the generated script for a simple expression
+rush_run("1 + 1", dry_run = TRUE)
+
+# Read a file and apply an expression
+rush_run("head(df)", file = "data.csv", dry_run = TRUE)
+
+# Use a language object
+rush_run(quote(nrow(df)), file = "data.csv", dry_run = TRUE)
+
 \dontrun{
-# Simple expression
+# Actually execute (requires ir on PATH)
 rush_run("1 + 1")
-
-# Read a CSV and summarise
-rush_run("nrow(df)", file = "data.csv")
-
-# Write to a Parquet file
 rush_run("dplyr::filter(df, x > 10)", file = "data.csv",
          output = "filtered.parquet")
-
-# Preview the generated script
-rush_run("head(df)", file = "data.csv", dry_run = TRUE)
 }
 
 }

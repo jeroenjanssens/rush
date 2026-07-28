@@ -71,18 +71,17 @@ writes them in a different format, then executes it with
 \href{https://r-lib.github.io/ir/}{ir}.
 }
 \examples{
-\dontrun{
-# CSV to Parquet
-rush_convert("data.csv", output = "data.parquet")
-
-# JSON to CSV
-rush_convert("data.json", output = "data.csv")
+# Preview a CSV-to-Parquet conversion
+rush_convert("data.csv", output = "data.parquet", dry_run = TRUE)
 
 # Multiple files with a template
-rush_convert(c("a.csv", "b.csv"), output = "\%(file_name)s.parquet")
+rush_convert(c("a.csv", "b.csv"),
+             output = "\%(file_name)s.parquet", dry_run = TRUE)
 
-# Preview the generated script
-rush_convert("data.csv", output = "data.parquet", dry_run = TRUE)
+\dontrun{
+# Actually execute (requires ir on PATH)
+rush_convert("data.csv", output = "data.parquet")
+rush_convert("data.json", output = "data.csv")
 }
 
 }

@@ -56,23 +56,22 @@
 #'   `NULL` when `dry_run = TRUE`.
 #'
 #' @examples
-#' \dontrun{
-#' # Scatter plot
-#' rush_plot("mtcars.csv", x = "wt", y = "mpg")
+#' # Preview a scatter plot script
+#' rush_plot("mtcars.csv", x = "wt", y = "mpg", dry_run = TRUE)
 #'
 #' # Histogram with color
-#' rush_plot("mtcars.csv", x = "mpg", color = "cyl", geom = "histogram")
+#' rush_plot("mtcars.csv", x = "mpg", color = "cyl",
+#'           geom = "histogram", dry_run = TRUE)
 #'
 #' # Faceted plot with title
 #' rush_plot("mtcars.csv", x = "wt", y = "mpg",
-#'           facets = "~ cyl", title = "Weight vs MPG")
+#'           facets = "~ cyl", title = "Weight vs MPG", dry_run = TRUE)
 #'
-#' # Save to file
+#' \dontrun{
+#' # Actually execute (requires ir on PATH)
+#' rush_plot("mtcars.csv", x = "wt", y = "mpg")
 #' rush_plot("mtcars.csv", x = "wt", y = "mpg",
 #'           output = "plot.png", width = 8, height = 6)
-#'
-#' # Preview the generated script
-#' rush_plot("mtcars.csv", x = "wt", y = "mpg", dry_run = TRUE)
 #' }
 #'
 #' @seealso [rush_run()], [rush_sql()], [rush_convert()]
