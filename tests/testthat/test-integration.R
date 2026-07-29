@@ -1635,6 +1635,36 @@ test_that("three files: all names present", {
   expect_true(all(c("a", "b", "c") %in% lines))
 })
 
+test_that("name collision: files with same basename get suffixed", {
+  skip_if_no_ir()
+  dir <- withr::local_tempdir()
+  d1 <- file.path(dir, "a")
+  d2 <- file.path(dir, "b")
+  dir.create(d1)
+  dir.create(d2)
+  f1 <- make_csv(data.frame(x = 1:2), d1, "data.csv")
+  f2 <- make_csv(data.frame(x = 3:5), d2, "data.csv")
+  result <- rush_run_exec("names(dfs)", file = c(f1, f2))
+  lines <- stdout_lines(result)
+  expect_true("data" %in% lines)
+  expect_true("data_1" %in% lines)
+})
+
+test_that("name collision: both data frames accessible", {
+  skip_if_no_ir()
+  dir <- withr::local_tempdir()
+  d1 <- file.path(dir, "a")
+  d2 <- file.path(dir, "b")
+  dir.create(d1)
+  dir.create(d2)
+  f1 <- make_csv(data.frame(x = 1:2), d1, "data.csv")
+  f2 <- make_csv(data.frame(x = 3:5), d2, "data.csv")
+  result <- rush_run_exec("nrow(dfs$data)", file = c(f1, f2))
+  expect_equal(stdout_lines(result), "2")
+  result2 <- rush_run_exec("nrow(dfs$data_1)", file = c(f1, f2))
+  expect_equal(stdout_lines(result2), "3")
+})
+
 test_that("digit-prefix file: dfs$x2024", {
   skip_if_no_ir()
   dir <- withr::local_tempdir()
