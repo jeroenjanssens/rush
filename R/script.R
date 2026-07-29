@@ -597,8 +597,18 @@ if (.has_tty) options(width = if (is.null(.rush$width)) cli::console_width() els
     toml_out <- RcppTOML::writeTOML(result)
     if (is.null(output)) cat(toml_out) else writeLines(toml_out, output)
   } else if (identical(.rush$output_format, "xml")) {
-    xml_doc <- xml2::as_xml_document(list(data = as.list(result)))
-    xml2::write_xml(xml_doc, if (is.null(output)) stdout() else output)
+    root <- xml2::xml_new_root("data")
+    for (.i in seq_len(nrow(result))) {
+      .row_node <- xml2::xml_add_child(root, "row")
+      for (.col in names(result)) {
+        xml2::xml_add_child(.row_node, .col, as.character(result[[.col]][.i]))
+      }
+    }
+    if (is.null(output)) {
+      cat(as.character(root))
+    } else {
+      xml2::write_xml(root, output)
+    }
   } else {
     con <- if (is.null(output)) .stdout_binary() else output
     readr::write_delim(result, con, delim = .rush$delimiter %||% ",")
