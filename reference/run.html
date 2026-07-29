@@ -589,212 +589,20 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> run <span class="at">-n</span> <span class="at">-O</span> xml <span class="at">--output-root</span> plants <span class="at">--output-record</span> observation <span class="st">'head(df)'</span> data.csv</span>
 <span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; #!/usr/bin/env -S ir run</span></span>
 <span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; #| packages:</span></span>
-<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; #|   - rlang</span></span>
-<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; #|   - cli</span></span>
-<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; #|   - tibble</span></span>
-<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; #|   - readr</span></span>
-<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; #|   - janitor</span></span>
-<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; #|   - xml2</span></span>
-<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; .rush &lt;- list(</span></span>
-<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   output = NULL,</span></span>
-<span id="cb27-13"><a href="#cb27-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   output_template = NULL,</span></span>
-<span id="cb27-14"><a href="#cb27-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   output_format = "xml",</span></span>
-<span id="cb27-15"><a href="#cb27-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   width = NULL,</span></span>
-<span id="cb27-16"><a href="#cb27-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   height = NULL,</span></span>
-<span id="cb27-17"><a href="#cb27-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   units = "in",</span></span>
-<span id="cb27-18"><a href="#cb27-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   dpi = 300,</span></span>
-<span id="cb27-19"><a href="#cb27-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   delimiter = ",",</span></span>
-<span id="cb27-20"><a href="#cb27-20" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   head = NULL,</span></span>
-<span id="cb27-21"><a href="#cb27-21" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   has_post = FALSE,</span></span>
-<span id="cb27-22"><a href="#cb27-22" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   output_root = "plants",</span></span>
-<span id="cb27-23"><a href="#cb27-23" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   output_record = "observation",</span></span>
-<span id="cb27-24"><a href="#cb27-24" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   output_sheet = NULL,</span></span>
-<span id="cb27-25"><a href="#cb27-25" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   output_indent = 2L</span></span>
-<span id="cb27-26"><a href="#cb27-26" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; )</span></span>
-<span id="cb27-27"><a href="#cb27-27" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb27-28"><a href="#cb27-28" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; dfs &lt;- list()</span></span>
-<span id="cb27-29"><a href="#cb27-29" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; dfs[["data"]] &lt;- janitor::clean_names(readr::read_delim("data.csv", delim = ",", col_names = TRUE))</span></span>
-<span id="cb27-30"><a href="#cb27-30" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; df &lt;- dfs[[1]]</span></span>
-<span id="cb27-31"><a href="#cb27-31" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; result &lt;- head(df)</span></span>
-<span id="cb27-32"><a href="#cb27-32" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb27-33"><a href="#cb27-33" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; #~~~ Output dispatch (added by rush) ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span></span>
-<span id="cb27-34"><a href="#cb27-34" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; .has_tty &lt;- isatty(stdout())</span></span>
-<span id="cb27-35"><a href="#cb27-35" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; .stdout_binary &lt;- function() {</span></span>
-<span id="cb27-36"><a href="#cb27-36" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   if (.Platform$OS.type == "windows") file("stdout", "wb", raw = TRUE)</span></span>
-<span id="cb27-37"><a href="#cb27-37" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   else file("/dev/stdout", "wb", raw = TRUE)</span></span>
-<span id="cb27-38"><a href="#cb27-38" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; }</span></span>
-<span id="cb27-39"><a href="#cb27-39" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; if (.has_tty) options(width = if (is.null(.rush$width)) cli::console_width() else .rush$width)</span></span>
-<span id="cb27-40"><a href="#cb27-40" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb27-41"><a href="#cb27-41" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; .write_result &lt;- function(result, output) {</span></span>
-<span id="cb27-42"><a href="#cb27-42" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   if (!is.null(.rush$head)) result &lt;- head(result, .rush$head)</span></span>
-<span id="cb27-43"><a href="#cb27-43" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   if (.has_tty &amp;&amp; is.null(output) &amp;&amp; identical(.rush$output_format, "delim")) {</span></span>
-<span id="cb27-44"><a href="#cb27-44" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     options(tibble.width = if (is.null(.rush$width)) cli::console_width() else .rush$width)</span></span>
-<span id="cb27-45"><a href="#cb27-45" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     print(tibble::as_tibble(result), n = .rush$height)</span></span>
-<span id="cb27-46"><a href="#cb27-46" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   } else if (identical(.rush$output_format, "parquet")) {</span></span>
-<span id="cb27-47"><a href="#cb27-47" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     if (is.null(output)) stop("Parquet format requires --output (-o) file path")</span></span>
-<span id="cb27-48"><a href="#cb27-48" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     nanoparquet::write_parquet(result, output)</span></span>
-<span id="cb27-49"><a href="#cb27-49" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   } else if (identical(.rush$output_format, "json")) {</span></span>
-<span id="cb27-50"><a href="#cb27-50" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     .pretty &lt;- .rush$output_indent &gt; 0L</span></span>
-<span id="cb27-51"><a href="#cb27-51" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     json &lt;- jsonlite::toJSON(result, dataframe = "rows", pretty = .pretty, auto_unbox = TRUE)</span></span>
-<span id="cb27-52"><a href="#cb27-52" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     if (is.null(output)) cat(json, "</span></span>
-<span id="cb27-53"><a href="#cb27-53" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; ") else writeLines(json, output)</span></span>
-<span id="cb27-54"><a href="#cb27-54" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   } else if (identical(.rush$output_format, "jsonl")) {</span></span>
-<span id="cb27-55"><a href="#cb27-55" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     con_out &lt;- if (is.null(output)) stdout() else file(output, "w")</span></span>
-<span id="cb27-56"><a href="#cb27-56" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     jsonlite::stream_out(result, con_out, verbose = FALSE)</span></span>
-<span id="cb27-57"><a href="#cb27-57" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     if (!is.null(output)) close(con_out)</span></span>
-<span id="cb27-58"><a href="#cb27-58" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   } else if (identical(.rush$output_format, "arrow")) {</span></span>
-<span id="cb27-59"><a href="#cb27-59" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     if (is.null(output)) stop("Arrow format requires --output (-o) file path")</span></span>
-<span id="cb27-60"><a href="#cb27-60" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     arrow::write_ipc_file(result, output)</span></span>
-<span id="cb27-61"><a href="#cb27-61" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   } else if (identical(.rush$output_format, "xlsx")) {</span></span>
-<span id="cb27-62"><a href="#cb27-62" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     .xlsx_data &lt;- if (!is.null(.rush$output_sheet)) {</span></span>
-<span id="cb27-63"><a href="#cb27-63" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       stats::setNames(list(result), .rush$output_sheet)</span></span>
-<span id="cb27-64"><a href="#cb27-64" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     } else {</span></span>
-<span id="cb27-65"><a href="#cb27-65" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       result</span></span>
-<span id="cb27-66"><a href="#cb27-66" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     }</span></span>
-<span id="cb27-67"><a href="#cb27-67" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     writexl::write_xlsx(.xlsx_data, output)</span></span>
-<span id="cb27-68"><a href="#cb27-68" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   } else if (identical(.rush$output_format, "sav")) {</span></span>
-<span id="cb27-69"><a href="#cb27-69" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     haven::write_sav(result, output)</span></span>
-<span id="cb27-70"><a href="#cb27-70" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   } else if (identical(.rush$output_format, "zsav")) {</span></span>
-<span id="cb27-71"><a href="#cb27-71" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     haven::write_sav(result, output, compress = "zsav")</span></span>
-<span id="cb27-72"><a href="#cb27-72" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   } else if (identical(.rush$output_format, "dta")) {</span></span>
-<span id="cb27-73"><a href="#cb27-73" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     haven::write_dta(result, output)</span></span>
-<span id="cb27-74"><a href="#cb27-74" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   } else if (identical(.rush$output_format, "sas7bdat")) {</span></span>
-<span id="cb27-75"><a href="#cb27-75" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     haven::write_sas(result, output)</span></span>
-<span id="cb27-76"><a href="#cb27-76" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   } else if (identical(.rush$output_format, "xpt")) {</span></span>
-<span id="cb27-77"><a href="#cb27-77" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     haven::write_xpt(result, output)</span></span>
-<span id="cb27-78"><a href="#cb27-78" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   } else if (identical(.rush$output_format, "duckdb")) {</span></span>
-<span id="cb27-79"><a href="#cb27-79" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     .con &lt;- DBI::dbConnect(duckdb::duckdb(), dbdir = output)</span></span>
-<span id="cb27-80"><a href="#cb27-80" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     on.exit(DBI::dbDisconnect(.con, shutdown = TRUE))</span></span>
-<span id="cb27-81"><a href="#cb27-81" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     if (is.data.frame(result)) {</span></span>
-<span id="cb27-82"><a href="#cb27-82" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       DBI::dbWriteTable(.con, "data", result)</span></span>
-<span id="cb27-83"><a href="#cb27-83" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     } else if (is.list(result)) {</span></span>
-<span id="cb27-84"><a href="#cb27-84" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       for (.tbl_name in names(result)) {</span></span>
-<span id="cb27-85"><a href="#cb27-85" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         DBI::dbWriteTable(.con, .tbl_name, result[[.tbl_name]])</span></span>
-<span id="cb27-86"><a href="#cb27-86" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       }</span></span>
-<span id="cb27-87"><a href="#cb27-87" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     }</span></span>
-<span id="cb27-88"><a href="#cb27-88" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   } else if (identical(.rush$output_format, "sqlite")) {</span></span>
-<span id="cb27-89"><a href="#cb27-89" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     .con &lt;- DBI::dbConnect(RSQLite::SQLite(), output)</span></span>
-<span id="cb27-90"><a href="#cb27-90" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     on.exit(DBI::dbDisconnect(.con))</span></span>
-<span id="cb27-91"><a href="#cb27-91" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     if (is.data.frame(result)) {</span></span>
-<span id="cb27-92"><a href="#cb27-92" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       DBI::dbWriteTable(.con, "data", result)</span></span>
-<span id="cb27-93"><a href="#cb27-93" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     } else if (is.list(result)) {</span></span>
-<span id="cb27-94"><a href="#cb27-94" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       for (.tbl_name in names(result)) {</span></span>
-<span id="cb27-95"><a href="#cb27-95" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         DBI::dbWriteTable(.con, .tbl_name, result[[.tbl_name]])</span></span>
-<span id="cb27-96"><a href="#cb27-96" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       }</span></span>
-<span id="cb27-97"><a href="#cb27-97" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     }</span></span>
-<span id="cb27-98"><a href="#cb27-98" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   } else if (identical(.rush$output_format, "rds")) {</span></span>
-<span id="cb27-99"><a href="#cb27-99" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     saveRDS(result, output)</span></span>
-<span id="cb27-100"><a href="#cb27-100" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   } else if (identical(.rush$output_format, "ods")) {</span></span>
-<span id="cb27-101"><a href="#cb27-101" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     readODS::write_ods(result, output)</span></span>
-<span id="cb27-102"><a href="#cb27-102" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   } else if (identical(.rush$output_format, "fasta")) {</span></span>
-<span id="cb27-103"><a href="#cb27-103" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     microseq::writeFasta(result, output)</span></span>
-<span id="cb27-104"><a href="#cb27-104" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   } else if (identical(.rush$output_format, "fastq")) {</span></span>
-<span id="cb27-105"><a href="#cb27-105" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     microseq::writeFastq(result, output)</span></span>
-<span id="cb27-106"><a href="#cb27-106" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   } else if (identical(.rush$output_format, "yaml")) {</span></span>
-<span id="cb27-107"><a href="#cb27-107" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     rows &lt;- lapply(seq_len(nrow(result)), function(.i) {</span></span>
-<span id="cb27-108"><a href="#cb27-108" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       as.list(result[.i, , drop = FALSE])</span></span>
-<span id="cb27-109"><a href="#cb27-109" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     })</span></span>
-<span id="cb27-110"><a href="#cb27-110" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     yaml_out &lt;- yaml::as.yaml(rows, indent = .rush$output_indent)</span></span>
-<span id="cb27-111"><a href="#cb27-111" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     if (is.null(output)) cat(yaml_out) else writeLines(yaml_out, output)</span></span>
-<span id="cb27-112"><a href="#cb27-112" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   } else if (identical(.rush$output_format, "toml")) {</span></span>
-<span id="cb27-113"><a href="#cb27-113" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     .dq &lt;- rawToChar(as.raw(0x22))</span></span>
-<span id="cb27-114"><a href="#cb27-114" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     .lines &lt;- character(0)</span></span>
-<span id="cb27-115"><a href="#cb27-115" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     for (.i in seq_len(nrow(result))) {</span></span>
-<span id="cb27-116"><a href="#cb27-116" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       .lines &lt;- c(.lines, paste0("[[", .rush$output_record, "]]"))</span></span>
-<span id="cb27-117"><a href="#cb27-117" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       for (.col in names(result)) {</span></span>
-<span id="cb27-118"><a href="#cb27-118" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         .val &lt;- result[[.col]][.i]</span></span>
-<span id="cb27-119"><a href="#cb27-119" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         .key &lt;- paste0(.dq, .col, .dq)</span></span>
-<span id="cb27-120"><a href="#cb27-120" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         if (is.character(.val) || is.factor(.val)) {</span></span>
-<span id="cb27-121"><a href="#cb27-121" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;           .lines &lt;- c(.lines, paste0(.key, " = ", .dq, as.character(.val), .dq))</span></span>
-<span id="cb27-122"><a href="#cb27-122" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         } else if (is.logical(.val)) {</span></span>
-<span id="cb27-123"><a href="#cb27-123" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;           .lines &lt;- c(.lines, paste0(.key, " = ", tolower(.val)))</span></span>
-<span id="cb27-124"><a href="#cb27-124" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         } else {</span></span>
-<span id="cb27-125"><a href="#cb27-125" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;           .lines &lt;- c(.lines, paste0(.key, " = ", .val))</span></span>
-<span id="cb27-126"><a href="#cb27-126" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         }</span></span>
-<span id="cb27-127"><a href="#cb27-127" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       }</span></span>
-<span id="cb27-128"><a href="#cb27-128" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       .lines &lt;- c(.lines, "")</span></span>
-<span id="cb27-129"><a href="#cb27-129" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     }</span></span>
-<span id="cb27-130"><a href="#cb27-130" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     toml_out &lt;- paste(.lines, collapse = "</span></span>
-<span id="cb27-131"><a href="#cb27-131" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; ")</span></span>
-<span id="cb27-132"><a href="#cb27-132" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     if (is.null(output)) cat(toml_out, "</span></span>
-<span id="cb27-133"><a href="#cb27-133" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; ") else writeLines(toml_out, output)</span></span>
-<span id="cb27-134"><a href="#cb27-134" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   } else if (identical(.rush$output_format, "xml")) {</span></span>
-<span id="cb27-135"><a href="#cb27-135" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     root &lt;- xml2::xml_new_root(.rush$output_root)</span></span>
-<span id="cb27-136"><a href="#cb27-136" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     for (.i in seq_len(nrow(result))) {</span></span>
-<span id="cb27-137"><a href="#cb27-137" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       .row_node &lt;- xml2::xml_add_child(root, .rush$output_record)</span></span>
-<span id="cb27-138"><a href="#cb27-138" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       for (.col in names(result)) {</span></span>
-<span id="cb27-139"><a href="#cb27-139" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         xml2::xml_add_child(.row_node, .col, as.character(result[[.col]][.i]))</span></span>
-<span id="cb27-140"><a href="#cb27-140" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       }</span></span>
-<span id="cb27-141"><a href="#cb27-141" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     }</span></span>
-<span id="cb27-142"><a href="#cb27-142" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     if (is.null(output)) {</span></span>
-<span id="cb27-143"><a href="#cb27-143" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       cat(as.character(root))</span></span>
-<span id="cb27-144"><a href="#cb27-144" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     } else {</span></span>
-<span id="cb27-145"><a href="#cb27-145" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       xml2::write_xml(root, output)</span></span>
-<span id="cb27-146"><a href="#cb27-146" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     }</span></span>
-<span id="cb27-147"><a href="#cb27-147" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   } else {</span></span>
-<span id="cb27-148"><a href="#cb27-148" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     con &lt;- if (is.null(output)) .stdout_binary() else output</span></span>
-<span id="cb27-149"><a href="#cb27-149" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     readr::write_delim(result, con, delim = .rush$delimiter %||% ",")</span></span>
-<span id="cb27-150"><a href="#cb27-150" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   }</span></span>
-<span id="cb27-151"><a href="#cb27-151" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; }</span></span>
-<span id="cb27-152"><a href="#cb27-152" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb27-153"><a href="#cb27-153" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; if (!is.null(.rush$output_template)) {</span></span>
-<span id="cb27-154"><a href="#cb27-154" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   .expand_field &lt;- function(value, spec) {</span></span>
-<span id="cb27-155"><a href="#cb27-155" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     if (grepl("l$", spec)) {</span></span>
-<span id="cb27-156"><a href="#cb27-156" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       tolower(sprintf(paste0("%", sub("l$", "s", spec)), value))</span></span>
-<span id="cb27-157"><a href="#cb27-157" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     } else if (grepl("u$", spec)) {</span></span>
-<span id="cb27-158"><a href="#cb27-158" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       toupper(sprintf(paste0("%", sub("u$", "s", spec)), value))</span></span>
-<span id="cb27-159"><a href="#cb27-159" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     } else {</span></span>
-<span id="cb27-160"><a href="#cb27-160" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       sprintf(paste0("%", spec), value)</span></span>
-<span id="cb27-161"><a href="#cb27-161" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     }</span></span>
-<span id="cb27-162"><a href="#cb27-162" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   }</span></span>
-<span id="cb27-163"><a href="#cb27-163" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   .expand_template &lt;- function(tmpl, file_name, file_index, table_name, table_index) {</span></span>
-<span id="cb27-164"><a href="#cb27-164" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     while (grepl("%[(][^)]+[)]([^%]*[a-z])", tmpl)) {</span></span>
-<span id="cb27-165"><a href="#cb27-165" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       m &lt;- regexec("%[(]([^)]+)[)]([^%]*[a-z])", tmpl)[[1]]</span></span>
-<span id="cb27-166"><a href="#cb27-166" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       full &lt;- regmatches(tmpl, list(m))[[1]]</span></span>
-<span id="cb27-167"><a href="#cb27-167" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       field &lt;- full[2]</span></span>
-<span id="cb27-168"><a href="#cb27-168" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       spec &lt;- full[3]</span></span>
-<span id="cb27-169"><a href="#cb27-169" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       value &lt;- switch(field,</span></span>
-<span id="cb27-170"><a href="#cb27-170" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         file_name = file_name, file_index = file_index,</span></span>
-<span id="cb27-171"><a href="#cb27-171" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         table_name = table_name, table_index = table_index,</span></span>
-<span id="cb27-172"><a href="#cb27-172" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         "")</span></span>
-<span id="cb27-173"><a href="#cb27-173" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       replacement &lt;- .expand_field(value, spec)</span></span>
-<span id="cb27-174"><a href="#cb27-174" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       tmpl &lt;- sub("%[(]([^)]+)[)]([^%]*[a-z])", replacement, tmpl)</span></span>
-<span id="cb27-175"><a href="#cb27-175" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     }</span></span>
-<span id="cb27-176"><a href="#cb27-176" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     tmpl</span></span>
-<span id="cb27-177"><a href="#cb27-177" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   }</span></span>
-<span id="cb27-178"><a href="#cb27-178" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   .file_index &lt;- 0L</span></span>
-<span id="cb27-179"><a href="#cb27-179" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   for (.fname in names(result)) {</span></span>
-<span id="cb27-180"><a href="#cb27-180" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     .file_index &lt;- .file_index + 1L</span></span>
-<span id="cb27-181"><a href="#cb27-181" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     .item &lt;- result[[.fname]]</span></span>
-<span id="cb27-182"><a href="#cb27-182" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     if (is.data.frame(.item)) {</span></span>
-<span id="cb27-183"><a href="#cb27-183" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       .path &lt;- .expand_template(.rush$output_template, .fname, .file_index, "", 0L)</span></span>
-<span id="cb27-184"><a href="#cb27-184" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       .write_result(.item, .path)</span></span>
-<span id="cb27-185"><a href="#cb27-185" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     } else if (is.list(.item)) {</span></span>
-<span id="cb27-186"><a href="#cb27-186" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       .table_index &lt;- 0L</span></span>
-<span id="cb27-187"><a href="#cb27-187" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       for (.tname in names(.item)) {</span></span>
-<span id="cb27-188"><a href="#cb27-188" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         .table_index &lt;- .table_index + 1L</span></span>
-<span id="cb27-189"><a href="#cb27-189" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         .path &lt;- .expand_template(.rush$output_template, .fname, .file_index, .tname, .table_index)</span></span>
-<span id="cb27-190"><a href="#cb27-190" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         .write_result(.item[[.tname]], .path)</span></span>
-<span id="cb27-191"><a href="#cb27-191" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       }</span></span>
-<span id="cb27-192"><a href="#cb27-192" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     }</span></span>
-<span id="cb27-193"><a href="#cb27-193" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   }</span></span>
-<span id="cb27-194"><a href="#cb27-194" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; } else if (rlang::is_atomic(result)) {</span></span>
-<span id="cb27-195"><a href="#cb27-195" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   if (is.null(.rush$output)) {</span></span>
-<span id="cb27-196"><a href="#cb27-196" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     cli::cat_line(result)</span></span>
-<span id="cb27-197"><a href="#cb27-197" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   } else {</span></span>
-<span id="cb27-198"><a href="#cb27-198" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     .write_result(tibble::tibble(x = result), .rush$output)</span></span>
-<span id="cb27-199"><a href="#cb27-199" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   }</span></span>
-<span id="cb27-200"><a href="#cb27-200" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; } else if (is.data.frame(result)) {</span></span>
-<span id="cb27-201"><a href="#cb27-201" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   .write_result(result, .rush$output)</span></span>
-<span id="cb27-202"><a href="#cb27-202" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; } else if (rlang::is_bare_list(result)) {</span></span>
-<span id="cb27-203"><a href="#cb27-203" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   if (.rush$output_format %in% c("duckdb", "sqlite")) {</span></span>
-<span id="cb27-204"><a href="#cb27-204" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     .write_result(result, .rush$output)</span></span>
-<span id="cb27-205"><a href="#cb27-205" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   } else {</span></span>
-<span id="cb27-206"><a href="#cb27-206" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     result &lt;- tibble::enframe(result)</span></span>
-<span id="cb27-207"><a href="#cb27-207" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     .write_result(result, .rush$output)</span></span>
-<span id="cb27-208"><a href="#cb27-208" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   }</span></span>
-<span id="cb27-209"><a href="#cb27-209" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; }</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; #|   - rush</span></span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; rush::init(</span></span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   output_format = "xml",</span></span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   output_root = "plants",</span></span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   output_record = "observation"</span></span>
+<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; )</span></span>
+<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; dfs &lt;- list()</span></span>
+<span id="cb27-13"><a href="#cb27-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; dfs[["data"]] &lt;- rush::read("data.csv")</span></span>
+<span id="cb27-14"><a href="#cb27-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; df &lt;- dfs[[1]]</span></span>
+<span id="cb27-15"><a href="#cb27-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; result &lt;- head(df)</span></span>
+<span id="cb27-16"><a href="#cb27-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb27-17"><a href="#cb27-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; rush::write(result)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="dry-run--n" class="level3">
@@ -804,211 +612,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> run <span class="at">-n</span> <span class="st">'df |&gt; dplyr::filter(body_mass_g &gt; 5000)'</span> penguins.csv</span>
 <span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; #!/usr/bin/env -S ir run</span></span>
 <span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; #| packages:</span></span>
-<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; #|   - rlang</span></span>
-<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; #|   - cli</span></span>
-<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; #|   - tibble</span></span>
-<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; #|   - readr</span></span>
-<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; #|   - janitor</span></span>
-<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; .rush &lt;- list(</span></span>
-<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   output = NULL,</span></span>
-<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   output_template = NULL,</span></span>
-<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   output_format = "delim",</span></span>
-<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   width = NULL,</span></span>
-<span id="cb28-15"><a href="#cb28-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   height = NULL,</span></span>
-<span id="cb28-16"><a href="#cb28-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   units = "in",</span></span>
-<span id="cb28-17"><a href="#cb28-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   dpi = 300,</span></span>
-<span id="cb28-18"><a href="#cb28-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   delimiter = ",",</span></span>
-<span id="cb28-19"><a href="#cb28-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   head = NULL,</span></span>
-<span id="cb28-20"><a href="#cb28-20" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   has_post = FALSE,</span></span>
-<span id="cb28-21"><a href="#cb28-21" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   output_root = "root",</span></span>
-<span id="cb28-22"><a href="#cb28-22" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   output_record = "record",</span></span>
-<span id="cb28-23"><a href="#cb28-23" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   output_sheet = NULL,</span></span>
-<span id="cb28-24"><a href="#cb28-24" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   output_indent = 2L</span></span>
-<span id="cb28-25"><a href="#cb28-25" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; )</span></span>
-<span id="cb28-26"><a href="#cb28-26" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb28-27"><a href="#cb28-27" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; dfs &lt;- list()</span></span>
-<span id="cb28-28"><a href="#cb28-28" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; dfs[["penguins"]] &lt;- janitor::clean_names(readr::read_delim("penguins.csv", delim = ",", col_names = TRUE))</span></span>
-<span id="cb28-29"><a href="#cb28-29" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; df &lt;- dfs[[1]]</span></span>
-<span id="cb28-30"><a href="#cb28-30" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; result &lt;- dplyr::filter(df, body_mass_g &gt; 5000)</span></span>
-<span id="cb28-31"><a href="#cb28-31" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb28-32"><a href="#cb28-32" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; #~~~ Output dispatch (added by rush) ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span></span>
-<span id="cb28-33"><a href="#cb28-33" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; .has_tty &lt;- isatty(stdout())</span></span>
-<span id="cb28-34"><a href="#cb28-34" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; .stdout_binary &lt;- function() {</span></span>
-<span id="cb28-35"><a href="#cb28-35" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   if (.Platform$OS.type == "windows") file("stdout", "wb", raw = TRUE)</span></span>
-<span id="cb28-36"><a href="#cb28-36" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   else file("/dev/stdout", "wb", raw = TRUE)</span></span>
-<span id="cb28-37"><a href="#cb28-37" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; }</span></span>
-<span id="cb28-38"><a href="#cb28-38" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; if (.has_tty) options(width = if (is.null(.rush$width)) cli::console_width() else .rush$width)</span></span>
-<span id="cb28-39"><a href="#cb28-39" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb28-40"><a href="#cb28-40" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; .write_result &lt;- function(result, output) {</span></span>
-<span id="cb28-41"><a href="#cb28-41" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   if (!is.null(.rush$head)) result &lt;- head(result, .rush$head)</span></span>
-<span id="cb28-42"><a href="#cb28-42" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   if (.has_tty &amp;&amp; is.null(output) &amp;&amp; identical(.rush$output_format, "delim")) {</span></span>
-<span id="cb28-43"><a href="#cb28-43" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     options(tibble.width = if (is.null(.rush$width)) cli::console_width() else .rush$width)</span></span>
-<span id="cb28-44"><a href="#cb28-44" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     print(tibble::as_tibble(result), n = .rush$height)</span></span>
-<span id="cb28-45"><a href="#cb28-45" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   } else if (identical(.rush$output_format, "parquet")) {</span></span>
-<span id="cb28-46"><a href="#cb28-46" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     if (is.null(output)) stop("Parquet format requires --output (-o) file path")</span></span>
-<span id="cb28-47"><a href="#cb28-47" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     nanoparquet::write_parquet(result, output)</span></span>
-<span id="cb28-48"><a href="#cb28-48" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   } else if (identical(.rush$output_format, "json")) {</span></span>
-<span id="cb28-49"><a href="#cb28-49" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     .pretty &lt;- .rush$output_indent &gt; 0L</span></span>
-<span id="cb28-50"><a href="#cb28-50" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     json &lt;- jsonlite::toJSON(result, dataframe = "rows", pretty = .pretty, auto_unbox = TRUE)</span></span>
-<span id="cb28-51"><a href="#cb28-51" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     if (is.null(output)) cat(json, "</span></span>
-<span id="cb28-52"><a href="#cb28-52" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; ") else writeLines(json, output)</span></span>
-<span id="cb28-53"><a href="#cb28-53" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   } else if (identical(.rush$output_format, "jsonl")) {</span></span>
-<span id="cb28-54"><a href="#cb28-54" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     con_out &lt;- if (is.null(output)) stdout() else file(output, "w")</span></span>
-<span id="cb28-55"><a href="#cb28-55" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     jsonlite::stream_out(result, con_out, verbose = FALSE)</span></span>
-<span id="cb28-56"><a href="#cb28-56" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     if (!is.null(output)) close(con_out)</span></span>
-<span id="cb28-57"><a href="#cb28-57" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   } else if (identical(.rush$output_format, "arrow")) {</span></span>
-<span id="cb28-58"><a href="#cb28-58" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     if (is.null(output)) stop("Arrow format requires --output (-o) file path")</span></span>
-<span id="cb28-59"><a href="#cb28-59" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     arrow::write_ipc_file(result, output)</span></span>
-<span id="cb28-60"><a href="#cb28-60" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   } else if (identical(.rush$output_format, "xlsx")) {</span></span>
-<span id="cb28-61"><a href="#cb28-61" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     .xlsx_data &lt;- if (!is.null(.rush$output_sheet)) {</span></span>
-<span id="cb28-62"><a href="#cb28-62" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       stats::setNames(list(result), .rush$output_sheet)</span></span>
-<span id="cb28-63"><a href="#cb28-63" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     } else {</span></span>
-<span id="cb28-64"><a href="#cb28-64" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       result</span></span>
-<span id="cb28-65"><a href="#cb28-65" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     }</span></span>
-<span id="cb28-66"><a href="#cb28-66" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     writexl::write_xlsx(.xlsx_data, output)</span></span>
-<span id="cb28-67"><a href="#cb28-67" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   } else if (identical(.rush$output_format, "sav")) {</span></span>
-<span id="cb28-68"><a href="#cb28-68" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     haven::write_sav(result, output)</span></span>
-<span id="cb28-69"><a href="#cb28-69" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   } else if (identical(.rush$output_format, "zsav")) {</span></span>
-<span id="cb28-70"><a href="#cb28-70" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     haven::write_sav(result, output, compress = "zsav")</span></span>
-<span id="cb28-71"><a href="#cb28-71" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   } else if (identical(.rush$output_format, "dta")) {</span></span>
-<span id="cb28-72"><a href="#cb28-72" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     haven::write_dta(result, output)</span></span>
-<span id="cb28-73"><a href="#cb28-73" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   } else if (identical(.rush$output_format, "sas7bdat")) {</span></span>
-<span id="cb28-74"><a href="#cb28-74" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     haven::write_sas(result, output)</span></span>
-<span id="cb28-75"><a href="#cb28-75" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   } else if (identical(.rush$output_format, "xpt")) {</span></span>
-<span id="cb28-76"><a href="#cb28-76" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     haven::write_xpt(result, output)</span></span>
-<span id="cb28-77"><a href="#cb28-77" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   } else if (identical(.rush$output_format, "duckdb")) {</span></span>
-<span id="cb28-78"><a href="#cb28-78" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     .con &lt;- DBI::dbConnect(duckdb::duckdb(), dbdir = output)</span></span>
-<span id="cb28-79"><a href="#cb28-79" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     on.exit(DBI::dbDisconnect(.con, shutdown = TRUE))</span></span>
-<span id="cb28-80"><a href="#cb28-80" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     if (is.data.frame(result)) {</span></span>
-<span id="cb28-81"><a href="#cb28-81" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       DBI::dbWriteTable(.con, "data", result)</span></span>
-<span id="cb28-82"><a href="#cb28-82" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     } else if (is.list(result)) {</span></span>
-<span id="cb28-83"><a href="#cb28-83" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       for (.tbl_name in names(result)) {</span></span>
-<span id="cb28-84"><a href="#cb28-84" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         DBI::dbWriteTable(.con, .tbl_name, result[[.tbl_name]])</span></span>
-<span id="cb28-85"><a href="#cb28-85" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       }</span></span>
-<span id="cb28-86"><a href="#cb28-86" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     }</span></span>
-<span id="cb28-87"><a href="#cb28-87" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   } else if (identical(.rush$output_format, "sqlite")) {</span></span>
-<span id="cb28-88"><a href="#cb28-88" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     .con &lt;- DBI::dbConnect(RSQLite::SQLite(), output)</span></span>
-<span id="cb28-89"><a href="#cb28-89" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     on.exit(DBI::dbDisconnect(.con))</span></span>
-<span id="cb28-90"><a href="#cb28-90" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     if (is.data.frame(result)) {</span></span>
-<span id="cb28-91"><a href="#cb28-91" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       DBI::dbWriteTable(.con, "data", result)</span></span>
-<span id="cb28-92"><a href="#cb28-92" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     } else if (is.list(result)) {</span></span>
-<span id="cb28-93"><a href="#cb28-93" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       for (.tbl_name in names(result)) {</span></span>
-<span id="cb28-94"><a href="#cb28-94" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         DBI::dbWriteTable(.con, .tbl_name, result[[.tbl_name]])</span></span>
-<span id="cb28-95"><a href="#cb28-95" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       }</span></span>
-<span id="cb28-96"><a href="#cb28-96" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     }</span></span>
-<span id="cb28-97"><a href="#cb28-97" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   } else if (identical(.rush$output_format, "rds")) {</span></span>
-<span id="cb28-98"><a href="#cb28-98" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     saveRDS(result, output)</span></span>
-<span id="cb28-99"><a href="#cb28-99" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   } else if (identical(.rush$output_format, "ods")) {</span></span>
-<span id="cb28-100"><a href="#cb28-100" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     readODS::write_ods(result, output)</span></span>
-<span id="cb28-101"><a href="#cb28-101" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   } else if (identical(.rush$output_format, "fasta")) {</span></span>
-<span id="cb28-102"><a href="#cb28-102" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     microseq::writeFasta(result, output)</span></span>
-<span id="cb28-103"><a href="#cb28-103" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   } else if (identical(.rush$output_format, "fastq")) {</span></span>
-<span id="cb28-104"><a href="#cb28-104" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     microseq::writeFastq(result, output)</span></span>
-<span id="cb28-105"><a href="#cb28-105" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   } else if (identical(.rush$output_format, "yaml")) {</span></span>
-<span id="cb28-106"><a href="#cb28-106" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     rows &lt;- lapply(seq_len(nrow(result)), function(.i) {</span></span>
-<span id="cb28-107"><a href="#cb28-107" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       as.list(result[.i, , drop = FALSE])</span></span>
-<span id="cb28-108"><a href="#cb28-108" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     })</span></span>
-<span id="cb28-109"><a href="#cb28-109" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     yaml_out &lt;- yaml::as.yaml(rows, indent = .rush$output_indent)</span></span>
-<span id="cb28-110"><a href="#cb28-110" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     if (is.null(output)) cat(yaml_out) else writeLines(yaml_out, output)</span></span>
-<span id="cb28-111"><a href="#cb28-111" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   } else if (identical(.rush$output_format, "toml")) {</span></span>
-<span id="cb28-112"><a href="#cb28-112" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     .dq &lt;- rawToChar(as.raw(0x22))</span></span>
-<span id="cb28-113"><a href="#cb28-113" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     .lines &lt;- character(0)</span></span>
-<span id="cb28-114"><a href="#cb28-114" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     for (.i in seq_len(nrow(result))) {</span></span>
-<span id="cb28-115"><a href="#cb28-115" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       .lines &lt;- c(.lines, paste0("[[", .rush$output_record, "]]"))</span></span>
-<span id="cb28-116"><a href="#cb28-116" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       for (.col in names(result)) {</span></span>
-<span id="cb28-117"><a href="#cb28-117" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         .val &lt;- result[[.col]][.i]</span></span>
-<span id="cb28-118"><a href="#cb28-118" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         .key &lt;- paste0(.dq, .col, .dq)</span></span>
-<span id="cb28-119"><a href="#cb28-119" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         if (is.character(.val) || is.factor(.val)) {</span></span>
-<span id="cb28-120"><a href="#cb28-120" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;           .lines &lt;- c(.lines, paste0(.key, " = ", .dq, as.character(.val), .dq))</span></span>
-<span id="cb28-121"><a href="#cb28-121" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         } else if (is.logical(.val)) {</span></span>
-<span id="cb28-122"><a href="#cb28-122" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;           .lines &lt;- c(.lines, paste0(.key, " = ", tolower(.val)))</span></span>
-<span id="cb28-123"><a href="#cb28-123" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         } else {</span></span>
-<span id="cb28-124"><a href="#cb28-124" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;           .lines &lt;- c(.lines, paste0(.key, " = ", .val))</span></span>
-<span id="cb28-125"><a href="#cb28-125" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         }</span></span>
-<span id="cb28-126"><a href="#cb28-126" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       }</span></span>
-<span id="cb28-127"><a href="#cb28-127" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       .lines &lt;- c(.lines, "")</span></span>
-<span id="cb28-128"><a href="#cb28-128" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     }</span></span>
-<span id="cb28-129"><a href="#cb28-129" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     toml_out &lt;- paste(.lines, collapse = "</span></span>
-<span id="cb28-130"><a href="#cb28-130" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; ")</span></span>
-<span id="cb28-131"><a href="#cb28-131" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     if (is.null(output)) cat(toml_out, "</span></span>
-<span id="cb28-132"><a href="#cb28-132" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; ") else writeLines(toml_out, output)</span></span>
-<span id="cb28-133"><a href="#cb28-133" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   } else if (identical(.rush$output_format, "xml")) {</span></span>
-<span id="cb28-134"><a href="#cb28-134" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     root &lt;- xml2::xml_new_root(.rush$output_root)</span></span>
-<span id="cb28-135"><a href="#cb28-135" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     for (.i in seq_len(nrow(result))) {</span></span>
-<span id="cb28-136"><a href="#cb28-136" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       .row_node &lt;- xml2::xml_add_child(root, .rush$output_record)</span></span>
-<span id="cb28-137"><a href="#cb28-137" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       for (.col in names(result)) {</span></span>
-<span id="cb28-138"><a href="#cb28-138" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         xml2::xml_add_child(.row_node, .col, as.character(result[[.col]][.i]))</span></span>
-<span id="cb28-139"><a href="#cb28-139" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       }</span></span>
-<span id="cb28-140"><a href="#cb28-140" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     }</span></span>
-<span id="cb28-141"><a href="#cb28-141" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     if (is.null(output)) {</span></span>
-<span id="cb28-142"><a href="#cb28-142" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       cat(as.character(root))</span></span>
-<span id="cb28-143"><a href="#cb28-143" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     } else {</span></span>
-<span id="cb28-144"><a href="#cb28-144" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       xml2::write_xml(root, output)</span></span>
-<span id="cb28-145"><a href="#cb28-145" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     }</span></span>
-<span id="cb28-146"><a href="#cb28-146" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   } else {</span></span>
-<span id="cb28-147"><a href="#cb28-147" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     con &lt;- if (is.null(output)) .stdout_binary() else output</span></span>
-<span id="cb28-148"><a href="#cb28-148" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     readr::write_delim(result, con, delim = .rush$delimiter %||% ",")</span></span>
-<span id="cb28-149"><a href="#cb28-149" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   }</span></span>
-<span id="cb28-150"><a href="#cb28-150" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; }</span></span>
-<span id="cb28-151"><a href="#cb28-151" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb28-152"><a href="#cb28-152" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; if (!is.null(.rush$output_template)) {</span></span>
-<span id="cb28-153"><a href="#cb28-153" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   .expand_field &lt;- function(value, spec) {</span></span>
-<span id="cb28-154"><a href="#cb28-154" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     if (grepl("l$", spec)) {</span></span>
-<span id="cb28-155"><a href="#cb28-155" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       tolower(sprintf(paste0("%", sub("l$", "s", spec)), value))</span></span>
-<span id="cb28-156"><a href="#cb28-156" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     } else if (grepl("u$", spec)) {</span></span>
-<span id="cb28-157"><a href="#cb28-157" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       toupper(sprintf(paste0("%", sub("u$", "s", spec)), value))</span></span>
-<span id="cb28-158"><a href="#cb28-158" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     } else {</span></span>
-<span id="cb28-159"><a href="#cb28-159" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       sprintf(paste0("%", spec), value)</span></span>
-<span id="cb28-160"><a href="#cb28-160" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     }</span></span>
-<span id="cb28-161"><a href="#cb28-161" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   }</span></span>
-<span id="cb28-162"><a href="#cb28-162" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   .expand_template &lt;- function(tmpl, file_name, file_index, table_name, table_index) {</span></span>
-<span id="cb28-163"><a href="#cb28-163" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     while (grepl("%[(][^)]+[)]([^%]*[a-z])", tmpl)) {</span></span>
-<span id="cb28-164"><a href="#cb28-164" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       m &lt;- regexec("%[(]([^)]+)[)]([^%]*[a-z])", tmpl)[[1]]</span></span>
-<span id="cb28-165"><a href="#cb28-165" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       full &lt;- regmatches(tmpl, list(m))[[1]]</span></span>
-<span id="cb28-166"><a href="#cb28-166" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       field &lt;- full[2]</span></span>
-<span id="cb28-167"><a href="#cb28-167" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       spec &lt;- full[3]</span></span>
-<span id="cb28-168"><a href="#cb28-168" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       value &lt;- switch(field,</span></span>
-<span id="cb28-169"><a href="#cb28-169" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         file_name = file_name, file_index = file_index,</span></span>
-<span id="cb28-170"><a href="#cb28-170" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         table_name = table_name, table_index = table_index,</span></span>
-<span id="cb28-171"><a href="#cb28-171" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         "")</span></span>
-<span id="cb28-172"><a href="#cb28-172" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       replacement &lt;- .expand_field(value, spec)</span></span>
-<span id="cb28-173"><a href="#cb28-173" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       tmpl &lt;- sub("%[(]([^)]+)[)]([^%]*[a-z])", replacement, tmpl)</span></span>
-<span id="cb28-174"><a href="#cb28-174" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     }</span></span>
-<span id="cb28-175"><a href="#cb28-175" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     tmpl</span></span>
-<span id="cb28-176"><a href="#cb28-176" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   }</span></span>
-<span id="cb28-177"><a href="#cb28-177" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   .file_index &lt;- 0L</span></span>
-<span id="cb28-178"><a href="#cb28-178" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   for (.fname in names(result)) {</span></span>
-<span id="cb28-179"><a href="#cb28-179" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     .file_index &lt;- .file_index + 1L</span></span>
-<span id="cb28-180"><a href="#cb28-180" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     .item &lt;- result[[.fname]]</span></span>
-<span id="cb28-181"><a href="#cb28-181" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     if (is.data.frame(.item)) {</span></span>
-<span id="cb28-182"><a href="#cb28-182" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       .path &lt;- .expand_template(.rush$output_template, .fname, .file_index, "", 0L)</span></span>
-<span id="cb28-183"><a href="#cb28-183" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       .write_result(.item, .path)</span></span>
-<span id="cb28-184"><a href="#cb28-184" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     } else if (is.list(.item)) {</span></span>
-<span id="cb28-185"><a href="#cb28-185" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       .table_index &lt;- 0L</span></span>
-<span id="cb28-186"><a href="#cb28-186" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       for (.tname in names(.item)) {</span></span>
-<span id="cb28-187"><a href="#cb28-187" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         .table_index &lt;- .table_index + 1L</span></span>
-<span id="cb28-188"><a href="#cb28-188" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         .path &lt;- .expand_template(.rush$output_template, .fname, .file_index, .tname, .table_index)</span></span>
-<span id="cb28-189"><a href="#cb28-189" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         .write_result(.item[[.tname]], .path)</span></span>
-<span id="cb28-190"><a href="#cb28-190" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       }</span></span>
-<span id="cb28-191"><a href="#cb28-191" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     }</span></span>
-<span id="cb28-192"><a href="#cb28-192" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   }</span></span>
-<span id="cb28-193"><a href="#cb28-193" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; } else if (rlang::is_atomic(result)) {</span></span>
-<span id="cb28-194"><a href="#cb28-194" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   if (is.null(.rush$output)) {</span></span>
-<span id="cb28-195"><a href="#cb28-195" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     cli::cat_line(result)</span></span>
-<span id="cb28-196"><a href="#cb28-196" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   } else {</span></span>
-<span id="cb28-197"><a href="#cb28-197" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     .write_result(tibble::tibble(x = result), .rush$output)</span></span>
-<span id="cb28-198"><a href="#cb28-198" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   }</span></span>
-<span id="cb28-199"><a href="#cb28-199" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; } else if (is.data.frame(result)) {</span></span>
-<span id="cb28-200"><a href="#cb28-200" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   .write_result(result, .rush$output)</span></span>
-<span id="cb28-201"><a href="#cb28-201" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; } else if (rlang::is_bare_list(result)) {</span></span>
-<span id="cb28-202"><a href="#cb28-202" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   if (.rush$output_format %in% c("duckdb", "sqlite")) {</span></span>
-<span id="cb28-203"><a href="#cb28-203" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     .write_result(result, .rush$output)</span></span>
-<span id="cb28-204"><a href="#cb28-204" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   } else {</span></span>
-<span id="cb28-205"><a href="#cb28-205" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     result &lt;- tibble::enframe(result)</span></span>
-<span id="cb28-206"><a href="#cb28-206" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     .write_result(result, .rush$output)</span></span>
-<span id="cb28-207"><a href="#cb28-207" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   }</span></span>
-<span id="cb28-208"><a href="#cb28-208" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; }</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; #|   - rush</span></span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; rush::init()</span></span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; dfs &lt;- list()</span></span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; dfs[["penguins"]] &lt;- rush::read("penguins.csv")</span></span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; df &lt;- dfs[[1]]</span></span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; result &lt;- dplyr::filter(df, body_mass_g &gt; 5000)</span></span>
+<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; rush::write(result)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="no-ir--i" class="level3">
@@ -1041,25 +654,26 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb30-16"><a href="#cb30-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; • no_clean_names  &lt;lgl&gt; FALSE</span></span>
 <span id="cb30-17"><a href="#cb30-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; • no_header       &lt;lgl&gt; FALSE</span></span>
 <span id="cb30-18"><a href="#cb30-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; • no_ir           &lt;lgl&gt; FALSE</span></span>
-<span id="cb30-19"><a href="#cb30-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; • output          &lt;NULL&gt; </span></span>
-<span id="cb30-20"><a href="#cb30-20" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; • output_delimiter &lt;NULL&gt; </span></span>
-<span id="cb30-21"><a href="#cb30-21" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; • output_format   &lt;chr&gt; "auto"</span></span>
-<span id="cb30-22"><a href="#cb30-22" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; • output_indent   &lt;int&gt; 2L</span></span>
-<span id="cb30-23"><a href="#cb30-23" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; • output_record   &lt;chr&gt; "record"</span></span>
-<span id="cb30-24"><a href="#cb30-24" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; • output_root     &lt;chr&gt; "root"</span></span>
-<span id="cb30-25"><a href="#cb30-25" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; • output_sheet    &lt;NULL&gt; </span></span>
-<span id="cb30-26"><a href="#cb30-26" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; • run             &lt;lgl&gt; TRUE</span></span>
-<span id="cb30-27"><a href="#cb30-27" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; • seed            &lt;int&gt; 7L</span></span>
-<span id="cb30-28"><a href="#cb30-28" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; • tidyverse       &lt;lgl&gt; FALSE</span></span>
-<span id="cb30-29"><a href="#cb30-29" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; • units           &lt;chr&gt; "in"</span></span>
-<span id="cb30-30"><a href="#cb30-30" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; • verbose         &lt;lgl&gt; TRUE</span></span>
-<span id="cb30-31"><a href="#cb30-31" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; • version         &lt;lgl&gt; FALSE</span></span>
-<span id="cb30-32"><a href="#cb30-32" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; • width           &lt;NULL&gt; </span></span>
-<span id="cb30-33"><a href="#cb30-33" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; • resolved_input_delimiter &lt;chr&gt; ","</span></span>
-<span id="cb30-34"><a href="#cb30-34" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; • resolved_output_delimiter &lt;chr&gt; ","</span></span>
-<span id="cb30-35"><a href="#cb30-35" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; • resolved_output_format &lt;chr&gt; "delim"</span></span>
-<span id="cb30-36"><a href="#cb30-36" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; ────────────────────────────────────────────────────────────────────────────────</span></span>
-<span id="cb30-37"><a href="#cb30-37" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 55</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb30-19"><a href="#cb30-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; • no_rush         &lt;lgl&gt; FALSE</span></span>
+<span id="cb30-20"><a href="#cb30-20" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; • output          &lt;NULL&gt; </span></span>
+<span id="cb30-21"><a href="#cb30-21" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; • output_delimiter &lt;NULL&gt; </span></span>
+<span id="cb30-22"><a href="#cb30-22" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; • output_format   &lt;chr&gt; "auto"</span></span>
+<span id="cb30-23"><a href="#cb30-23" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; • output_indent   &lt;int&gt; 2L</span></span>
+<span id="cb30-24"><a href="#cb30-24" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; • output_record   &lt;chr&gt; "record"</span></span>
+<span id="cb30-25"><a href="#cb30-25" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; • output_root     &lt;chr&gt; "root"</span></span>
+<span id="cb30-26"><a href="#cb30-26" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; • output_sheet    &lt;NULL&gt; </span></span>
+<span id="cb30-27"><a href="#cb30-27" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; • run             &lt;lgl&gt; TRUE</span></span>
+<span id="cb30-28"><a href="#cb30-28" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; • seed            &lt;int&gt; 7L</span></span>
+<span id="cb30-29"><a href="#cb30-29" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; • tidyverse       &lt;lgl&gt; FALSE</span></span>
+<span id="cb30-30"><a href="#cb30-30" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; • units           &lt;chr&gt; "in"</span></span>
+<span id="cb30-31"><a href="#cb30-31" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; • verbose         &lt;lgl&gt; TRUE</span></span>
+<span id="cb30-32"><a href="#cb30-32" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; • version         &lt;lgl&gt; FALSE</span></span>
+<span id="cb30-33"><a href="#cb30-33" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; • width           &lt;NULL&gt; </span></span>
+<span id="cb30-34"><a href="#cb30-34" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; • resolved_input_delimiter &lt;chr&gt; ","</span></span>
+<span id="cb30-35"><a href="#cb30-35" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; • resolved_output_delimiter &lt;chr&gt; ","</span></span>
+<span id="cb30-36"><a href="#cb30-36" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; • resolved_output_format &lt;chr&gt; "delim"</span></span>
+<span id="cb30-37"><a href="#cb30-37" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; ────────────────────────────────────────────────────────────────────────────────</span></span>
+<span id="cb30-38"><a href="#cb30-38" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 55</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 </section>
@@ -1116,9 +730,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb31-48"><a href="#cb31-48" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   -n, --dry-run                 Only print generated script.</span></span>
 <span id="cb31-49"><a href="#cb31-49" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   -h, --help                    Show this help.</span></span>
 <span id="cb31-50"><a href="#cb31-50" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   -I, --no-ir                   Run with Rscript, not ir.</span></span>
-<span id="cb31-51"><a href="#cb31-51" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --seed &lt;int&gt;              Seed random number generator.</span></span>
-<span id="cb31-52"><a href="#cb31-52" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   -v, --verbose                 Be verbose.</span></span>
-<span id="cb31-53"><a href="#cb31-53" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --version                 Show version.</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb31-51"><a href="#cb31-51" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   -R, --no-rush                 Inline all code (no rush dep).</span></span>
+<span id="cb31-52"><a href="#cb31-52" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --seed &lt;int&gt;              Seed random number generator.</span></span>
+<span id="cb31-53"><a href="#cb31-53" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   -v, --verbose                 Be verbose.</span></span>
+<span id="cb31-54"><a href="#cb31-54" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --version                 Show version.</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 
 
