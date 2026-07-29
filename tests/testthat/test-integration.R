@@ -5,57 +5,57 @@
 
 test_that("scalar numeric prints without [1] prefix", {
   skip_if_no_ir()
-  result <- rush_exec("6 * 7")
+  result <- rush_run_exec("6 * 7")
   expect_equal(stdout_lines(result), "42")
 })
 
 test_that("scalar float prints correctly", {
   skip_if_no_ir()
-  result <- rush_exec("pi")
+  result <- rush_run_exec("pi")
   expect_match(stdout_lines(result), "^3\\.14159")
 })
 
 test_that("scalar string prints without quotes", {
   skip_if_no_ir()
-  result <- rush_exec('paste("hello")')
+  result <- rush_run_exec('paste("hello")')
   expect_equal(stdout_lines(result), "hello")
 })
 
 test_that("integer vector prints one value per line", {
   skip_if_no_ir()
-  result <- rush_exec("seq(5)")
+  result <- rush_run_exec("seq(5)")
   expect_equal(stdout_lines(result), as.character(1:5))
 })
 
 test_that("character vector prints one value per line", {
 
   skip_if_no_ir()
-  result <- rush_exec("LETTERS[1:4]")
+  result <- rush_run_exec("LETTERS[1:4]")
   expect_equal(stdout_lines(result), c("A", "B", "C", "D"))
 })
 
 test_that("logical vector prints one value per line", {
   skip_if_no_ir()
-  result <- rush_exec("c(TRUE, FALSE, TRUE)")
+  result <- rush_run_exec("c(TRUE, FALSE, TRUE)")
   expect_equal(stdout_lines(result), c("TRUE", "FALSE", "TRUE"))
 })
 
 test_that("named vector prints values only", {
   skip_if_no_ir()
-  result <- rush_exec("c(a = 1, b = 2, c = 3)")
+  result <- rush_run_exec("c(a = 1, b = 2, c = 3)")
   lines <- stdout_lines(result)
   expect_true(all(c("1", "2", "3") %in% lines))
 })
 
 test_that("invisible NULL produces no output", {
   skip_if_no_ir()
-  result <- rush_exec("invisible(NULL)")
+  result <- rush_run_exec("invisible(NULL)")
   expect_equal(nchar(trimws(result$stdout)), 0)
 })
 
 test_that("long vector prints without index prefixes", {
   skip_if_no_ir()
-  result <- rush_exec("1:100")
+  result <- rush_run_exec("1:100")
   lines <- stdout_lines(result)
   expect_equal(length(lines), 100)
   expect_false(any(grepl("^\\[", lines)))
@@ -63,7 +63,7 @@ test_that("long vector prints without index prefixes", {
 
 test_that("paste result prints correctly", {
   skip_if_no_ir()
-  result <- rush_exec('paste("a", "b")')
+  result <- rush_run_exec('paste("a", "b")')
   expect_equal(stdout_lines(result), "a b")
 })
 
@@ -73,7 +73,7 @@ test_that("vector to CSV creates one-column file", {
   skip_if_no_ir()
   dir <- withr::local_tempdir()
   out <- file.path(dir, "out.csv")
-  result <- rush_exec("seq(5)", args = list(output = out))
+  result <- rush_run_exec("seq(5)", args = list(output = out))
   expect_equal(result$status, 0)
   df <- readr::read_csv(out, show_col_types = FALSE)
   expect_equal(nrow(df), 5)
@@ -85,7 +85,7 @@ test_that("scalar to CSV creates one-row file", {
   skip_if_no_ir()
   dir <- withr::local_tempdir()
   out <- file.path(dir, "out.csv")
-  result <- rush_exec("6 * 7", args = list(output = out))
+  result <- rush_run_exec("6 * 7", args = list(output = out))
   expect_equal(result$status, 0)
   df <- readr::read_csv(out, show_col_types = FALSE)
   expect_equal(nrow(df), 1)
@@ -96,7 +96,7 @@ test_that("vector to JSON creates array", {
   skip_if_no_ir()
   dir <- withr::local_tempdir()
   out <- file.path(dir, "out.json")
-  result <- rush_exec("LETTERS[1:3]", args = list(output = out))
+  result <- rush_run_exec("LETTERS[1:3]", args = list(output = out))
   expect_equal(result$status, 0)
   parsed <- jsonlite::fromJSON(out)
   expect_equal(nrow(parsed), 3)
@@ -106,7 +106,7 @@ test_that("vector to Parquet is readable", {
   skip_if_no_ir()
   dir <- withr::local_tempdir()
   out <- file.path(dir, "out.parquet")
-  result <- rush_exec("seq(3)", args = list(output = out))
+  result <- rush_run_exec("seq(3)", args = list(output = out))
   expect_equal(result$status, 0)
   df <- nanoparquet::read_parquet(out)
   expect_equal(nrow(df), 3)
@@ -117,7 +117,7 @@ test_that("logical vector to CSV", {
   skip_if_no_ir()
   dir <- withr::local_tempdir()
   out <- file.path(dir, "out.csv")
-  result <- rush_exec("c(TRUE, FALSE)", args = list(output = out))
+  result <- rush_run_exec("c(TRUE, FALSE)", args = list(output = out))
   expect_equal(result$status, 0)
   df <- readr::read_csv(out, show_col_types = FALSE)
   expect_equal(df$x, c(TRUE, FALSE))
@@ -127,19 +127,19 @@ test_that("logical vector to CSV", {
 
 test_that("multiple semicolons work, last value returned", {
   skip_if_no_ir()
-  result <- rush_exec("x <- 5; x * 2")
+  result <- rush_run_exec("x <- 5; x * 2")
   expect_equal(stdout_lines(result), "10")
 })
 
 test_that("sum of sequence via intermediate", {
   skip_if_no_ir()
-  result <- rush_exec("x <- 1:5; sum(x)")
+  result <- rush_run_exec("x <- 1:5; sum(x)")
   expect_equal(stdout_lines(result), "15")
 })
 
 test_that("data.frame expression to CSV stdout", {
   skip_if_no_ir()
-  result <- rush_exec(
+  result <- rush_run_exec(
     'data.frame(a = 1:3, b = c("x","y","z"))',
     args = list(output_format = "csv")
   )
@@ -150,7 +150,7 @@ test_that("data.frame expression to CSV stdout", {
 
 test_that("three expressions, last is result", {
   skip_if_no_ir()
-  result <- rush_exec("a <- 1; b <- 2; a + b")
+  result <- rush_run_exec("a <- 1; b <- 2; a + b")
   expect_equal(stdout_lines(result), "3")
 })
 
@@ -160,7 +160,7 @@ test_that("read CSV: correct row count", {
   skip_if_no_ir()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
-  result <- rush_exec("nrow(df)", file = f)
+  result <- rush_run_exec("nrow(df)", file = f)
   expect_equal(stdout_lines(result), "3")
 })
 
@@ -169,7 +169,7 @@ test_that("read CSV: column names are cleaned", {
   dir <- withr::local_tempdir()
   df <- data.frame(`First Name` = "Alice", `Last Name` = "Smith", check.names = FALSE)
   f <- make_csv(df, dir)
-  result <- rush_exec("names(df)", file = f)
+  result <- rush_run_exec("names(df)", file = f)
   lines <- stdout_lines(result)
   expect_true("first_name" %in% lines)
   expect_true("last_name" %in% lines)
@@ -179,7 +179,7 @@ test_that("read TSV: correct row count", {
   skip_if_no_ir()
   dir <- withr::local_tempdir()
   f <- make_tsv(test_df(), dir)
-  result <- rush_exec("nrow(df)", file = f)
+  result <- rush_run_exec("nrow(df)", file = f)
   expect_equal(stdout_lines(result), "3")
 })
 
@@ -187,7 +187,7 @@ test_that("read TSV: values are correct", {
   skip_if_no_ir()
   dir <- withr::local_tempdir()
   f <- make_tsv(test_df(), dir)
-  result <- rush_exec("df$name[1]", file = f)
+  result <- rush_run_exec("df$name[1]", file = f)
   expect_equal(stdout_lines(result), "Alice")
 })
 
@@ -196,7 +196,7 @@ test_that("read with semicolon delimiter", {
   dir <- withr::local_tempdir()
   path <- file.path(dir, "data.csv")
   writeLines(c("a;b", "1;2", "3;4"), path)
-  result <- rush_exec("nrow(df)", file = path, args = list(delimiter = ";"))
+  result <- rush_run_exec("nrow(df)", file = path, args = list(delimiter = ";"))
   expect_equal(stdout_lines(result), "2")
 })
 
@@ -205,7 +205,7 @@ test_that("read with --input-delimiter override", {
   dir <- withr::local_tempdir()
   path <- file.path(dir, "data.csv")
   writeLines(c("a\tb", "1\t2", "3\t4"), path)
-  result <- rush_exec("nrow(df)", file = path, args = list(input_delimiter = "\t"))
+  result <- rush_run_exec("nrow(df)", file = path, args = list(input_delimiter = "\t"))
   expect_equal(stdout_lines(result), "2")
 })
 
@@ -214,7 +214,7 @@ test_that("read with -H (no header): columns named x1, x2", {
   dir <- withr::local_tempdir()
   path <- file.path(dir, "data.csv")
   writeLines(c("1,2", "3,4", "5,6"), path)
-  result <- rush_exec("names(df)", file = path, args = list(no_header = TRUE))
+  result <- rush_run_exec("names(df)", file = path, args = list(no_header = TRUE))
   lines <- stdout_lines(result)
   expect_true("x1" %in% lines)
   expect_true("x2" %in% lines)
@@ -225,7 +225,7 @@ test_that("read with -H: first row is data not header", {
   dir <- withr::local_tempdir()
   path <- file.path(dir, "data.csv")
   writeLines(c("10,20", "30,40"), path)
-  result <- rush_exec("df$x1[1]", file = path, args = list(no_header = TRUE))
+  result <- rush_run_exec("df$x1[1]", file = path, args = list(no_header = TRUE))
   expect_equal(stdout_lines(result), "10")
 })
 
@@ -234,7 +234,7 @@ test_that("read with -C preserves original names", {
   dir <- withr::local_tempdir()
   df <- data.frame(`First Name` = "Alice", `Score (%)` = 95, check.names = FALSE)
   f <- make_csv(df, dir)
-  result <- rush_exec("names(df)", file = f, args = list(no_clean_names = TRUE))
+  result <- rush_run_exec("names(df)", file = f, args = list(no_clean_names = TRUE))
   lines <- stdout_lines(result)
   expect_true("First Name" %in% lines)
 })
@@ -244,7 +244,7 @@ test_that("read default cleans names", {
   dir <- withr::local_tempdir()
   df <- data.frame(`First Name` = "Alice", check.names = FALSE)
   f <- make_csv(df, dir)
-  result <- rush_exec("names(df)", file = f)
+  result <- rush_run_exec("names(df)", file = f)
   expect_equal(stdout_lines(result), "first_name")
 })
 
@@ -254,7 +254,7 @@ test_that("read JSON: correct row count", {
   skip_if_no_ir()
   dir <- withr::local_tempdir()
   f <- make_json(test_df(), dir)
-  result <- rush_exec("nrow(df)", file = f)
+  result <- rush_run_exec("nrow(df)", file = f)
   expect_equal(stdout_lines(result), "3")
 })
 
@@ -262,7 +262,7 @@ test_that("read JSON: column values correct", {
   skip_if_no_ir()
   dir <- withr::local_tempdir()
   f <- make_json(test_df(), dir)
-  result <- rush_exec("df$name[2]", file = f)
+  result <- rush_run_exec("df$name[2]", file = f)
   expect_equal(stdout_lines(result), "Bob")
 })
 
@@ -270,7 +270,7 @@ test_that("read JSONL: correct row count", {
   skip_if_no_ir()
   dir <- withr::local_tempdir()
   f <- make_jsonl(test_df(), dir)
-  result <- rush_exec("nrow(df)", file = f)
+  result <- rush_run_exec("nrow(df)", file = f)
   expect_equal(stdout_lines(result), "3")
 })
 
@@ -278,7 +278,7 @@ test_that("read JSONL: values correct", {
   skip_if_no_ir()
   dir <- withr::local_tempdir()
   f <- make_jsonl(test_df(), dir)
-  result <- rush_exec("df$score[1]", file = f)
+  result <- rush_run_exec("df$score[1]", file = f)
   expect_equal(stdout_lines(result), "95")
 })
 
@@ -286,7 +286,7 @@ test_that("read YAML: correct row count", {
   skip_if_no_ir()
   dir <- withr::local_tempdir()
   f <- make_yaml(test_df(), dir)
-  result <- rush_exec("nrow(df)", file = f)
+  result <- rush_run_exec("nrow(df)", file = f)
   expect_equal(stdout_lines(result), "3")
 })
 
@@ -294,7 +294,7 @@ test_that("read YAML: column names correct", {
   skip_if_no_ir()
   dir <- withr::local_tempdir()
   f <- make_yaml(test_df(), dir)
-  result <- rush_exec("names(df)", file = f)
+  result <- rush_run_exec("names(df)", file = f)
   lines <- stdout_lines(result)
   expect_true("name" %in% lines)
   expect_true("score" %in% lines)
@@ -304,7 +304,7 @@ test_that("read TOML: correct row count", {
   skip_if_no_ir()
   dir <- withr::local_tempdir()
   f <- make_toml(test_df(), dir)
-  result <- rush_exec("nrow(df)", file = f)
+  result <- rush_run_exec("nrow(df)", file = f)
   expect_equal(stdout_lines(result), "3")
 })
 
@@ -312,7 +312,7 @@ test_that("read TOML: values correct", {
   skip_if_no_ir()
   dir <- withr::local_tempdir()
   f <- make_toml(test_df(), dir)
-  result <- rush_exec("df$name[1]", file = f)
+  result <- rush_run_exec("df$name[1]", file = f)
   expect_equal(stdout_lines(result), "Alice")
 })
 
@@ -320,7 +320,7 @@ test_that("read XML: correct row count", {
   skip_if_no_ir()
   dir <- withr::local_tempdir()
   f <- make_xml(test_df(), dir)
-  result <- rush_exec("nrow(df)", file = f)
+  result <- rush_run_exec("nrow(df)", file = f)
   expect_equal(stdout_lines(result), "3")
 })
 
@@ -328,7 +328,7 @@ test_that("read XML: column names and values correct", {
   skip_if_no_ir()
   dir <- withr::local_tempdir()
   f <- make_xml(test_df(), dir)
-  result <- rush_exec("df$name[3]", file = f)
+  result <- rush_run_exec("df$name[3]", file = f)
   expect_equal(stdout_lines(result), "Carol")
 })
 
@@ -336,7 +336,7 @@ test_that("read XML with non-standard root/record names", {
   skip_if_no_ir()
   dir <- withr::local_tempdir()
   f <- make_xml(test_df(), dir, root = "people", record = "person")
-  result <- rush_exec("nrow(df)", file = f)
+  result <- rush_run_exec("nrow(df)", file = f)
   expect_equal(stdout_lines(result), "3")
 })
 
@@ -346,7 +346,7 @@ test_that("read Parquet: correct row count", {
   skip_if_no_ir()
   dir <- withr::local_tempdir()
   f <- make_parquet(test_df(), dir)
-  result <- rush_exec("nrow(df)", file = f)
+  result <- rush_run_exec("nrow(df)", file = f)
   expect_equal(stdout_lines(result), "3")
 })
 
@@ -354,7 +354,7 @@ test_that("read Parquet: values correct", {
   skip_if_no_ir()
   dir <- withr::local_tempdir()
   f <- make_parquet(test_df(), dir)
-  result <- rush_exec("df$score[2]", file = f)
+  result <- rush_run_exec("df$score[2]", file = f)
   expect_equal(stdout_lines(result), "82")
 })
 
@@ -362,7 +362,7 @@ test_that("read RDS: data frame class", {
   skip_if_no_ir()
   dir <- withr::local_tempdir()
   f <- make_rds(test_df(), dir)
-  result <- rush_exec("class(df)[1]", file = f)
+  result <- rush_run_exec("class(df)[1]", file = f)
   expect_equal(stdout_lines(result), "data.frame")
 })
 
@@ -370,7 +370,7 @@ test_that("read RDS: non-data-frame object", {
   skip_if_no_ir()
   dir <- withr::local_tempdir()
   f <- make_rds(1:10, dir)
-  result <- rush_exec("sum(df)", file = f, args = list(no_clean_names = TRUE))
+  result <- rush_run_exec("sum(df)", file = f, args = list(no_clean_names = TRUE))
   expect_equal(stdout_lines(result), "55")
 })
 
@@ -378,7 +378,7 @@ test_that("read Excel: correct row count", {
   skip_if_no_ir()
   dir <- withr::local_tempdir()
   f <- make_xlsx(test_df(), dir)
-  result <- rush_exec("nrow(df)", file = f)
+  result <- rush_run_exec("nrow(df)", file = f)
   expect_equal(stdout_lines(result), "3")
 })
 
@@ -386,7 +386,7 @@ test_that("read Excel: values correct", {
   skip_if_no_ir()
   dir <- withr::local_tempdir()
   f <- make_xlsx(test_df(), dir)
-  result <- rush_exec("df$name[1]", file = f)
+  result <- rush_run_exec("df$name[1]", file = f)
   expect_equal(stdout_lines(result), "Alice")
 })
 
@@ -395,7 +395,7 @@ test_that("read Excel with --input-sheet by name", {
   dir <- withr::local_tempdir()
   sheets <- list(Sales = data.frame(a = 1:2), Costs = data.frame(b = 3:4))
   f <- make_xlsx(sheets, dir)
-  result <- rush_exec("names(df)", file = f, args = list(input_sheet = "Costs"))
+  result <- rush_run_exec("names(df)", file = f, args = list(input_sheet = "Costs"))
   expect_equal(stdout_lines(result), "b")
 })
 
@@ -404,7 +404,7 @@ test_that("read Excel with --input-sheet by index", {
   dir <- withr::local_tempdir()
   sheets <- list(Sales = data.frame(a = 1:2), Costs = data.frame(b = 3:4))
   f <- make_xlsx(sheets, dir)
-  result <- rush_exec("names(df)", file = f, args = list(input_sheet = 2))
+  result <- rush_run_exec("names(df)", file = f, args = list(input_sheet = 2))
   expect_equal(stdout_lines(result), "b")
 })
 
@@ -413,7 +413,7 @@ test_that("read DuckDB: table names", {
   dir <- withr::local_tempdir()
   tables <- list(t1 = data.frame(x = 1:3), t2 = data.frame(y = 4:6))
   f <- make_duckdb(tables, dir)
-  result <- rush_exec("names(dfs$data)", file = f)
+  result <- rush_run_exec("names(dfs$data)", file = f)
   lines <- stdout_lines(result)
   expect_true("t1" %in% lines)
   expect_true("t2" %in% lines)
@@ -424,7 +424,7 @@ test_that("read DuckDB: access table values", {
   dir <- withr::local_tempdir()
   tables <- list(t1 = data.frame(x = 1:3))
   f <- make_duckdb(tables, dir)
-  result <- rush_exec("nrow(dfs$data$t1)", file = f)
+  result <- rush_run_exec("nrow(dfs$data$t1)", file = f)
   expect_equal(stdout_lines(result), "3")
 })
 
@@ -433,7 +433,7 @@ test_that("read SQLite: table names", {
   dir <- withr::local_tempdir()
   tables <- list(t1 = data.frame(x = 1:3), t2 = data.frame(y = 4:6))
   f <- make_sqlite(tables, dir)
-  result <- rush_exec("names(dfs$data)", file = f)
+  result <- rush_run_exec("names(dfs$data)", file = f)
   lines <- stdout_lines(result)
   expect_true("t1" %in% lines)
   expect_true("t2" %in% lines)
@@ -444,7 +444,7 @@ test_that("read SQLite: access table values", {
   dir <- withr::local_tempdir()
   tables <- list(t1 = data.frame(x = 10:12))
   f <- make_sqlite(tables, dir)
-  result <- rush_exec("sum(dfs$data$t1$x)", file = f)
+  result <- rush_run_exec("sum(dfs$data$t1$x)", file = f)
   expect_equal(stdout_lines(result), "33")
 })
 
@@ -455,7 +455,7 @@ test_that("write CSV: header and values match", {
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.csv")
-  result <- rush_exec("df", file = f, args = list(output = out))
+  result <- rush_run_exec("df", file = f, args = list(output = out))
   expect_equal(result$status, 0)
   df <- readr::read_csv(out, show_col_types = FALSE)
   expect_equal(nrow(df), 3)
@@ -467,7 +467,7 @@ test_that("write TSV: tab-separated output", {
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.tsv")
-  result <- rush_exec("df", file = f, args = list(output = out))
+  result <- rush_run_exec("df", file = f, args = list(output = out))
   expect_equal(result$status, 0)
   lines <- readLines(out)
   expect_true(grepl("\t", lines[1]))
@@ -478,7 +478,7 @@ test_that("write with -D semicolon delimiter", {
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.csv")
-  result <- rush_exec("df", file = f, args = list(output = out, output_delimiter = ";"))
+  result <- rush_run_exec("df", file = f, args = list(output = out, output_delimiter = ";"))
   expect_equal(result$status, 0)
   lines <- readLines(out)
   expect_true(grepl(";", lines[1]))
@@ -488,7 +488,7 @@ test_that("-O csv to stdout produces CSV header + rows", {
   skip_if_no_ir()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
-  result <- rush_exec("df", file = f, args = list(output_format = "csv"))
+  result <- rush_run_exec("df", file = f, args = list(output_format = "csv"))
   lines <- stdout_lines(result)
   expect_match(lines[1], "name,score,pass")
   expect_equal(length(lines), 4)
@@ -498,7 +498,7 @@ test_that("-O tsv to stdout produces tab-separated", {
   skip_if_no_ir()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
-  result <- rush_exec("df", file = f, args = list(output_format = "tsv"))
+  result <- rush_run_exec("df", file = f, args = list(output_format = "tsv"))
   lines <- stdout_lines(result)
   expect_true(grepl("\t", lines[1]))
 })
@@ -507,7 +507,7 @@ test_that("default stdout on non-TTY produces delimited output", {
   skip_if_no_ir()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
-  result <- rush_exec("df", file = f)
+  result <- rush_run_exec("df", file = f)
   lines <- stdout_lines(result)
   expect_true(grepl(",", lines[1]))
 })
@@ -519,7 +519,7 @@ test_that("write JSON file: valid and correct", {
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.json")
-  result <- rush_exec("df", file = f, args = list(output = out))
+  result <- rush_run_exec("df", file = f, args = list(output = out))
   expect_equal(result$status, 0)
   parsed <- jsonlite::fromJSON(out)
   expect_equal(nrow(parsed), 3)
@@ -531,7 +531,7 @@ test_that("write JSONL file: one object per line", {
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.jsonl")
-  result <- rush_exec("df", file = f, args = list(output = out))
+  result <- rush_run_exec("df", file = f, args = list(output = out))
   expect_equal(result$status, 0)
   lines <- readLines(out)
   expect_equal(length(lines), 3)
@@ -544,7 +544,7 @@ test_that("write YAML file: valid", {
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.yaml")
-  result <- rush_exec("df", file = f, args = list(output = out))
+  result <- rush_run_exec("df", file = f, args = list(output = out))
   expect_equal(result$status, 0)
   parsed <- yaml::read_yaml(out)
   expect_equal(length(parsed), 3)
@@ -556,7 +556,7 @@ test_that("write TOML file: valid with [[record]] headers", {
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.toml")
-  result <- rush_exec("df", file = f, args = list(output = out))
+  result <- rush_run_exec("df", file = f, args = list(output = out))
   expect_equal(result$status, 0)
   content <- readLines(out)
   expect_true(any(grepl("^\\[\\[record\\]\\]$", content)))
@@ -568,7 +568,7 @@ test_that("write XML file: valid structure", {
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.xml")
-  result <- rush_exec("df", file = f, args = list(output = out))
+  result <- rush_run_exec("df", file = f, args = list(output = out))
   expect_equal(result$status, 0)
   doc <- xml2::read_xml(out)
   expect_equal(xml2::xml_name(doc), "root")
@@ -582,7 +582,7 @@ test_that("write Parquet file: readable", {
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.parquet")
-  result <- rush_exec("df", file = f, args = list(output = out))
+  result <- rush_run_exec("df", file = f, args = list(output = out))
   expect_equal(result$status, 0)
   df <- nanoparquet::read_parquet(out)
   expect_equal(nrow(df), 3)
@@ -594,7 +594,7 @@ test_that("write RDS file: identical round-trip", {
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.rds")
-  result <- rush_exec("df", file = f, args = list(output = out))
+  result <- rush_run_exec("df", file = f, args = list(output = out))
   expect_equal(result$status, 0)
   df <- readRDS(out)
   expect_equal(nrow(df), 3)
@@ -606,7 +606,7 @@ test_that("write Excel file: readable", {
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.xlsx")
-  result <- rush_exec("df", file = f, args = list(output = out))
+  result <- rush_run_exec("df", file = f, args = list(output = out))
   expect_equal(result$status, 0)
   df <- readxl::read_excel(out)
   expect_equal(nrow(df), 3)
@@ -618,7 +618,7 @@ test_that("write DuckDB file: table created", {
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.duckdb")
-  result <- rush_exec("df", file = f, args = list(output = out))
+  result <- rush_run_exec("df", file = f, args = list(output = out))
   expect_equal(result$status, 0)
   con <- DBI::dbConnect(duckdb::duckdb(), dbdir = out, read_only = TRUE)
   on.exit(DBI::dbDisconnect(con, shutdown = TRUE))
@@ -632,7 +632,7 @@ test_that("write SQLite file: table created", {
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.sqlite")
-  result <- rush_exec("df", file = f, args = list(output = out))
+  result <- rush_run_exec("df", file = f, args = list(output = out))
   expect_equal(result$status, 0)
   con <- DBI::dbConnect(RSQLite::SQLite(), out)
   on.exit(DBI::dbDisconnect(con))
@@ -647,7 +647,7 @@ test_that("-O json to stdout: valid JSON", {
   skip_if_no_ir()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
-  result <- rush_exec("df", file = f, args = list(output_format = "json"))
+  result <- rush_run_exec("df", file = f, args = list(output_format = "json"))
   parsed <- jsonlite::fromJSON(result$stdout)
   expect_equal(nrow(parsed), 3)
 })
@@ -656,7 +656,7 @@ test_that("-O jsonl to stdout: one object per line", {
   skip_if_no_ir()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
-  result <- rush_exec("df", file = f, args = list(output_format = "jsonl"))
+  result <- rush_run_exec("df", file = f, args = list(output_format = "jsonl"))
   lines <- stdout_lines(result)
   expect_equal(length(lines), 3)
   expect_no_error(jsonlite::fromJSON(lines[1]))
@@ -666,7 +666,7 @@ test_that("-O yaml to stdout: valid YAML", {
   skip_if_no_ir()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
-  result <- rush_exec("df", file = f, args = list(output_format = "yaml"))
+  result <- rush_run_exec("df", file = f, args = list(output_format = "yaml"))
   parsed <- yaml::yaml.load(result$stdout)
   expect_equal(length(parsed), 3)
 })
@@ -675,7 +675,7 @@ test_that("-O toml to stdout: has [[record]] headers", {
   skip_if_no_ir()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
-  result <- rush_exec("df", file = f, args = list(output_format = "toml"))
+  result <- rush_run_exec("df", file = f, args = list(output_format = "toml"))
   expect_true(grepl("\\[\\[record\\]\\]", result$stdout))
 })
 
@@ -683,7 +683,7 @@ test_that("-O xml to stdout: valid XML", {
   skip_if_no_ir()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
-  result <- rush_exec("df", file = f, args = list(output_format = "xml"))
+  result <- rush_run_exec("df", file = f, args = list(output_format = "xml"))
   doc <- xml2::read_xml(result$stdout)
   expect_equal(xml2::xml_name(doc), "root")
   expect_equal(length(xml2::xml_children(doc)), 3)
@@ -696,7 +696,7 @@ test_that("XML default: root='root', record='record'", {
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.xml")
-  result <- rush_exec("df", file = f, args = list(output = out))
+  result <- rush_run_exec("df", file = f, args = list(output = out))
   doc <- xml2::read_xml(out)
   expect_equal(xml2::xml_name(doc), "root")
   expect_equal(xml2::xml_name(xml2::xml_children(doc)[[1]]), "record")
@@ -707,7 +707,7 @@ test_that("XML custom --output-root and --output-record", {
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.xml")
-  result <- rush_exec("df", file = f, args = list(
+  result <- rush_run_exec("df", file = f, args = list(
     output = out, output_root = "plants", output_record = "observation"
   ))
   doc <- xml2::read_xml(out)
@@ -720,7 +720,7 @@ test_that("XML custom root only", {
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.xml")
-  result <- rush_exec("df", file = f, args = list(
+  result <- rush_run_exec("df", file = f, args = list(
     output = out, output_root = "items"
   ))
   doc <- xml2::read_xml(out)
@@ -733,7 +733,7 @@ test_that("XML custom record only", {
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.xml")
-  result <- rush_exec("df", file = f, args = list(
+  result <- rush_run_exec("df", file = f, args = list(
     output = out, output_record = "entry"
   ))
   doc <- xml2::read_xml(out)
@@ -748,7 +748,7 @@ test_that("TOML default: uses [[record]]", {
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.toml")
-  result <- rush_exec("df", file = f, args = list(output = out))
+  result <- rush_run_exec("df", file = f, args = list(output = out))
   content <- readLines(out)
   expect_true(any(grepl("^\\[\\[record\\]\\]$", content)))
 })
@@ -758,7 +758,7 @@ test_that("TOML custom --output-record", {
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.toml")
-  result <- rush_exec("df", file = f, args = list(
+  result <- rush_run_exec("df", file = f, args = list(
     output = out, output_record = "item"
   ))
   content <- readLines(out)
@@ -771,7 +771,7 @@ test_that("TOML custom --output-record 'measurement'", {
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.toml")
-  result <- rush_exec("df", file = f, args = list(
+  result <- rush_run_exec("df", file = f, args = list(
     output = out, output_record = "measurement"
   ))
   content <- readLines(out)
@@ -785,7 +785,7 @@ test_that("JSON default indent 2: pretty with 2 spaces", {
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.json")
-  result <- rush_exec("df", file = f, args = list(output = out))
+  result <- rush_run_exec("df", file = f, args = list(output = out))
   content <- readLines(out)
   indented <- content[grepl("^  ", content)]
   expect_true(length(indented) > 0)
@@ -798,7 +798,7 @@ test_that("JSON --output-indent 4: pretty-printed", {
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.json")
-  result <- rush_exec("df", file = f, args = list(output = out, output_indent = 4))
+  result <- rush_run_exec("df", file = f, args = list(output = out, output_indent = 4))
   content <- readLines(out)
   expect_true(length(content) > 1)
   indented <- content[grepl("^  ", content)]
@@ -810,7 +810,7 @@ test_that("JSON --output-indent 0: compact single line", {
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.json")
-  result <- rush_exec("df", file = f, args = list(output = out, output_indent = 0))
+  result <- rush_run_exec("df", file = f, args = list(output = out, output_indent = 0))
   content <- readLines(out)
   expect_equal(length(content), 1)
 })
@@ -822,7 +822,7 @@ test_that("YAML default indent 2", {
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.yaml")
-  result <- rush_exec("df", file = f, args = list(output = out))
+  result <- rush_run_exec("df", file = f, args = list(output = out))
   content <- readLines(out)
   two_indented <- content[grepl("^  \\w", content)]
   expect_true(length(two_indented) > 0)
@@ -833,7 +833,7 @@ test_that("YAML --output-indent 4", {
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.yaml")
-  result <- rush_exec("df", file = f, args = list(output = out, output_indent = 4))
+  result <- rush_run_exec("df", file = f, args = list(output = out, output_indent = 4))
   content <- readLines(out)
   four_indented <- content[grepl("^    \\w", content)]
   expect_true(length(four_indented) > 0)
@@ -846,7 +846,7 @@ test_that("Excel default sheet name", {
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.xlsx")
-  result <- rush_exec("df", file = f, args = list(output = out))
+  result <- rush_run_exec("df", file = f, args = list(output = out))
   sheets <- readxl::excel_sheets(out)
   expect_equal(length(sheets), 1)
 })
@@ -856,7 +856,7 @@ test_that("Excel --output-sheet 'Results'", {
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.xlsx")
-  result <- rush_exec("df", file = f, args = list(output = out, output_sheet = "Results"))
+  result <- rush_run_exec("df", file = f, args = list(output = out, output_sheet = "Results"))
   sheets <- readxl::excel_sheets(out)
   expect_equal(sheets, "Results")
 })
@@ -866,7 +866,7 @@ test_that("Excel --output-sheet with spaces", {
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.xlsx")
-  result <- rush_exec("df", file = f, args = list(output = out, output_sheet = "My Data"))
+  result <- rush_run_exec("df", file = f, args = list(output = out, output_sheet = "My Data"))
   sheets <- readxl::excel_sheets(out)
   expect_equal(sheets, "My Data")
 })
@@ -878,7 +878,7 @@ test_that("--head 2 limits CSV output", {
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.csv")
-  result <- rush_exec("df", file = f, args = list(output = out, head = 2))
+  result <- rush_run_exec("df", file = f, args = list(output = out, head = 2))
   df <- readr::read_csv(out, show_col_types = FALSE)
   expect_equal(nrow(df), 2)
 })
@@ -888,7 +888,7 @@ test_that("--head 2 limits JSON output", {
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.json")
-  result <- rush_exec("df", file = f, args = list(output = out, head = 2))
+  result <- rush_run_exec("df", file = f, args = list(output = out, head = 2))
   parsed <- jsonlite::fromJSON(out)
   expect_equal(nrow(parsed), 2)
 })
@@ -898,7 +898,7 @@ test_that("--head 2 limits YAML output", {
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.yaml")
-  result <- rush_exec("df", file = f, args = list(output = out, head = 2))
+  result <- rush_run_exec("df", file = f, args = list(output = out, head = 2))
   parsed <- yaml::read_yaml(out)
   expect_equal(length(parsed), 2)
 })
@@ -908,7 +908,7 @@ test_that("--head 2 limits XML output", {
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.xml")
-  result <- rush_exec("df", file = f, args = list(output = out, head = 2))
+  result <- rush_run_exec("df", file = f, args = list(output = out, head = 2))
   doc <- xml2::read_xml(out)
   expect_equal(length(xml2::xml_children(doc)), 2)
 })
@@ -918,7 +918,7 @@ test_that("--head 2 limits TOML output", {
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.toml")
-  result <- rush_exec("df", file = f, args = list(output = out, head = 2))
+  result <- rush_run_exec("df", file = f, args = list(output = out, head = 2))
   content <- readLines(out)
   record_lines <- grep("^\\[\\[record\\]\\]$", content)
   expect_equal(length(record_lines), 2)
@@ -929,7 +929,7 @@ test_that("--head larger than data returns all rows", {
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.csv")
-  result <- rush_exec("df", file = f, args = list(output = out, head = 100))
+  result <- rush_run_exec("df", file = f, args = list(output = out, head = 100))
   df <- readr::read_csv(out, show_col_types = FALSE)
   expect_equal(nrow(df), 3)
 })
@@ -948,15 +948,15 @@ test_that("--head with rush convert", {
 
 test_that("same seed produces same output", {
   skip_if_no_ir()
-  r1 <- rush_exec("sample(1:100, 5)", args = list(seed = 42))
-  r2 <- rush_exec("sample(1:100, 5)", args = list(seed = 42))
+  r1 <- rush_run_exec("sample(1:100, 5)", args = list(seed = 42))
+  r2 <- rush_run_exec("sample(1:100, 5)", args = list(seed = 42))
   expect_equal(stdout_lines(r1), stdout_lines(r2))
 })
 
 test_that("different seed produces different output", {
   skip_if_no_ir()
-  r1 <- rush_exec("sample(1:100, 5)", args = list(seed = 42))
-  r2 <- rush_exec("sample(1:100, 5)", args = list(seed = 99))
+  r1 <- rush_run_exec("sample(1:100, 5)", args = list(seed = 42))
+  r2 <- rush_run_exec("sample(1:100, 5)", args = list(seed = 99))
   expect_false(identical(stdout_lines(r1), stdout_lines(r2)))
 })
 
@@ -964,7 +964,7 @@ test_that("different seed produces different output", {
 
 test_that("-l stringr loads package", {
   skip_if_no_ir()
-  result <- rush_exec(
+  result <- rush_run_exec(
     'stringr::str_to_upper("hi")',
     args = list(library = "stringr")
   )
@@ -975,7 +975,7 @@ test_that("-t loads tidyverse (filter works unqualified)", {
   skip_if_no_ir()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
-  result <- rush_exec(
+  result <- rush_run_exec(
     "nrow(filter(df, score > 90))",
     file = f,
     args = list(tidyverse = TRUE)
@@ -985,7 +985,7 @@ test_that("-t loads tidyverse (filter works unqualified)", {
 
 test_that("-t loads glue", {
   skip_if_no_ir()
-  result <- rush_exec(
+  result <- rush_run_exec(
     'glue("x is {1+1}")',
     args = list(tidyverse = TRUE)
   )
@@ -997,14 +997,14 @@ test_that("-t loads glue", {
 test_that("stdin CSV: correct row count", {
   skip_if_no_ir()
   csv_data <- c("a,b", "1,2", "3,4", "5,6")
-  result <- rush_exec("nrow(df)", file = "-", stdin_data = csv_data)
+  result <- rush_run_exec("nrow(df)", file = "-", stdin_data = csv_data)
   expect_equal(stdout_lines(result), "3")
 })
 
 test_that("stdin CSV: column names", {
   skip_if_no_ir()
   csv_data <- c("name,score", "Alice,95")
-  result <- rush_exec("names(df)", file = "-", stdin_data = csv_data)
+  result <- rush_run_exec("names(df)", file = "-", stdin_data = csv_data)
   lines <- stdout_lines(result)
   expect_true("name" %in% lines)
   expect_true("score" %in% lines)
@@ -1014,7 +1014,7 @@ test_that("stdin JSON with -F json", {
   skip_if_no_ir()
   df <- test_df()
   json_data <- jsonlite::toJSON(df, dataframe = "rows", auto_unbox = TRUE)
-  result <- rush_exec(
+  result <- rush_run_exec(
     "nrow(df)", file = "-",
     args = list(input_format = "json"),
     stdin_data = as.character(json_data)
@@ -1027,7 +1027,7 @@ test_that("stdin YAML with -F yaml", {
   df <- test_df()
   rows <- lapply(seq_len(nrow(df)), function(i) as.list(df[i, , drop = FALSE]))
   yaml_data <- strsplit(yaml::as.yaml(rows), "\n")[[1]]
-  result <- rush_exec(
+  result <- rush_run_exec(
     "nrow(df)", file = "-",
     args = list(input_format = "yaml"),
     stdin_data = yaml_data
@@ -1040,7 +1040,7 @@ test_that("stdin TOML with -F toml", {
   dir <- withr::local_tempdir()
   f <- make_toml(test_df(), dir)
   toml_data <- readLines(f)
-  result <- rush_exec(
+  result <- rush_run_exec(
     "nrow(df)", file = "-",
     args = list(input_format = "toml"),
     stdin_data = toml_data
@@ -1053,7 +1053,7 @@ test_that("stdin XML with -F xml", {
   dir <- withr::local_tempdir()
   f <- make_xml(test_df(), dir)
   xml_data <- readLines(f)
-  result <- rush_exec(
+  result <- rush_run_exec(
     "nrow(df)", file = "-",
     args = list(input_format = "xml"),
     stdin_data = xml_data
@@ -1064,7 +1064,7 @@ test_that("stdin XML with -F xml", {
 test_that("stdin TSV with -F tsv", {
   skip_if_no_ir()
   tsv_data <- c("a\tb", "1\t2", "3\t4")
-  result <- rush_exec(
+  result <- rush_run_exec(
     "nrow(df)", file = "-",
     args = list(input_format = "tsv"),
     stdin_data = tsv_data
@@ -1075,7 +1075,7 @@ test_that("stdin TSV with -F tsv", {
 test_that("stdin with -H (no header)", {
   skip_if_no_ir()
   csv_data <- c("1,2", "3,4")
-  result <- rush_exec(
+  result <- rush_run_exec(
     "names(df)", file = "-",
     args = list(no_header = TRUE),
     stdin_data = csv_data
@@ -1090,8 +1090,8 @@ test_that("CSV stdout -> CSV stdin round-trip", {
   skip_if_no_ir()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
-  r1 <- rush_exec("head(df, 2)", file = f, args = list(output_format = "csv"))
-  r2 <- rush_exec("nrow(df)", file = "-", stdin_data = strsplit(r1$stdout, "\n")[[1]])
+  r1 <- rush_run_exec("head(df, 2)", file = f, args = list(output_format = "csv"))
+  r2 <- rush_run_exec("nrow(df)", file = "-", stdin_data = strsplit(r1$stdout, "\n")[[1]])
   expect_equal(stdout_lines(r2), "2")
 })
 
@@ -1099,8 +1099,8 @@ test_that("JSON stdout -> JSON stdin round-trip", {
   skip_if_no_ir()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
-  r1 <- rush_exec("head(df, 2)", file = f, args = list(output_format = "json"))
-  r2 <- rush_exec(
+  r1 <- rush_run_exec("head(df, 2)", file = f, args = list(output_format = "json"))
+  r2 <- rush_run_exec(
     "nrow(df)", file = "-",
     args = list(input_format = "json"),
     stdin_data = strsplit(r1$stdout, "\n")[[1]]
@@ -1112,8 +1112,8 @@ test_that("YAML stdout -> YAML stdin round-trip", {
   skip_if_no_ir()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
-  r1 <- rush_exec("head(df, 2)", file = f, args = list(output_format = "yaml"))
-  r2 <- rush_exec(
+  r1 <- rush_run_exec("head(df, 2)", file = f, args = list(output_format = "yaml"))
+  r2 <- rush_run_exec(
     "nrow(df)", file = "-",
     args = list(input_format = "yaml"),
     stdin_data = strsplit(r1$stdout, "\n")[[1]]
@@ -1125,8 +1125,8 @@ test_that("TOML stdout -> TOML stdin round-trip", {
   skip_if_no_ir()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
-  r1 <- rush_exec("head(df, 2)", file = f, args = list(output_format = "toml"))
-  r2 <- rush_exec(
+  r1 <- rush_run_exec("head(df, 2)", file = f, args = list(output_format = "toml"))
+  r2 <- rush_run_exec(
     "nrow(df)", file = "-",
     args = list(input_format = "toml"),
     stdin_data = strsplit(r1$stdout, "\n")[[1]]
@@ -1138,8 +1138,8 @@ test_that("XML stdout -> XML stdin round-trip", {
   skip_if_no_ir()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
-  r1 <- rush_exec("head(df, 2)", file = f, args = list(output_format = "xml"))
-  r2 <- rush_exec(
+  r1 <- rush_run_exec("head(df, 2)", file = f, args = list(output_format = "xml"))
+  r2 <- rush_run_exec(
     "nrow(df)", file = "-",
     args = list(input_format = "xml"),
     stdin_data = strsplit(r1$stdout, "\n")[[1]]
@@ -1151,8 +1151,8 @@ test_that("JSONL stdout -> JSONL stdin round-trip", {
   skip_if_no_ir()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
-  r1 <- rush_exec("head(df, 2)", file = f, args = list(output_format = "jsonl"))
-  r2 <- rush_exec(
+  r1 <- rush_run_exec("head(df, 2)", file = f, args = list(output_format = "jsonl"))
+  r2 <- rush_run_exec(
     "nrow(df)", file = "-",
     args = list(input_format = "jsonl"),
     stdin_data = strsplit(r1$stdout, "\n")[[1]]
@@ -1164,8 +1164,8 @@ test_that("JSON pipe preserves column names", {
   skip_if_no_ir()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
-  r1 <- rush_exec("df", file = f, args = list(output_format = "json"))
-  r2 <- rush_exec(
+  r1 <- rush_run_exec("df", file = f, args = list(output_format = "json"))
+  r2 <- rush_run_exec(
     "names(df)", file = "-",
     args = list(input_format = "json"),
     stdin_data = strsplit(r1$stdout, "\n")[[1]]
@@ -1182,7 +1182,7 @@ test_that("CSV -> JSON: columns and values preserved", {
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.json")
-  rush_exec("df", file = f, args = list(output = out))
+  rush_run_exec("df", file = f, args = list(output = out))
   parsed <- jsonlite::fromJSON(out)
   expect_equal(parsed$name, c("Alice", "Bob", "Carol"))
   expect_equal(parsed$score, c(95, 82, 91))
@@ -1193,7 +1193,7 @@ test_that("CSV -> YAML: columns and values preserved", {
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.yaml")
-  rush_exec("df", file = f, args = list(output = out))
+  rush_run_exec("df", file = f, args = list(output = out))
   parsed <- yaml::read_yaml(out)
   expect_equal(parsed[[1]]$name, "Alice")
   expect_equal(parsed[[2]]$score, 82)
@@ -1204,7 +1204,7 @@ test_that("CSV -> TOML: columns and values preserved", {
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.toml")
-  rush_exec("df", file = f, args = list(output = out))
+  rush_run_exec("df", file = f, args = list(output = out))
   parsed <- RcppTOML::parseTOML(out)
   expect_equal(parsed$record[[1]]$name, "Alice")
   expect_equal(parsed$record[[2]]$score, 82)
@@ -1215,7 +1215,7 @@ test_that("CSV -> XML: columns and values preserved", {
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.xml")
-  rush_exec("df", file = f, args = list(output = out))
+  rush_run_exec("df", file = f, args = list(output = out))
   doc <- xml2::read_xml(out)
   rows <- xml2::xml_children(doc)
   first_row <- xml2::xml_children(rows[[1]])
@@ -1227,7 +1227,7 @@ test_that("TSV -> JSON: columns preserved", {
   dir <- withr::local_tempdir()
   f <- make_tsv(test_df(), dir)
   out <- file.path(dir, "out.json")
-  rush_exec("df", file = f, args = list(output = out))
+  rush_run_exec("df", file = f, args = list(output = out))
   parsed <- jsonlite::fromJSON(out)
   expect_equal(parsed$name, c("Alice", "Bob", "Carol"))
 })
@@ -1237,7 +1237,7 @@ test_that("CSV -> JSONL: each line is valid", {
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.jsonl")
-  rush_exec("df", file = f, args = list(output = out))
+  rush_run_exec("df", file = f, args = list(output = out))
   lines <- readLines(out)
   expect_equal(length(lines), 3)
   first <- jsonlite::fromJSON(lines[1])
@@ -1251,7 +1251,7 @@ test_that("JSON -> CSV: columns and values preserved", {
   dir <- withr::local_tempdir()
   f <- make_json(test_df(), dir)
   out <- file.path(dir, "out.csv")
-  rush_exec("df", file = f, args = list(output = out))
+  rush_run_exec("df", file = f, args = list(output = out))
   df <- readr::read_csv(out, show_col_types = FALSE)
   expect_equal(nrow(df), 3)
   expect_equal(df$name, c("Alice", "Bob", "Carol"))
@@ -1262,7 +1262,7 @@ test_that("YAML -> CSV: columns and values preserved", {
   dir <- withr::local_tempdir()
   f <- make_yaml(test_df(), dir)
   out <- file.path(dir, "out.csv")
-  rush_exec("df", file = f, args = list(output = out))
+  rush_run_exec("df", file = f, args = list(output = out))
   df <- readr::read_csv(out, show_col_types = FALSE)
   expect_equal(nrow(df), 3)
   expect_equal(df$name, c("Alice", "Bob", "Carol"))
@@ -1273,7 +1273,7 @@ test_that("TOML -> CSV: columns and values preserved", {
   dir <- withr::local_tempdir()
   f <- make_toml(test_df(), dir)
   out <- file.path(dir, "out.csv")
-  rush_exec("df", file = f, args = list(output = out))
+  rush_run_exec("df", file = f, args = list(output = out))
   df <- readr::read_csv(out, show_col_types = FALSE)
   expect_equal(nrow(df), 3)
   expect_equal(df$name, c("Alice", "Bob", "Carol"))
@@ -1284,7 +1284,7 @@ test_that("XML -> CSV: columns and values preserved", {
   dir <- withr::local_tempdir()
   f <- make_xml(test_df(), dir)
   out <- file.path(dir, "out.csv")
-  rush_exec("df", file = f, args = list(output = out))
+  rush_run_exec("df", file = f, args = list(output = out))
   df <- readr::read_csv(out, show_col_types = FALSE)
   expect_equal(nrow(df), 3)
   expect_equal(df$name, c("Alice", "Bob", "Carol"))
@@ -1295,7 +1295,7 @@ test_that("JSONL -> CSV: all rows preserved", {
   dir <- withr::local_tempdir()
   f <- make_jsonl(test_df(), dir)
   out <- file.path(dir, "out.csv")
-  rush_exec("df", file = f, args = list(output = out))
+  rush_run_exec("df", file = f, args = list(output = out))
   df <- readr::read_csv(out, show_col_types = FALSE)
   expect_equal(nrow(df), 3)
 })
@@ -1305,7 +1305,7 @@ test_that("JSON -> TSV: tab delimiter used", {
   dir <- withr::local_tempdir()
   f <- make_json(test_df(), dir)
   out <- file.path(dir, "out.tsv")
-  rush_exec("df", file = f, args = list(output = out))
+  rush_run_exec("df", file = f, args = list(output = out))
   lines <- readLines(out)
   expect_true(grepl("\t", lines[1]))
 })
@@ -1317,7 +1317,7 @@ test_that("JSON -> YAML: values preserved", {
   dir <- withr::local_tempdir()
   f <- make_json(test_df(), dir)
   out <- file.path(dir, "out.yaml")
-  rush_exec("df", file = f, args = list(output = out))
+  rush_run_exec("df", file = f, args = list(output = out))
   parsed <- yaml::read_yaml(out)
   expect_equal(parsed[[1]]$name, "Alice")
 })
@@ -1327,7 +1327,7 @@ test_that("JSON -> XML: values preserved", {
   dir <- withr::local_tempdir()
   f <- make_json(test_df(), dir)
   out <- file.path(dir, "out.xml")
-  rush_exec("df", file = f, args = list(output = out))
+  rush_run_exec("df", file = f, args = list(output = out))
   doc <- xml2::read_xml(out)
   rows <- xml2::xml_children(doc)
   expect_equal(length(rows), 3)
@@ -1338,7 +1338,7 @@ test_that("JSON -> TOML: values preserved", {
   dir <- withr::local_tempdir()
   f <- make_json(test_df(), dir)
   out <- file.path(dir, "out.toml")
-  rush_exec("df", file = f, args = list(output = out))
+  rush_run_exec("df", file = f, args = list(output = out))
   parsed <- RcppTOML::parseTOML(out)
   expect_equal(parsed$record[[1]]$name, "Alice")
 })
@@ -1348,7 +1348,7 @@ test_that("YAML -> JSON: values preserved", {
   dir <- withr::local_tempdir()
   f <- make_yaml(test_df(), dir)
   out <- file.path(dir, "out.json")
-  rush_exec("df", file = f, args = list(output = out))
+  rush_run_exec("df", file = f, args = list(output = out))
   parsed <- jsonlite::fromJSON(out)
   expect_equal(parsed$name, c("Alice", "Bob", "Carol"))
 })
@@ -1358,7 +1358,7 @@ test_that("YAML -> XML: values preserved", {
   dir <- withr::local_tempdir()
   f <- make_yaml(test_df(), dir)
   out <- file.path(dir, "out.xml")
-  rush_exec("df", file = f, args = list(output = out))
+  rush_run_exec("df", file = f, args = list(output = out))
   doc <- xml2::read_xml(out)
   expect_equal(length(xml2::xml_children(doc)), 3)
 })
@@ -1368,7 +1368,7 @@ test_that("YAML -> TOML: values preserved", {
   dir <- withr::local_tempdir()
   f <- make_yaml(test_df(), dir)
   out <- file.path(dir, "out.toml")
-  rush_exec("df", file = f, args = list(output = out))
+  rush_run_exec("df", file = f, args = list(output = out))
   parsed <- RcppTOML::parseTOML(out)
   expect_equal(parsed$record[[1]]$name, "Alice")
 })
@@ -1378,7 +1378,7 @@ test_that("XML -> JSON: values preserved", {
   dir <- withr::local_tempdir()
   f <- make_xml(test_df(), dir)
   out <- file.path(dir, "out.json")
-  rush_exec("df", file = f, args = list(output = out))
+  rush_run_exec("df", file = f, args = list(output = out))
   parsed <- jsonlite::fromJSON(out)
   expect_equal(parsed$name, c("Alice", "Bob", "Carol"))
 })
@@ -1388,7 +1388,7 @@ test_that("XML -> YAML: values preserved", {
   dir <- withr::local_tempdir()
   f <- make_xml(test_df(), dir)
   out <- file.path(dir, "out.yaml")
-  rush_exec("df", file = f, args = list(output = out))
+  rush_run_exec("df", file = f, args = list(output = out))
   parsed <- yaml::read_yaml(out)
   expect_equal(length(parsed), 3)
 })
@@ -1398,7 +1398,7 @@ test_that("XML -> TOML: values preserved", {
   dir <- withr::local_tempdir()
   f <- make_xml(test_df(), dir)
   out <- file.path(dir, "out.toml")
-  rush_exec("df", file = f, args = list(output = out))
+  rush_run_exec("df", file = f, args = list(output = out))
   content <- readLines(out)
   expect_true(any(grepl("Alice", content)))
 })
@@ -1408,7 +1408,7 @@ test_that("TOML -> JSON: values preserved", {
   dir <- withr::local_tempdir()
   f <- make_toml(test_df(), dir)
   out <- file.path(dir, "out.json")
-  rush_exec("df", file = f, args = list(output = out))
+  rush_run_exec("df", file = f, args = list(output = out))
   parsed <- jsonlite::fromJSON(out)
   expect_equal(parsed$name, c("Alice", "Bob", "Carol"))
 })
@@ -1418,7 +1418,7 @@ test_that("TOML -> YAML: values preserved", {
   dir <- withr::local_tempdir()
   f <- make_toml(test_df(), dir)
   out <- file.path(dir, "out.yaml")
-  rush_exec("df", file = f, args = list(output = out))
+  rush_run_exec("df", file = f, args = list(output = out))
   parsed <- yaml::read_yaml(out)
   expect_equal(parsed[[1]]$name, "Alice")
 })
@@ -1428,7 +1428,7 @@ test_that("TOML -> XML: values preserved", {
   dir <- withr::local_tempdir()
   f <- make_toml(test_df(), dir)
   out <- file.path(dir, "out.xml")
-  rush_exec("df", file = f, args = list(output = out))
+  rush_run_exec("df", file = f, args = list(output = out))
   doc <- xml2::read_xml(out)
   expect_equal(length(xml2::xml_children(doc)), 3)
 })
@@ -1438,7 +1438,7 @@ test_that("JSONL -> JSON: values preserved", {
   dir <- withr::local_tempdir()
   f <- make_jsonl(test_df(), dir)
   out <- file.path(dir, "out.json")
-  rush_exec("df", file = f, args = list(output = out))
+  rush_run_exec("df", file = f, args = list(output = out))
   parsed <- jsonlite::fromJSON(out)
   expect_equal(nrow(parsed), 3)
 })
@@ -1448,7 +1448,7 @@ test_that("JSON -> JSONL: values preserved", {
   dir <- withr::local_tempdir()
   f <- make_json(test_df(), dir)
   out <- file.path(dir, "out.jsonl")
-  rush_exec("df", file = f, args = list(output = out))
+  rush_run_exec("df", file = f, args = list(output = out))
   lines <- readLines(out)
   expect_equal(length(lines), 3)
 })
@@ -1461,8 +1461,8 @@ test_that("round-trip: CSV -> Parquet -> CSV", {
   f <- make_csv(numeric_df(), dir)
   pq <- file.path(dir, "mid.parquet")
   out <- file.path(dir, "out.csv")
-  rush_exec("df", file = f, args = list(output = pq))
-  rush_exec("df", file = pq, args = list(output = out))
+  rush_run_exec("df", file = f, args = list(output = pq))
+  rush_run_exec("df", file = pq, args = list(output = out))
   df <- readr::read_csv(out, show_col_types = FALSE)
   expect_equal(df$x, c(1.5, 2.7, 3.14))
   expect_equal(df$y, c(10, 20, 30))
@@ -1474,8 +1474,8 @@ test_that("round-trip: CSV -> JSON -> CSV", {
   f <- make_csv(numeric_df(), dir)
   mid <- file.path(dir, "mid.json")
   out <- file.path(dir, "out.csv")
-  rush_exec("df", file = f, args = list(output = mid))
-  rush_exec("df", file = mid, args = list(output = out))
+  rush_run_exec("df", file = f, args = list(output = mid))
+  rush_run_exec("df", file = mid, args = list(output = out))
   df <- readr::read_csv(out, show_col_types = FALSE)
   expect_equal(df$x, c(1.5, 2.7, 3.14))
 })
@@ -1486,8 +1486,8 @@ test_that("round-trip: CSV -> YAML -> CSV", {
   f <- make_csv(numeric_df(), dir)
   mid <- file.path(dir, "mid.yaml")
   out <- file.path(dir, "out.csv")
-  rush_exec("df", file = f, args = list(output = mid))
-  rush_exec("df", file = mid, args = list(output = out))
+  rush_run_exec("df", file = f, args = list(output = mid))
+  rush_run_exec("df", file = mid, args = list(output = out))
   df <- readr::read_csv(out, show_col_types = FALSE)
   expect_equal(df$y, c(10, 20, 30))
 })
@@ -1498,8 +1498,8 @@ test_that("round-trip: CSV -> TOML -> CSV", {
   f <- make_csv(numeric_df(), dir)
   mid <- file.path(dir, "mid.toml")
   out <- file.path(dir, "out.csv")
-  rush_exec("df", file = f, args = list(output = mid))
-  rush_exec("df", file = mid, args = list(output = out))
+  rush_run_exec("df", file = f, args = list(output = mid))
+  rush_run_exec("df", file = mid, args = list(output = out))
   df <- readr::read_csv(out, show_col_types = FALSE)
   expect_equal(nrow(df), 3)
 })
@@ -1510,8 +1510,8 @@ test_that("round-trip: CSV -> XML -> CSV", {
   f <- make_csv(numeric_df(), dir)
   mid <- file.path(dir, "mid.xml")
   out <- file.path(dir, "out.csv")
-  rush_exec("df", file = f, args = list(output = mid))
-  rush_exec("df", file = mid, args = list(output = out))
+  rush_run_exec("df", file = f, args = list(output = mid))
+  rush_run_exec("df", file = mid, args = list(output = out))
   df <- readr::read_csv(out, show_col_types = FALSE)
   expect_equal(nrow(df), 3)
 })
@@ -1522,8 +1522,8 @@ test_that("round-trip: CSV -> RDS -> CSV", {
   f <- make_csv(test_df(), dir)
   mid <- file.path(dir, "mid.rds")
   out <- file.path(dir, "out.csv")
-  rush_exec("df", file = f, args = list(output = mid))
-  rush_exec("df", file = mid, args = list(output = out))
+  rush_run_exec("df", file = f, args = list(output = mid))
+  rush_run_exec("df", file = mid, args = list(output = out))
   df <- readr::read_csv(out, show_col_types = FALSE)
   expect_equal(df$name, c("Alice", "Bob", "Carol"))
 })
@@ -1534,8 +1534,8 @@ test_that("round-trip: CSV -> Excel -> CSV", {
   f <- make_csv(test_df(), dir)
   mid <- file.path(dir, "mid.xlsx")
   out <- file.path(dir, "out.csv")
-  rush_exec("df", file = f, args = list(output = mid))
-  rush_exec("df", file = mid, args = list(output = out))
+  rush_run_exec("df", file = f, args = list(output = mid))
+  rush_run_exec("df", file = mid, args = list(output = out))
   df <- readr::read_csv(out, show_col_types = FALSE)
   expect_equal(df$name, c("Alice", "Bob", "Carol"))
 })
@@ -1546,8 +1546,8 @@ test_that("round-trip: CSV -> DuckDB -> CSV", {
   f <- make_csv(test_df(), dir)
   mid <- file.path(dir, "mid.duckdb")
   out <- file.path(dir, "out.csv")
-  rush_exec("df", file = f, args = list(output = mid))
-  rush_exec("dfs$mid$data", file = mid, args = list(output = out))
+  rush_run_exec("df", file = f, args = list(output = mid))
+  rush_run_exec("dfs$mid$data", file = mid, args = list(output = out))
   df <- readr::read_csv(out, show_col_types = FALSE)
   expect_equal(nrow(df), 3)
 })
@@ -1558,8 +1558,8 @@ test_that("round-trip: CSV -> SQLite -> CSV", {
   f <- make_csv(test_df(), dir)
   mid <- file.path(dir, "mid.sqlite")
   out <- file.path(dir, "out.csv")
-  rush_exec("df", file = f, args = list(output = mid))
-  rush_exec("dfs$mid$data", file = mid, args = list(output = out))
+  rush_run_exec("df", file = f, args = list(output = mid))
+  rush_run_exec("dfs$mid$data", file = mid, args = list(output = out))
   df <- readr::read_csv(out, show_col_types = FALSE)
   expect_equal(nrow(df), 3)
 })
@@ -1571,7 +1571,7 @@ test_that("two CSVs: names(dfs) correct", {
   dir <- withr::local_tempdir()
   f1 <- make_csv(data.frame(x = 1:2), dir, "a.csv")
   f2 <- make_csv(data.frame(y = 3:4), dir, "b.csv")
-  result <- rush_exec("names(dfs)", file = c(f1, f2))
+  result <- rush_run_exec("names(dfs)", file = c(f1, f2))
   lines <- stdout_lines(result)
   expect_true("a" %in% lines)
   expect_true("b" %in% lines)
@@ -1582,7 +1582,7 @@ test_that("two CSVs: nrow(dfs$a) correct", {
   dir <- withr::local_tempdir()
   f1 <- make_csv(data.frame(x = 1:5), dir, "a.csv")
   f2 <- make_csv(data.frame(y = 1:3), dir, "b.csv")
-  result <- rush_exec("nrow(dfs$a)", file = c(f1, f2))
+  result <- rush_run_exec("nrow(dfs$a)", file = c(f1, f2))
   expect_equal(stdout_lines(result), "5")
 })
 
@@ -1591,7 +1591,7 @@ test_that("two CSVs: nrow(dfs$b) correct", {
   dir <- withr::local_tempdir()
   f1 <- make_csv(data.frame(x = 1:5), dir, "a.csv")
   f2 <- make_csv(data.frame(y = 1:3), dir, "b.csv")
-  result <- rush_exec("nrow(dfs$b)", file = c(f1, f2))
+  result <- rush_run_exec("nrow(dfs$b)", file = c(f1, f2))
   expect_equal(stdout_lines(result), "3")
 })
 
@@ -1600,7 +1600,7 @@ test_that("CSV + TSV: mixed flat formats", {
   dir <- withr::local_tempdir()
   f1 <- make_csv(data.frame(a = 1:2), dir, "one.csv")
   f2 <- make_tsv(data.frame(b = 3:4), dir, "two.tsv")
-  result <- rush_exec("names(dfs)", file = c(f1, f2))
+  result <- rush_run_exec("names(dfs)", file = c(f1, f2))
   lines <- stdout_lines(result)
   expect_true("one" %in% lines)
   expect_true("two" %in% lines)
@@ -1611,7 +1611,7 @@ test_that("CSV + JSON: mixed flat + nested", {
   dir <- withr::local_tempdir()
   f1 <- make_csv(data.frame(a = 1:2), dir, "flat.csv")
   f2 <- make_json(data.frame(b = 3:4), dir, "nested.json")
-  result <- rush_exec("nrow(dfs$nested)", file = c(f1, f2))
+  result <- rush_run_exec("nrow(dfs$nested)", file = c(f1, f2))
   expect_equal(stdout_lines(result), "2")
 })
 
@@ -1620,7 +1620,7 @@ test_that("CSV + Parquet: mixed flat + binary", {
   dir <- withr::local_tempdir()
   f1 <- make_csv(data.frame(a = 1:2), dir, "text.csv")
   f2 <- make_parquet(data.frame(b = 5:7), dir, "bin.parquet")
-  result <- rush_exec("nrow(dfs$bin)", file = c(f1, f2))
+  result <- rush_run_exec("nrow(dfs$bin)", file = c(f1, f2))
   expect_equal(stdout_lines(result), "3")
 })
 
@@ -1630,7 +1630,7 @@ test_that("three files: all names present", {
   f1 <- make_csv(data.frame(x = 1), dir, "a.csv")
   f2 <- make_csv(data.frame(x = 1), dir, "b.csv")
   f3 <- make_csv(data.frame(x = 1), dir, "c.csv")
-  result <- rush_exec("names(dfs)", file = c(f1, f2, f3))
+  result <- rush_run_exec("names(dfs)", file = c(f1, f2, f3))
   lines <- stdout_lines(result)
   expect_true(all(c("a", "b", "c") %in% lines))
 })
@@ -1639,7 +1639,7 @@ test_that("digit-prefix file: dfs$x2024", {
   skip_if_no_ir()
   dir <- withr::local_tempdir()
   f <- make_csv(data.frame(val = 42), dir, "2024.csv")
-  result <- rush_exec("dfs$x2024$val", file = f)
+  result <- rush_run_exec("dfs$x2024$val", file = f)
   expect_equal(stdout_lines(result), "42")
 })
 
@@ -1648,7 +1648,7 @@ test_that("DuckDB input: table names via dfs", {
   dir <- withr::local_tempdir()
   tables <- list(orders = data.frame(id = 1:3), items = data.frame(sku = c("a", "b")))
   f <- make_duckdb(tables, dir)
-  result <- rush_exec("sort(names(dfs$data))", file = f)
+  result <- rush_run_exec("sort(names(dfs$data))", file = f)
   lines <- stdout_lines(result)
   expect_true("items" %in% lines)
   expect_true("orders" %in% lines)
@@ -1659,7 +1659,7 @@ test_that("DuckDB input: access table row count", {
   dir <- withr::local_tempdir()
   tables <- list(orders = data.frame(id = 1:5))
   f <- make_duckdb(tables, dir)
-  result <- rush_exec("nrow(dfs$data$orders)", file = f)
+  result <- rush_run_exec("nrow(dfs$data$orders)", file = f)
   expect_equal(stdout_lines(result), "5")
 })
 
@@ -1668,7 +1668,7 @@ test_that("SQLite input: table names via dfs", {
   dir <- withr::local_tempdir()
   tables <- list(users = data.frame(name = c("A", "B")))
   f <- make_sqlite(tables, dir)
-  result <- rush_exec("names(dfs$data)", file = f)
+  result <- rush_run_exec("names(dfs$data)", file = f)
   expect_equal(stdout_lines(result), "users")
 })
 
@@ -2533,7 +2533,7 @@ test_that("single-row data frame -> CSV", {
   dir <- withr::local_tempdir()
   f <- make_csv(data.frame(x = 1, y = "a"), dir)
   out <- file.path(dir, "out.csv")
-  rush_exec("df", file = f, args = list(output = out))
+  rush_run_exec("df", file = f, args = list(output = out))
   df <- readr::read_csv(out, show_col_types = FALSE)
   expect_equal(nrow(df), 1)
 })
@@ -2543,7 +2543,7 @@ test_that("single-column data frame -> CSV", {
   dir <- withr::local_tempdir()
   f <- make_csv(data.frame(x = 1:5), dir)
   out <- file.path(dir, "out.csv")
-  rush_exec("df", file = f, args = list(output = out))
+  rush_run_exec("df", file = f, args = list(output = out))
   df <- readr::read_csv(out, show_col_types = FALSE)
   expect_equal(ncol(df), 1)
   expect_equal(names(df), "x")
@@ -2556,8 +2556,8 @@ test_that("NA values in CSV -> JSON -> CSV round-trip", {
   f <- make_csv(df_na, dir)
   mid <- file.path(dir, "mid.json")
   out <- file.path(dir, "out.csv")
-  rush_exec("df", file = f, args = list(output = mid))
-  rush_exec("df", file = mid, args = list(output = out))
+  rush_run_exec("df", file = f, args = list(output = mid))
+  rush_run_exec("df", file = mid, args = list(output = out))
   result <- readr::read_csv(out, show_col_types = FALSE)
   expect_true(is.na(result$a[2]))
   expect_true(is.na(result$b[2]))
@@ -2569,7 +2569,7 @@ test_that("columns with dots in TOML output are quoted", {
   df_dots <- data.frame(`Sepal.Length` = 5.1, `Petal.Width` = 0.2, check.names = FALSE)
   f <- make_csv(df_dots, dir)
   out <- file.path(dir, "out.toml")
-  rush_exec("df", file = f, args = list(output = out, no_clean_names = TRUE))
+  rush_run_exec("df", file = f, args = list(output = out, no_clean_names = TRUE))
   content <- paste(readLines(out), collapse = "\n")
   expect_true(grepl('"Sepal.Length"', content))
   expect_true(grepl('"Petal.Width"', content))
@@ -2581,7 +2581,7 @@ test_that("columns with dots in XML output become valid elements", {
   df_dots <- data.frame(sepal_length = 5.1, petal_width = 0.2)
   f <- make_csv(df_dots, dir)
   out <- file.path(dir, "out.xml")
-  rush_exec("df", file = f, args = list(output = out))
+  rush_run_exec("df", file = f, args = list(output = out))
   doc <- xml2::read_xml(out)
   row <- xml2::xml_children(doc)[[1]]
   col_names <- xml2::xml_name(xml2::xml_children(row))
@@ -2595,8 +2595,8 @@ test_that("numeric precision survives JSON round-trip", {
   f <- make_csv(df_prec, dir)
   mid <- file.path(dir, "mid.json")
   out <- file.path(dir, "out.csv")
-  rush_exec("df", file = f, args = list(output = mid))
-  rush_exec("df", file = mid, args = list(output = out))
+  rush_run_exec("df", file = f, args = list(output = mid))
+  rush_run_exec("df", file = mid, args = list(output = out))
   result <- readr::read_csv(out, show_col_types = FALSE)
   expect_equal(result$x[1], 3.14159265358979, tolerance = 1e-3)
   expect_equal(result$x[3], 1e10, tolerance = 1)
@@ -2609,8 +2609,8 @@ test_that("wide data frame (50 columns) survives JSON round-trip", {
   f <- make_csv(wide, dir)
   mid <- file.path(dir, "mid.json")
   out <- file.path(dir, "out.csv")
-  rush_exec("df", file = f, args = list(output = mid))
-  rush_exec("df", file = mid, args = list(output = out))
+  rush_run_exec("df", file = f, args = list(output = mid))
+  rush_run_exec("df", file = mid, args = list(output = out))
   result <- readr::read_csv(out, show_col_types = FALSE)
   expect_equal(ncol(result), 50)
 })
@@ -2622,8 +2622,8 @@ test_that("many rows (500) survive Parquet round-trip", {
   f <- make_csv(big, dir)
   mid <- file.path(dir, "mid.parquet")
   out <- file.path(dir, "out.csv")
-  rush_exec("df", file = f, args = list(output = mid))
-  rush_exec("df", file = mid, args = list(output = out))
+  rush_run_exec("df", file = f, args = list(output = mid))
+  rush_run_exec("df", file = mid, args = list(output = out))
   result <- readr::read_csv(out, show_col_types = FALSE)
   expect_equal(nrow(result), 500)
 })
@@ -2636,8 +2636,8 @@ test_that("unicode characters survive CSV -> JSON -> CSV", {
   mid <- file.path(dir, "mid.json")
   out <- file.path(dir, "out.csv")
 
-  rush_exec("df", file = f, args = list(output = mid))
-  rush_exec("df", file = mid, args = list(output = out))
+  rush_run_exec("df", file = f, args = list(output = mid))
+  rush_run_exec("df", file = mid, args = list(output = out))
   result <- readr::read_csv(out, show_col_types = FALSE)
   expect_equal(result$name[1], "café")
 })
@@ -2648,7 +2648,7 @@ test_that("parquet without -o gives error or no output", {
   skip_if_no_ir()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
-  result <- rush_exec("df", file = f, args = list(output_format = "parquet"))
+  result <- rush_run_exec("df", file = f, args = list(output_format = "parquet"))
   expect_true(result$status != 0 || nchar(result$stdout) == 0)
 })
 
@@ -2656,19 +2656,19 @@ test_that("arrow without -o gives error or no output", {
   skip_if_no_ir()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
-  result <- rush_exec("df", file = f, args = list(output_format = "arrow"))
+  result <- rush_run_exec("df", file = f, args = list(output_format = "arrow"))
   expect_true(result$status != 0 || nchar(result$stdout) == 0)
 })
 
 test_that("invalid expression gives non-zero exit", {
   skip_if_no_ir()
-  result <- rush_exec("this is not valid R code !!!")
+  result <- rush_run_exec("this is not valid R code !!!")
   expect_false(result$status == 0)
 })
 
 test_that("missing input file gives error or no meaningful output", {
   skip_if_no_ir()
-  result <- rush_exec("nrow(df)", file = "/nonexistent/file.csv")
+  result <- rush_run_exec("nrow(df)", file = "/nonexistent/file.csv")
   expect_true(result$status != 0 || nchar(trimws(result$stdout)) == 0 || grepl("Error", result$stderr))
 })
 

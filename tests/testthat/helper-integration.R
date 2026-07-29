@@ -2,7 +2,7 @@ skip_if_no_ir <- function() {
   skip_if_not(nzchar(Sys.which("ir")), "ir not available")
 }
 
-rush_exec <- function(expr = NULL, file = character(), args = list(), stdin_data = NULL) {
+rush_run_exec <- function(expr = NULL, file = character(), args = list(), stdin_data = NULL) {
   a <- c("run")
   if (!is.null(args[["output_format"]])) a <- c(a, "-O", args[["output_format"]])
   if (!is.null(args[["input_format"]])) a <- c(a, "-F", args[["input_format"]])
