@@ -19,30 +19,35 @@ rush plot [options] [--] [<file>...]
 When both `--x` and `--y` are given, `rush` guesses `geom_point`:
 
 ```{bash}
-rush plot -n -x bill_length_mm -y body_mass_g penguins.csv
+rush plot -x bill_length_mm -y body_mass_g -o plot-scatter.png penguins.csv
 ```
+![](plot-scatter.png)
 
 When only `--x` is given, `rush` guesses `geom_histogram`:
 
 ```{bash}
-rush plot -n -x body_mass_g penguins.csv
+rush plot -x body_mass_g -o plot-histogram.png penguins.csv
 ```
+![](plot-histogram.png)
 
 ### `--geom` (`-g`)
 
 Override the guessed geom. Any ggplot2 geom suffix works:
 
 ```{bash}
-rush plot -n -x body_mass_g -g density penguins.csv
+rush plot -x body_mass_g -g density -o plot-density.png penguins.csv
 ```
+![](plot-density.png)
 
 ```{bash}
-rush plot -n -x species -y body_mass_g -g boxplot penguins.csv
+rush plot -x species -y body_mass_g -g boxplot -o plot-boxplot.png penguins.csv
 ```
+![](plot-boxplot.png)
 
 ```{bash}
-rush plot -n -x bill_length_mm -y body_mass_g -g smooth penguins.csv
+rush plot -x bill_length_mm -y body_mass_g -g smooth -o plot-smooth.png penguins.csv
 ```
+![](plot-smooth.png)
 
 ## Aesthetics
 
@@ -51,56 +56,63 @@ rush plot -n -x bill_length_mm -y body_mass_g -g smooth penguins.csv
 Map a column to the color aesthetic:
 
 ```{bash}
-rush plot -n -x bill_length_mm -y body_mass_g -c species penguins.csv
+rush plot -x bill_length_mm -y body_mass_g -c species -o plot-color.png penguins.csv
 ```
+![](plot-color.png)
 
 ### `--fill` (`-f`)
 
 Map a column to fill (useful for histograms, bar charts, density plots):
 
 ```{bash}
-rush plot -n -x body_mass_g -g density -f species --alpha 0.5 penguins.csv
+rush plot -x body_mass_g -g density -f species --alpha 0.5 -o plot-fill.png penguins.csv
 ```
+![](plot-fill.png)
 
 ### `--alpha` (`-a`)
 
 Map a column to transparency, or use a constant for semi-transparent geoms:
 
 ```{bash}
-rush plot -n -x bill_length_mm -y body_mass_g --alpha 0.6 penguins.csv
+rush plot -x bill_length_mm -y body_mass_g --alpha 0.6 -o plot-alpha.png penguins.csv
 ```
+![](plot-alpha.png)
 
 ### `--size`
 
 Map a column to point size — great for bubble charts:
 
 ```{bash}
-rush plot -n -x bill_length_mm -y body_mass_g --size flipper_length_mm -c species penguins.csv
+rush plot -x bill_length_mm -y body_mass_g --size flipper_length_mm -c species -o plot-size.png penguins.csv
 ```
+![](plot-size.png)
 
 ### `--shape`
 
 Map a column to point shape:
 
 ```{bash}
-rush plot -n -x bill_length_mm -y body_mass_g --shape sex penguins.csv
+rush plot -x bill_length_mm -y body_mass_g --shape sex -o plot-shape.png penguins.csv
 ```
+![](plot-shape.png)
 
 ### `--group`
 
 Group observations for geoms like `geom_line` that connect points:
 
 ```{bash}
-rush plot -n -x bill_length_mm -y body_mass_g --group species -g line penguins.csv
+rush plot -x bill_length_mm -y body_mass_g --group species -g line -o plot-group.png penguins.csv
 ```
+![](plot-group.png)
 
 ### `--aes`
 
 Pass additional aesthetics as `key=value` pairs:
 
 ```{bash}
-rush plot -n -x bill_length_mm -y body_mass_g --aes "label=species" -g text penguins.csv
+rush plot -x bill_length_mm -y body_mass_g --aes "label=species" -g text -o plot-aes.png penguins.csv
 ```
+![](plot-aes.png)
 
 ## Axis and labels
 
@@ -109,30 +121,34 @@ rush plot -n -x bill_length_mm -y body_mass_g --aes "label=species" -g text peng
 Log-transform axes. Accepts `x`, `y`, or `xy`:
 
 ```{bash}
-rush plot -n -x body_mass_g -y bill_length_mm --log x penguins.csv
+rush plot -x body_mass_g -y bill_length_mm --log x -o plot-log.png penguins.csv
 ```
+![](plot-log.png)
 
 ### `--title`, `--xlab`, `--ylab`
 
 Add axis labels and a title:
 
 ```{bash}
-rush plot -n -x bill_length_mm -y body_mass_g --title "Bill Length vs Body Mass" --xlab "Bill length (mm)" --ylab "Body mass (g)" penguins.csv
+rush plot -x bill_length_mm -y body_mass_g --title "Bill Length vs Body Mass" --xlab "Bill length (mm)" --ylab "Body mass (g)" -o plot-labels.png penguins.csv
 ```
+![](plot-labels.png)
 
 ## Facets
 
 ### One-sided formula (facet_wrap)
 
 ```{bash}
-rush plot -n -x bill_length_mm -y body_mass_g --facets '~ species' penguins.csv
+rush plot -x bill_length_mm -y body_mass_g --facets '~ species' -o plot-facet-wrap.png penguins.csv
 ```
+![](plot-facet-wrap.png)
 
 ### Two-sided formula (facet_grid) + `--margins`
 
 ```{bash}
-rush plot -n -x bill_length_mm -y body_mass_g --facets 'sex ~ species' --margins penguins.csv
+rush plot -x bill_length_mm -y body_mass_g --facets 'sex ~ species' --margins -o plot-facet-grid.png penguins.csv
 ```
+![](plot-facet-grid.png)
 
 ## Pre- and post-processing
 
@@ -141,16 +157,18 @@ rush plot -n -x bill_length_mm -y body_mass_g --facets 'sex ~ species' --margins
 Run code before the plot is built. Useful for data transformations:
 
 ```{bash}
-rush plot -n -x species -y mean_mass --pre 'df <- df |> dplyr::summarise(mean_mass = mean(body_mass_g), .by = species)' -g col penguins.csv
+rush plot -x species -y mean_mass --pre 'df <- df |> dplyr::summarise(mean_mass = mean(body_mass_g), .by = species)' -g col -o plot-pre.png penguins.csv
 ```
+![](plot-pre.png)
 
 ### `--post`
 
 Run code after the plot is built. The plot object is available as `p`:
 
 ```{bash}
-rush plot -n -x bill_length_mm -y body_mass_g --post 'p + ggplot2::theme_minimal() + ggplot2::geom_smooth(method = "lm")' penguins.csv
+rush plot -x bill_length_mm -y body_mass_g --post 'p + ggplot2::theme_minimal() + ggplot2::geom_smooth(method = "lm")' -o plot-post.png penguins.csv
 ```
+![](plot-post.png)
 
 ## Saving plots
 
@@ -161,8 +179,8 @@ When `--output` points to a file, the plot is saved (device inferred from extens
 ```{bash}
 rush plot -x bill_length_mm -y body_mass_g -c species -o scatter.png penguins.csv
 ls -la scatter.png
-rm -f scatter.png
 ```
+![](scatter.png)
 
 ### `--width`, `--height`, `--units`, `--dpi`
 
@@ -171,16 +189,17 @@ Control the saved image dimensions and resolution:
 ```{bash}
 rush plot -x bill_length_mm -y body_mass_g -o hires.png --width 10 --height 6 --units in --dpi 150 penguins.csv
 ls -la hires.png
-rm -f hires.png
 ```
+![](hires.png)
 
 ## Reading from stdin
 
 Without a file argument, `plot` reads from standard input:
 
 ```{bash}
-rush run 'head(df, 50)' penguins.csv | rush plot -n -x bill_length_mm -y body_mass_g -
+rush run 'head(df, 50)' penguins.csv | rush plot -x bill_length_mm -y body_mass_g -o plot-stdin.png -
 ```
+![](plot-stdin.png)
 
 ## Multiple files
 
@@ -196,9 +215,10 @@ echo "src,x,y
 B,1,3
 B,2,2
 B,3,6" > b.csv
-rush plot -n -x x -y y -c src --pre 'df <- dplyr::bind_rows(dfs)' a.csv b.csv
+rush plot -x x -y y -c src --pre 'df <- dplyr::bind_rows(dfs)' -o plot-multi.png a.csv b.csv
 rm -f a.csv b.csv
 ```
+![](plot-multi.png)
 
 ## Help
 
