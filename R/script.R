@@ -296,9 +296,13 @@ emit_read_files <- function(con, files, flags) {
       if (path == "-") {
         path <- expr(file("stdin", "rb", raw = TRUE))
       }
+      delim <- flags$resolved_input_delimiter
+      if (is.character(path) && tolower(tools::file_ext(path)) == "tsv") {
+        delim <- "\t"
+      }
       read_expr <- expr(readr::read_delim(
         !!path,
-        delim = !!flags$resolved_input_delimiter,
+        delim = !!delim,
         col_names = !!(!flags$no_header)
       ))
     }

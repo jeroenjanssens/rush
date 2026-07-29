@@ -119,7 +119,7 @@ rm -f penguins.dat
 Read a TSV and convert to semicolon-separated CSV:
 
 ```{bash}
-rush convert --input-delimiter "\t" -D ";" -o cities_semi.csv cities.tsv
+rush convert -D ";" -o cities_semi.csv cities.tsv
 cat cities_semi.csv
 ```
 
