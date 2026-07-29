@@ -10,13 +10,6 @@ unlink(c(
   "a.csv", "b.csv", "combined.duckdb", "combined.sqlite", "copy.sqlite",
   "chunk1.csv", "chunk2.csv", "chunk3.csv",
   "chunk1.parquet", "chunk2.parquet", "chunk3.parquet",
-  "cities_semi.csv", "result.json", "top5.csv",
-  "plot-scatter.png", "plot-histogram.png", "plot-density.png",
-  "plot-boxplot.png", "plot-smooth.png", "plot-color.png",
-  "plot-fill.png", "plot-alpha.png", "plot-size.png",
-  "plot-shape.png", "plot-group.png", "plot-aes.png",
-  "plot-log.png", "plot-labels.png", "plot-facet-wrap.png",
-  "plot-facet-grid.png", "plot-pre.png", "plot-post.png",
-  "plot-stdin.png", "plot-multi.png", "scatter.png", "hires.png"
+  "cities_semi.csv", "result.json", "top5.csv"
 ))
 ```
