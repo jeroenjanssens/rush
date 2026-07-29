@@ -30,14 +30,14 @@ echo "id,val
 echo "id,val
 3,c
 4,d" > b.csv
-rush convert -o combined.duckdb a.csv b.csv 2>/dev/null
+rush convert -o combined.duckdb a.csv b.csv
 rush run 'names(dfs$combined)' combined.duckdb
 ```
 
 A single file uses the file stem as the table name:
 
 ```{bash}
-rush convert -o penguins_db.duckdb penguins.csv 2>/dev/null
+rush convert -o penguins_db.duckdb penguins.csv
 rush sql "SELECT species, COUNT(*) AS n FROM penguins_db.penguins GROUP BY species" penguins_db.duckdb
 rm -f penguins_db.duckdb
 ```
@@ -60,7 +60,7 @@ Files ending in `.sqlite` or `.db` are read with
 list, similar to DuckDB:
 
 ```{bash}
-rush convert -o app.sqlite penguins.csv 2>/dev/null
+rush convert -o app.sqlite penguins.csv
 rush run 'names(dfs$app)' app.sqlite
 rm -f app.sqlite
 ```
@@ -70,7 +70,7 @@ rm -f app.sqlite
 Like DuckDB, multiple inputs become separate tables:
 
 ```{bash}
-rush convert -o combined.sqlite a.csv b.csv 2>/dev/null
+rush convert -o combined.sqlite a.csv b.csv
 rush run 'names(dfs$combined)' combined.sqlite
 ```
 
@@ -79,7 +79,7 @@ rush run 'names(dfs$combined)' combined.sqlite
 Copy all tables from one database to another:
 
 ```{bash}
-rush convert -o copy.sqlite shop.duckdb 2>/dev/null
+rush convert -o copy.sqlite shop.duckdb
 rush run 'names(dfs$copy)' copy.sqlite
 ```
 

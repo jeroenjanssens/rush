@@ -11,21 +11,21 @@ Files ending in `.arrow`, `.ipc`, or `.feather` are read with
 ## Reading
 
 ```{bash}
-rush run -o flights.arrow 'df' flights.parquet 2>/dev/null
+rush run -o flights.arrow 'df' flights.parquet
 rush run 'head(df, 3) |> dplyr::select(carrier, origin, dest)' flights.arrow
 ```
 
 ## Writing
 
 ```{bash}
-rush run -o subset.arrow 'dplyr::filter(df, dep_delay > 10)' flights.parquet 2>/dev/null
+rush run -o subset.arrow 'dplyr::filter(df, dep_delay > 10)' flights.parquet
 rush run 'nrow(df)' subset.arrow
 ```
 
 ## Using `-O arrow` with output flag
 
 ```{bash}
-rush run -O arrow -o sample.arrow 'head(df, 5)' penguins.csv 2>/dev/null
+rush run -O arrow -o sample.arrow 'head(df, 5)' penguins.csv
 rush run 'ncol(df)' sample.arrow
 ```
 

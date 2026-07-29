@@ -30,7 +30,7 @@ rush run -O json 'head(df, 3)' penguins.csv
 ```
 
 ```{bash}
-rush run -o top3.json 'head(df, 3)' penguins.csv 2>/dev/null
+rush run -o top3.json 'head(df, 3)' penguins.csv
 cat top3.json
 ```
 
@@ -87,7 +87,7 @@ rush run -O json 'df' logs.jsonl
 This also works with `rush convert`:
 
 ```{bash}
-rush convert -o logs.csv logs.jsonl 2>/dev/null
+rush convert -o logs.csv logs.jsonl
 cat logs.csv
 ```
 

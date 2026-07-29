@@ -13,7 +13,7 @@ by naming the output `.xlsx`.
 ### Reading
 
 ```{bash}
-rush run -o sales.xlsx 'data.frame(product = c("Widget", "Gadget", "Doohickey"), q1 = c(100, 250, 75), q2 = c(120, 200, 90), q3 = c(150, 180, 110))' 2>/dev/null
+rush run -o sales.xlsx 'data.frame(product = c("Widget", "Gadget", "Doohickey"), q1 = c(100, 250, 75), q2 = c(120, 200, 90), q3 = c(150, 180, 110))'
 rush run 'df' sales.xlsx
 ```
 
@@ -28,14 +28,14 @@ rush run --sheet 1 'names(df)' sales.xlsx
 ### Writing
 
 ```{bash}
-rush run -o summary.xlsx 'df |> dplyr::mutate(total = q1 + q2 + q3)' sales.xlsx 2>/dev/null
+rush run -o summary.xlsx 'df |> dplyr::mutate(total = q1 + q2 + q3)' sales.xlsx
 rush run 'df' summary.xlsx
 ```
 
 ### Converting CSV to Excel
 
 ```{bash}
-rush convert -o penguins.xlsx penguins.csv 2>/dev/null
+rush convert -o penguins.xlsx penguins.csv
 rush run 'nrow(df)' penguins.xlsx
 ```
 

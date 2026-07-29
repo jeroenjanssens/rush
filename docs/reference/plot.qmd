@@ -159,7 +159,7 @@ rush plot -n -x bill_length_mm -y body_mass_g --post 'p + ggplot2::theme_minimal
 When `--output` points to a file, the plot is saved (device inferred from extension):
 
 ```{bash}
-rush plot -x bill_length_mm -y body_mass_g -c species -o scatter.png penguins.csv 2>/dev/null
+rush plot -x bill_length_mm -y body_mass_g -c species -o scatter.png penguins.csv
 ls -la scatter.png
 rm -f scatter.png
 ```
@@ -169,7 +169,7 @@ rm -f scatter.png
 Control the saved image dimensions and resolution:
 
 ```{bash}
-rush plot -x bill_length_mm -y body_mass_g -o hires.png --width 10 --height 6 --units in --dpi 150 penguins.csv 2>/dev/null
+rush plot -x bill_length_mm -y body_mass_g -o hires.png --width 10 --height 6 --units in --dpi 150 penguins.csv
 ls -la hires.png
 rm -f hires.png
 ```

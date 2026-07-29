@@ -63,7 +63,7 @@ rush sql "SELECT species, ROUND(AVG(body_mass_g)) AS avg_mass, COUNT(*) AS n
 Convert between formats in one step:
 
 ```{bash}
-rush convert -o penguins.parquet penguins.csv 2>/dev/null
+rush convert -o penguins.parquet penguins.csv
 rush run 'nrow(df)' penguins.parquet
 ```
 

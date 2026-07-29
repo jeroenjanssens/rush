@@ -19,17 +19,17 @@ rush convert [options] [<file>...]
 ## Basic conversion
 
 ```{bash}
-rush convert -o penguins.parquet penguins.csv 2>/dev/null
+rush convert -o penguins.parquet penguins.csv
 rush run 'nrow(df)' penguins.parquet
 ```
 
 ```{bash}
-rush convert -o penguins.json --head 3 penguins.csv 2>/dev/null
+rush convert -o penguins.json --head 3 penguins.csv
 cat penguins.json
 ```
 
 ```{bash}
-rush convert -O jsonl --head 2 -o penguins.jsonl penguins.csv 2>/dev/null
+rush convert -O jsonl --head 2 -o penguins.jsonl penguins.csv
 cat penguins.jsonl
 ```
 
@@ -44,7 +44,7 @@ echo "id,val
 echo "id,val
 3,c
 4,d" > chunk2.csv
-rush convert -o '%(file_name)s.parquet' chunk1.csv chunk2.csv 2>/dev/null
+rush convert -o '%(file_name)s.parquet' chunk1.csv chunk2.csv
 rush run 'df' chunk1.parquet
 ```
 
@@ -77,14 +77,14 @@ echo "id,val
 echo "id,val
 3,c
 4,d" > b.csv
-rush convert -o combined.duckdb a.csv b.csv 2>/dev/null
+rush convert -o combined.duckdb a.csv b.csv
 rush run 'names(dfs$combined)' combined.duckdb
 ```
 
 A single input also uses the file name as the table name:
 
 ```{bash}
-rush convert -o penguins_db.duckdb penguins.csv 2>/dev/null
+rush convert -o penguins_db.duckdb penguins.csv
 rush sql "SELECT species, COUNT(*) AS n FROM penguins_db.penguins GROUP BY species" penguins_db.duckdb
 rm -f penguins_db.duckdb
 ```
@@ -92,7 +92,7 @@ rm -f penguins_db.duckdb
 Convert between database formats:
 
 ```{bash}
-rush convert -o copy.sqlite shop.duckdb 2>/dev/null
+rush convert -o copy.sqlite shop.duckdb
 rush run 'names(dfs$copy)' copy.sqlite
 ```
 
@@ -101,7 +101,7 @@ rush run 'names(dfs$copy)' copy.sqlite
 Use `--head` to limit the number of rows written:
 
 ```{bash}
-rush convert --head 5 -o top5.csv penguins.csv 2>/dev/null
+rush convert --head 5 -o top5.csv penguins.csv
 cat top5.csv
 ```
 
@@ -111,7 +111,7 @@ Force input and output formats regardless of extension with `-F` and `-O`:
 
 ```{bash}
 cp penguins.csv penguins.dat
-rush convert -F csv -O json -o result.json --head 2 penguins.dat 2>/dev/null
+rush convert -F csv -O json -o result.json --head 2 penguins.dat
 cat result.json
 rm -f penguins.dat
 ```
@@ -121,7 +121,7 @@ rm -f penguins.dat
 Read a TSV and convert to semicolon-separated CSV:
 
 ```{bash}
-rush convert --input-delimiter "\t" -D ";" -o cities_semi.csv cities.tsv 2>/dev/null
+rush convert --input-delimiter "\t" -D ";" -o cities_semi.csv cities.tsv
 cat cities_semi.csv
 ```
 
