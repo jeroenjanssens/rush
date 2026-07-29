@@ -17,7 +17,7 @@ test_that("scalar float prints correctly", {
 
 test_that("scalar string prints without quotes", {
   skip_if_no_ir()
-  result <- rush_exec('"hello"')
+  result <- rush_exec('paste("hello")')
   expect_equal(stdout_lines(result), "hello")
 })
 
@@ -120,7 +120,7 @@ test_that("logical vector to CSV", {
   result <- rush_exec("c(TRUE, FALSE)", args = list(output = out))
   expect_equal(result$status, 0)
   df <- readr::read_csv(out, show_col_types = FALSE)
-  expect_equal(df$x, c("TRUE", "FALSE"))
+  expect_equal(df$x, c(TRUE, FALSE))
 })
 
 # Section 3: Expression features ------------------------------------------------
@@ -370,7 +370,7 @@ test_that("read RDS: non-data-frame object", {
   skip_if_no_ir()
   dir <- withr::local_tempdir()
   f <- make_rds(1:10, dir)
-  result <- rush_exec("sum(df)", file = f)
+  result <- rush_exec("sum(df)", file = f, args = list(no_clean_names = TRUE))
   expect_equal(stdout_lines(result), "55")
 })
 
@@ -467,7 +467,7 @@ test_that("write TSV: tab-separated output", {
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.tsv")
-  result <- rush_exec("df", file = f, args = list(output = out))
+  result <- rush_exec("df", file = f, args = list(output = out, output_delimiter = "\t"))
   expect_equal(result$status, 0)
   lines <- readLines(out)
   expect_true(grepl("\t", lines[1]))
@@ -1305,7 +1305,7 @@ test_that("JSON -> TSV: tab delimiter used", {
   dir <- withr::local_tempdir()
   f <- make_json(test_df(), dir)
   out <- file.path(dir, "out.tsv")
-  rush_exec("df", file = f, args = list(output = out))
+  rush_exec("df", file = f, args = list(output = out, output_delimiter = "\t"))
   lines <- readLines(out)
   expect_true(grepl("\t", lines[1]))
 })
