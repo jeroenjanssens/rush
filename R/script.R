@@ -650,7 +650,11 @@ if (!is.null(.rush$output_template)) {
     }
   }
 } else if (rlang::is_atomic(result)) {
-  cli::cat_line(result)
+  if (is.null(.rush$output)) {
+    cli::cat_line(result)
+  } else {
+    .write_result(tibble::tibble(x = result), .rush$output)
+  }
 } else if (is.data.frame(result)) {
   .write_result(result, .rush$output)
 } else if (rlang::is_bare_list(result)) {
