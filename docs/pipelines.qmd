@@ -57,14 +57,17 @@ rush run 'dplyr::select(df, species, bill_length_mm, body_mass_g)' penguins.csv 
 
 `rush` plays well with standard Unix tools:
 
-```bash
-# Count lines with wc
+```{bash}
 rush run 'df' penguins.csv | wc -l
+```
 
-# Extract a column with cut
+```{bash}
 rush run 'df' penguins.csv | cut -d, -f1 | sort | uniq -c
+```
 
-# Feed curl output into rush
+Feed external data into rush:
+
+```bash
 curl -s https://api.example.com/data.json | rush run -F json 'head(df)'
 ```
 
