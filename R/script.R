@@ -317,22 +317,17 @@ emit_read_files <- function(con, files, flags) {
           .tmp
         }))
       }
-      row_name <- flags$xml_row_name %||% "row"
       read_expr <- expr(local({
         .doc <- xml2::read_xml(!!path)
         .rows <- xml2::xml_children(.doc)
-        if (length(.rows) > 0 && xml2::xml_name(.rows[[1]]) == !!row_name) {
-          do.call(
-            rbind,
-            lapply(.rows, function(.row) {
-              .vals <- xml2::xml_text(xml2::xml_children(.row))
-              names(.vals) <- xml2::xml_name(xml2::xml_children(.row))
-              as.data.frame(as.list(.vals))
-            })
-          )
-        } else {
-          xml2::as_list(.doc)
-        }
+        do.call(
+          rbind,
+          lapply(.rows, function(.row) {
+            .vals <- xml2::xml_text(xml2::xml_children(.row))
+            names(.vals) <- xml2::xml_name(xml2::xml_children(.row))
+            as.data.frame(as.list(.vals))
+          })
+        )
       }))
     } else {
       if (path == "-") {
