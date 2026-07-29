@@ -31,8 +31,8 @@ nanoparquet::write_parquet(
   "flights.parquet"
 )
 
-# con <- DBI::dbConnect(duckdb::duckdb(), "shop.duckdb")
-# DBI::dbWriteTable(con, "customers", data.frame(id = 1:3, name = c("Alice", "Bob", "Carol")))
-# DBI::dbWriteTable(con, "orders", data.frame(cust = c(1, 1, 2, 3, 3), amount = c(20, 35, 10, 50, 15)))
-# DBI::dbDisconnect(con, shutdown = TRUE)
+con <- DBI::dbConnect(duckdb::duckdb(), "shop.duckdb")
+DBI::dbWriteTable(con, "customers", data.frame(id = 1:3, name = c("Alice", "Bob", "Carol")))
+DBI::dbWriteTable(con, "orders", data.frame(cust = c(1, 1, 2, 3, 3), amount = c(20, 35, 10, 50, 15)))
+DBI::dbDisconnect(con, shutdown = TRUE)
 ```
