@@ -18,7 +18,6 @@ jobs:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       RSPM: https://packagemanager.posit.co/cran/__linux__/noble/latest
       PKG_CRAN_MIRROR: https://packagemanager.posit.co/cran/__linux__/noble/latest
-      RUSH_NO_IR: 1
     permissions:
       contents: write
     steps:
@@ -39,10 +38,27 @@ jobs:
             any::tidyverse
           needs: website
 
-      - name: Install ir and set up rush
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Cargo build
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            /tmp/ir-build/target
+          key: ${{ runner.os }}-cargo-ir-${{ github.sha }}
+          restore-keys: ${{ runner.os }}-cargo-ir-
+
+      - name: Build and install ir from source
         run: |
-          curl -fsSL https://raw.githubusercontent.com/r-lib/ir/main/scripts/install.sh | sh
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          git clone --depth 1 https://github.com/r-lib/ir.git /tmp/ir-build
+          cargo install --path /tmp/ir-build
+        shell: bash
+
+      - name: Set up rush
+        run: |
           chmod +x exec/rush.R
           sudo ln -sf $(pwd)/exec/rush.R /usr/local/bin/rush
         shell: bash
