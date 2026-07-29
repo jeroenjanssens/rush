@@ -282,10 +282,32 @@ emit_read_files <- function(con, files, flags) {
       read_expr <- expr(microseq::readFastq(!!path))
     } else if (kind == "yaml") {
       read_pkgs <- "yaml"
-      read_expr <- expr(as.data.frame(yaml::read_yaml(!!path)))
+      src <- if (path == "-") expr(file("stdin")) else path
+      read_expr <- expr(local({
+        .parsed <- yaml::read_yaml(!!src)
+        if (is.list(.parsed) && length(.parsed) > 0 && is.list(.parsed[[1]])) {
+          do.call(rbind, lapply(.parsed, as.data.frame))
+        } else {
+          as.data.frame(.parsed)
+        }
+      }))
     } else if (kind == "toml") {
       read_pkgs <- "RcppTOML"
-      read_expr <- expr(as.data.frame(RcppTOML::parseTOML(!!path)))
+      if (path == "-") {
+        path <- expr(local({
+          .tmp <- tempfile(fileext = ".toml")
+          writeLines(readLines(file("stdin")), .tmp)
+          .tmp
+        }))
+      }
+      read_expr <- expr(local({
+        .parsed <- RcppTOML::parseTOML(!!path)
+        if (!is.null(.parsed$row)) {
+          as.data.frame(do.call(rbind, lapply(.parsed$row, as.data.frame)))
+        } else {
+          as.data.frame(.parsed)
+        }
+      }))
     } else if (kind == "xml") {
       read_pkgs <- "xml2"
       read_expr <- expr(xml2::as_list(xml2::read_xml(!!path)))
@@ -599,18 +621,19 @@ if (.has_tty) options(width = if (is.null(.rush$width)) cli::console_width() els
     yaml_out <- yaml::as.yaml(rows)
     if (is.null(output)) cat(yaml_out) else writeLines(yaml_out, output)
   } else if (identical(.rush$output_format, "toml")) {
+    .dq <- rawToChar(as.raw(0x22))
     .lines <- character(0)
     for (.i in seq_len(nrow(result))) {
       .lines <- c(.lines, "[[row]]")
       for (.col in names(result)) {
         .val <- result[[.col]][.i]
-        .dq <- rawToChar(as.raw(0x22))
+        .key <- paste0(.dq, .col, .dq)
         if (is.character(.val) || is.factor(.val)) {
-          .lines <- c(.lines, paste0(.col, " = ", .dq, as.character(.val), .dq))
+          .lines <- c(.lines, paste0(.key, " = ", .dq, as.character(.val), .dq))
         } else if (is.logical(.val)) {
-          .lines <- c(.lines, paste0(.col, " = ", tolower(.val)))
+          .lines <- c(.lines, paste0(.key, " = ", tolower(.val)))
         } else {
-          .lines <- c(.lines, paste0(.col, " = ", .val))
+          .lines <- c(.lines, paste0(.key, " = ", .val))
         }
       }
       .lines <- c(.lines, "")
