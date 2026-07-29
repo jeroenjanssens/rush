@@ -123,6 +123,16 @@ rush convert -D ";" -o cities_semi.csv cities.tsv
 cat cities_semi.csv
 ```
 
+## XML element names
+
+Use `--xml-root-name` and `--xml-row-name` to customize the XML structure:
+
+```{bash}
+rush convert --xml-root-name plants --xml-row-name observation --head 2 -o plants.xml penguins.csv
+cat plants.xml
+rm -f plants.xml
+```
+
 ## Help
 
 ```{bash}

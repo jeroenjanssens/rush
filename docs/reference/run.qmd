@@ -197,6 +197,15 @@ rush run -o subset.parquet 'dplyr::filter(df, body_mass_g > 5000)' penguins.csv
 rush run 'df' subset.parquet
 ```
 
+### `--xml-root-name`, `--xml-row-name`
+
+Customize the XML element names when reading or writing XML. Defaults are `data`
+(root) and `row` (each record):
+
+```{bash}
+rush run -n -O xml --xml-root-name plants --xml-row-name observation 'head(df)' data.csv
+```
+
 ### `--dry-run` (`-n`)
 
 Print the generated script instead of running it. Great for learning what `rush`

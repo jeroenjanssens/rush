@@ -47,7 +47,8 @@ rush run -n -O toml -o output.toml 'df' data.csv
 
 ## XML
 
-Files ending in `.xml` are read with [xml2](https://xml2.r-lib.org/):
+Files ending in `.xml` are read with [xml2](https://xml2.r-lib.org/).
+Data frames are serialized as rows, with configurable element names.
 
 ### Reading
 
@@ -59,6 +60,14 @@ rush run -n 'head(df)' data.xml
 
 ```{bash}
 rush run -n -O xml -o output.xml 'df' data.csv
+```
+
+### `--xml-root-name` and `--xml-row-name`
+
+Customize the root and row element names (defaults: `data` and `row`):
+
+```{bash}
+rush run -n -O xml --xml-root-name plants --xml-row-name observation 'head(df)' data.csv
 ```
 
 ## RDS
