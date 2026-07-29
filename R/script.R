@@ -540,6 +540,7 @@ if (.has_tty) options(width = if (is.null(.rush$width)) cli::console_width() els
     options(tibble.width = if (is.null(.rush$width)) cli::console_width() else .rush$width)
     print(tibble::as_tibble(result), n = .rush$height)
   } else if (identical(.rush$output_format, "parquet")) {
+    if (is.null(output)) stop("Parquet format requires --output (-o) file path")
     nanoparquet::write_parquet(result, output)
   } else if (identical(.rush$output_format, "json")) {
     json <- jsonlite::toJSON(result, dataframe = "rows", pretty = TRUE, auto_unbox = TRUE)
@@ -549,6 +550,7 @@ if (.has_tty) options(width = if (is.null(.rush$width)) cli::console_width() els
     jsonlite::stream_out(result, con_out, verbose = FALSE)
     if (!is.null(output)) close(con_out)
   } else if (identical(.rush$output_format, "arrow")) {
+    if (is.null(output)) stop("Arrow format requires --output (-o) file path")
     arrow::write_ipc_file(result, output)
   } else if (identical(.rush$output_format, "xlsx")) {
     writexl::write_xlsx(result, output)
@@ -591,11 +593,30 @@ if (.has_tty) options(width = if (is.null(.rush$width)) cli::console_width() els
   } else if (identical(.rush$output_format, "fastq")) {
     microseq::writeFastq(result, output)
   } else if (identical(.rush$output_format, "yaml")) {
-    yaml_out <- yaml::as.yaml(result)
+    rows <- lapply(seq_len(nrow(result)), function(.i) {
+      as.list(result[.i, , drop = FALSE])
+    })
+    yaml_out <- yaml::as.yaml(rows)
     if (is.null(output)) cat(yaml_out) else writeLines(yaml_out, output)
   } else if (identical(.rush$output_format, "toml")) {
-    toml_out <- RcppTOML::writeTOML(result)
-    if (is.null(output)) cat(toml_out) else writeLines(toml_out, output)
+    .lines <- character(0)
+    for (.i in seq_len(nrow(result))) {
+      .lines <- c(.lines, "[[row]]")
+      for (.col in names(result)) {
+        .val <- result[[.col]][.i]
+        .dq <- rawToChar(as.raw(0x22))
+        if (is.character(.val) || is.factor(.val)) {
+          .lines <- c(.lines, paste0(.col, " = ", .dq, as.character(.val), .dq))
+        } else if (is.logical(.val)) {
+          .lines <- c(.lines, paste0(.col, " = ", tolower(.val)))
+        } else {
+          .lines <- c(.lines, paste0(.col, " = ", .val))
+        }
+      }
+      .lines <- c(.lines, "")
+    }
+    toml_out <- paste(.lines, collapse = "\n")
+    if (is.null(output)) cat(toml_out, "\n") else writeLines(toml_out, output)
   } else if (identical(.rush$output_format, "xml")) {
     root <- xml2::xml_new_root("data")
     for (.i in seq_len(nrow(result))) {

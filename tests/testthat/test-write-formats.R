@@ -309,7 +309,7 @@ test_that("output_format = 'yaml' emits yaml::as.yaml", {
 
 # TOML ------------------------------------------------------------------------
 
-test_that("output_format = 'toml' emits RcppTOML::writeTOML", {
+test_that("output_format = 'toml' emits manual TOML writer", {
   script <- capture_script(
     rush_run,
     expr = "df",
@@ -318,8 +318,7 @@ test_that("output_format = 'toml' emits RcppTOML::writeTOML", {
     output = "out.toml"
   )
   expect_true(any(grepl('output_format = "toml"', script)))
-  expect_true(any(grepl("RcppTOML::writeTOML", script)))
-  expect_true(any(grepl("^#\\|   - RcppTOML$", script)))
+  expect_false(any(grepl("RcppTOML", script)))
 })
 
 # XML -------------------------------------------------------------------------
