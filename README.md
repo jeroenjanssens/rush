@@ -44,7 +44,7 @@ Evaluate an expression:
 
 ```sh
 $ rush run '6 * 7'
-#> [1] 42
+#> 42
 ```
 
 Read a file into `df` and filter it:
