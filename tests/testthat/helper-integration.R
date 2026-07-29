@@ -220,7 +220,7 @@ make_xlsx <- function(df_or_list, dir, name = "data.xlsx") {
 make_duckdb <- function(tables, dir, name = "data.duckdb") {
   path <- file.path(dir, name)
   if (file.exists(path)) unlink(path)
-  con <- DBI::dbConnect(duckdb::duckdb(), dbdir = path)
+  con <- DBI::dbConnect(duckdb::duckdb(shared_home = FALSE), dbdir = path)
   on.exit(DBI::dbDisconnect(con, shutdown = TRUE))
   for (tname in names(tables)) {
     DBI::dbWriteTable(con, tname, tables[[tname]])
