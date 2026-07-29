@@ -29,7 +29,6 @@ Because DuckDB reads Parquet natively, large-file queries run without loading
 everything into memory:
 
 ```{bash}
-#| eval: false
 rush sql "SELECT carrier, COUNT(*) AS flights, ROUND(AVG(arr_delay), 1) AS avg_delay
           FROM flights
           GROUP BY carrier

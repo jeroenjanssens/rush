@@ -1,7 +1,5 @@
 ---
 title: "rush sql"
-execute:
-  eval: false
 ---
 
 {{< include ../_setup.qmd >}}

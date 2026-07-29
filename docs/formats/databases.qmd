@@ -1,7 +1,5 @@
 ---
 title: "DuckDB / SQLite"
-execute:
-  eval: false
 ---
 
 {{< include ../_setup.qmd >}}

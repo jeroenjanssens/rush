@@ -88,7 +88,6 @@ rush run 'head(df, 5)' penguins.csv | rush run 'dplyr::select(df, species, bill_
 Use `-F` to read non-CSV formats from stdin — for example, JSON:
 
 ```{bash}
-#| eval: false
 rush run -O json 'head(df, 3)' penguins.csv | rush run -F json 'dplyr::select(df, species, body_mass_g)' -
 ```
 
@@ -97,7 +96,6 @@ rush run -O json 'head(df, 3)' penguins.csv | rush run -F json 'dplyr::select(df
 Point `rush` at a `.duckdb` file and all tables are loaded into `dfs`:
 
 ```{bash}
-#| eval: false
 rush run 'names(dfs$shop)' shop.duckdb
 ```
 

@@ -55,7 +55,6 @@ rush run -t 'penguins |> count(species, sort = TRUE)' penguins.csv
 Query files directly with SQL:
 
 ```{bash}
-#| eval: false
 rush sql "SELECT species, ROUND(AVG(body_mass_g)) AS avg_mass, COUNT(*) AS n
           FROM penguins GROUP BY species ORDER BY avg_mass DESC" penguins.csv
 ```

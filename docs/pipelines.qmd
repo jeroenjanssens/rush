@@ -13,7 +13,7 @@ other command-line tools — including other `rush` invocations.
 Filter with `rush run`, then query with SQL:
 
 ```{bash}
-#| eval: false
+
 rush run 'dplyr::filter(df, body_mass_g > 3500)' penguins.csv | \
   rush sql "SELECT species, ROUND(AVG(bill_length_mm), 1) as avg_bill FROM stdin GROUP BY species ORDER BY avg_bill DESC" -
 ```
@@ -21,7 +21,7 @@ rush run 'dplyr::filter(df, body_mass_g > 3500)' penguins.csv | \
 Query with SQL, then filter further with `rush run`:
 
 ```{bash}
-#| eval: false
+
 rush sql "SELECT species, bill_length_mm, body_mass_g FROM penguins WHERE body_mass_g > 5000" penguins.csv | \
   rush run 'head(df, 5)' -
 ```
@@ -31,7 +31,7 @@ rush sql "SELECT species, bill_length_mm, body_mass_g FROM penguins WHERE body_m
 Produce JSON, process it, and convert back to CSV:
 
 ```{bash}
-#| eval: false
+
 rush run -O json 'head(df, 3)' penguins.csv | rush run -F json 'dplyr::select(df, species, body_mass_g)' -
 ```
 
@@ -40,7 +40,7 @@ rush run -O json 'head(df, 3)' penguins.csv | rush run -F json 'dplyr::select(df
 Read Parquet, filter with SQL, output as JSON:
 
 ```{bash}
-#| eval: false
+
 rush sql -O json "SELECT carrier, origin, dest FROM flights WHERE dep_delay > 20" flights.parquet
 ```
 
