@@ -207,7 +207,10 @@ test_that("build_flags errors on invalid expr type", {
 })
 
 test_that("build_flags errors on invalid query type", {
-  expect_error(rush:::build_flags("sql", query = 123), "must be a single character")
+  expect_error(
+    rush:::build_flags("sql", query = 123),
+    "must be a single character"
+  )
 })
 
 test_that("build_flags accepts language object for expr", {
