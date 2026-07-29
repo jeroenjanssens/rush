@@ -283,15 +283,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="basic-conversion" class="level2">
 <h2 class="anchored" data-anchor-id="basic-conversion">Basic conversion</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> convert <span class="at">-o</span> penguins.parquet penguins.csv <span class="dv">2</span><span class="op">&gt;</span>/dev/null</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> convert <span class="at">-o</span> penguins.parquet penguins.csv</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> run <span class="st">'nrow(df)'</span> penguins.parquet</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> convert <span class="at">-o</span> penguins.json <span class="at">--head</span> 3 penguins.csv <span class="dv">2</span><span class="op">&gt;</span>/dev/null</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> convert <span class="at">-o</span> penguins.json <span class="at">--head</span> 3 penguins.csv</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> penguins.json</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> convert <span class="at">-O</span> jsonl <span class="at">--head</span> 2 <span class="at">-o</span> penguins.jsonl penguins.csv <span class="dv">2</span><span class="op">&gt;</span>/dev/null</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> convert <span class="at">-O</span> jsonl <span class="at">--head</span> 2 <span class="at">-o</span> penguins.jsonl penguins.csv</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> penguins.jsonl</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
@@ -305,7 +305,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">"id,val</span></span>
 <span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="st">3,c</span></span>
 <span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="st">4,d"</span> <span class="op">&gt;</span> chunk2.csv</span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> convert <span class="at">-o</span> <span class="st">'%(file_name)s.parquet'</span> chunk1.csv chunk2.csv <span class="dv">2</span><span class="op">&gt;</span>/dev/null</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> convert <span class="at">-o</span> <span class="st">'%(file_name)s.parquet'</span> chunk1.csv chunk2.csv</span>
 <span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> run <span class="st">'df'</span> chunk1.parquet</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <section id="available-placeholders" class="level3">
@@ -351,18 +351,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">"id,val</span></span>
 <span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="st">3,c</span></span>
 <span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="st">4,d"</span> <span class="op">&gt;</span> b.csv</span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> convert <span class="at">-o</span> combined.duckdb a.csv b.csv <span class="dv">2</span><span class="op">&gt;</span>/dev/null</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> convert <span class="at">-o</span> combined.duckdb a.csv b.csv</span>
 <span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> run <span class="st">'names(dfs$combined)'</span> combined.duckdb</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>A single input also uses the file name as the table name:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> convert <span class="at">-o</span> penguins_db.duckdb penguins.csv <span class="dv">2</span><span class="op">&gt;</span>/dev/null</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> convert <span class="at">-o</span> penguins_db.duckdb penguins.csv</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> sql <span class="st">"SELECT species, COUNT(*) AS n FROM penguins_db.penguins GROUP BY species"</span> penguins_db.duckdb</span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span> <span class="at">-f</span> penguins_db.duckdb</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Convert between database formats:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> convert <span class="at">-o</span> copy.sqlite shop.duckdb <span class="dv">2</span><span class="op">&gt;</span>/dev/null</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> convert <span class="at">-o</span> copy.sqlite shop.duckdb</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> run <span class="st">'names(dfs$copy)'</span> copy.sqlite</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
@@ -370,7 +370,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="limiting-rows">Limiting rows</h2>
 <p>Use <code>--head</code> to limit the number of rows written:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> convert <span class="at">--head</span> 5 <span class="at">-o</span> top5.csv penguins.csv <span class="dv">2</span><span class="op">&gt;</span>/dev/null</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> convert <span class="at">--head</span> 5 <span class="at">-o</span> top5.csv penguins.csv</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> top5.csv</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
@@ -379,7 +379,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>Force input and output formats regardless of extension with <code>-F</code> and <code>-O</code>:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cp</span> penguins.csv penguins.dat</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> convert <span class="at">-F</span> csv <span class="at">-O</span> json <span class="at">-o</span> result.json <span class="at">--head</span> 2 penguins.dat <span class="dv">2</span><span class="op">&gt;</span>/dev/null</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> convert <span class="at">-F</span> csv <span class="at">-O</span> json <span class="at">-o</span> result.json <span class="at">--head</span> 2 penguins.dat</span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> result.json</span>
 <span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span> <span class="at">-f</span> penguins.dat</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
@@ -388,7 +388,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="delimiter-control">Delimiter control</h2>
 <p>Read a TSV and convert to semicolon-separated CSV:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> convert <span class="at">--input-delimiter</span> <span class="st">"\t"</span> <span class="at">-D</span> <span class="st">";"</span> <span class="at">-o</span> cities_semi.csv cities.tsv <span class="dv">2</span><span class="op">&gt;</span>/dev/null</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> convert <span class="at">--input-delimiter</span> <span class="st">"\t"</span> <span class="at">-D</span> <span class="st">";"</span> <span class="at">-o</span> cities_semi.csv cities.tsv</span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> cities_semi.csv</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
