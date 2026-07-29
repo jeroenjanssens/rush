@@ -140,9 +140,6 @@ file_kind <- function(path, input_format = "auto") {
 
 resolve_output_format <- function(output, output_format) {
   if (!identical(output_format, "auto")) {
-    if (output_format %in% c("csv", "tsv")) {
-      return("delim")
-    }
     return(output_format)
   }
   if (!is.null(output)) {
@@ -539,7 +536,7 @@ if (.has_tty) options(width = if (is.null(.rush$width)) cli::console_width() els
 
 .write_result <- function(result, output) {
   if (!is.null(.rush$head)) result <- head(result, .rush$head)
-  if (.has_tty && is.null(output)) {
+  if (.has_tty && is.null(output) && identical(.rush$output_format, "delim")) {
     options(tibble.width = if (is.null(.rush$width)) cli::console_width() else .rush$width)
     print(tibble::as_tibble(result), n = .rush$height)
   } else if (identical(.rush$output_format, "parquet")) {
