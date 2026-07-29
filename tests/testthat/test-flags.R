@@ -100,3 +100,40 @@ test_that("--sheet parses numeric sheet index", {
     2
   )
 })
+
+test_that("parse_syms splits comma-separated values into symbols", {
+  result <- rush:::parse_syms("x,y,z")
+  expect_equal(result, list(rlang::sym("x"), rlang::sym("y"), rlang::sym("z")))
+})
+
+test_that("parse_named_exprs parses named expressions", {
+  result <- rush:::parse_named_exprs("label=species, size=3")
+  expect_equal(result$label, rlang::sym("species"))
+  expect_equal(result$size, 3)
+})
+
+test_that("parse_guess returns numeric when possible", {
+  expect_equal(rush:::parse_guess("300"), 300)
+  expect_equal(rush:::parse_guess("not_a_number"), "not_a_number")
+})
+
+test_that("format_flag formats atomic values", {
+  result <- rush:::format_flag("delimiter", ",")
+  expect_true(grepl("delimiter", result))
+  expect_true(grepl(",", result))
+})
+
+test_that("format_flag formats list values", {
+  result <- rush:::format_flag("expression", list(quote(head(df))))
+  expect_true(grepl("expression", result))
+})
+
+test_that("format_flag handles NULL values", {
+  result <- rush:::format_flag("seed", NULL)
+  expect_true(grepl("seed", result))
+})
+
+test_that("unknown command falls back to first docstring", {
+  args <- parse_arguments("run", "1 + 1")
+  expect_equal(args$command, "run")
+})

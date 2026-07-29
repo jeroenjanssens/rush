@@ -202,6 +202,41 @@ test_that("output_format = 'tsv' implies tab as output delimiter", {
   expect_true(any(grepl('delimiter = "\\\\t"', script)))
 })
 
+test_that("build_flags errors on invalid expr type", {
+  expect_error(rush_run(expr = 123), "must be a character string")
+})
+
+test_that("build_flags errors on invalid query type", {
+  expect_error(rush:::build_flags("sql", query = 123), "must be a single character")
+})
+
+test_that("build_flags accepts language object for expr", {
+  script <- capture_script(rush_run, expr = quote(1 + 1))
+  expect_true(any(grepl("result <- 1 \\+ 1", script)))
+})
+
+test_that("build_flags accepts pre/post as language objects", {
+  script <- capture_script(
+    rush:::rush_plot,
+    file = "data.csv",
+    x = "x",
+    y = "y",
+    pre = list(quote(df <- head(df)))
+  )
+  expect_true(any(grepl("df <- head\\(df\\)", script)))
+})
+
+test_that("build_flags accepts facets as language object", {
+  script <- capture_script(
+    rush:::rush_plot,
+    file = "data.csv",
+    x = "x",
+    y = "y",
+    facets = quote(~species)
+  )
+  expect_true(any(grepl("species", script)))
+})
+
 test_that("digit-prefixed file names generate parseable code", {
   script <- capture_script(rush_run, expr = "head(df)", file = "2024.csv")
   expect_silent(parse(text = script))
