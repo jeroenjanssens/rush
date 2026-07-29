@@ -8,3 +8,4 @@
 ^air\.toml$
 ^doc$
 ^Meta$
+^codecov\.yml$
