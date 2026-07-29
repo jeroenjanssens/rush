@@ -494,7 +494,7 @@
     "href": "reference/plot.html#saving-plots",
     "title": "rush plot",
     "section": "Saving plots",
-    "text": "Saving plots\n\n--output (-o)\nWhen --output points to a file, the plot is saved (device inferred from extension):\n\nrush plot -x bill_length_mm -y body_mass_g -c species -o scatter.png penguins.csv\nls -la scatter.png\nrm -f scatter.png\n#&gt; -rw-r--r-- 1 runner runner 149622 Jul 29 06:39 scatter.png\n\n\n\n--width, --height, --units, --dpi\nControl the saved image dimensions and resolution:\n\nrush plot -x bill_length_mm -y body_mass_g -o hires.png --width 10 --height 6 --units in --dpi 150 penguins.csv\nls -la hires.png\nrm -f hires.png\n#&gt; -rw-r--r-- 1 runner runner 93207 Jul 29 06:39 hires.png"
+    "text": "Saving plots\n\n--output (-o)\nWhen --output points to a file, the plot is saved (device inferred from extension):\n\nrush plot -x bill_length_mm -y body_mass_g -c species -o scatter.png penguins.csv\nls -la scatter.png\nrm -f scatter.png\n#&gt; -rw-r--r-- 1 runner runner 149622 Jul 29 06:49 scatter.png\n\n\n\n--width, --height, --units, --dpi\nControl the saved image dimensions and resolution:\n\nrush plot -x bill_length_mm -y body_mass_g -o hires.png --width 10 --height 6 --units in --dpi 150 penguins.csv\nls -la hires.png\nrm -f hires.png\n#&gt; -rw-r--r-- 1 runner runner 93207 Jul 29 06:50 hires.png"
   },
   {
     "objectID": "reference/plot.html#reading-from-stdin",
