@@ -310,7 +310,29 @@ emit_read_files <- function(con, files, flags) {
       }))
     } else if (kind == "xml") {
       read_pkgs <- "xml2"
-      read_expr <- expr(xml2::as_list(xml2::read_xml(!!path)))
+      if (path == "-") {
+        path <- expr(local({
+          .tmp <- tempfile(fileext = ".xml")
+          writeLines(readLines(file("stdin")), .tmp)
+          .tmp
+        }))
+      }
+      read_expr <- expr(local({
+        .doc <- xml2::read_xml(!!path)
+        .rows <- xml2::xml_children(.doc)
+        if (length(.rows) > 0 && xml2::xml_name(.rows[[1]]) == "row") {
+          do.call(
+            rbind,
+            lapply(.rows, function(.row) {
+              .vals <- xml2::xml_text(xml2::xml_children(.row))
+              names(.vals) <- xml2::xml_name(xml2::xml_children(.row))
+              as.data.frame(as.list(.vals))
+            })
+          )
+        } else {
+          xml2::as_list(.doc)
+        }
+      }))
     } else {
       if (path == "-") {
         path <- expr(file("stdin", "rb", raw = TRUE))
