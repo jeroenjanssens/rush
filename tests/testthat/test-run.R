@@ -182,6 +182,16 @@ test_that("input_format = 'tsv' implies tab as input delimiter", {
   expect_true(any(grepl('delim = "\\\\t"', read_line)))
 })
 
+test_that(".tsv extension auto-detects tab as input delimiter", {
+  script <- capture_script(
+    rush_run,
+    expr = "head(df)",
+    file = "cities.tsv"
+  )
+  read_line <- script[grepl("read_delim", script)]
+  expect_true(any(grepl('delim = "\\\\t"', read_line)))
+})
+
 test_that("output_format = 'tsv' implies tab as output delimiter", {
   script <- capture_script(
     rush_run,
