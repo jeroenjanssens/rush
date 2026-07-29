@@ -5,12 +5,14 @@ subtitle: "R Scripting at the Command Line"
 
 [![R-CMD-check](https://github.com/jeroenjanssens/rush/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/jeroenjanssens/rush/actions/workflows/R-CMD-check.yaml)
 
+{{< include _setup.qmd >}}
+
 **`rush` brings R to the command line.** Run an R expression, wrangle a CSV,
 query a Parquet file with SQL, or draw a plot right in your terminal — all
 without opening an R session or writing a script.
 
-```bash
-rush run 'penguins |> dplyr::filter(body_mass_g > 5000) |> head()'
+```{bash}
+rush run 'dplyr::filter(df, body_mass_g > 5000) |> head()' penguins.csv
 ```
 
 R has a wonderful ecosystem for working with data, but reaching for it usually
@@ -49,3 +51,5 @@ just to run a one-liner.
 Head over to [Get started](get-started.qmd) for installation instructions and
 a quick tour.
 :::
+
+{{< include _cleanup.qmd >}}
