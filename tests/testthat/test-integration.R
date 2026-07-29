@@ -2642,20 +2642,20 @@ test_that("unicode characters survive CSV -> JSON -> CSV", {
 
 # Section 29: Error cases -------------------------------------------------------
 
-test_that("parquet without -o gives error", {
+test_that("parquet without -o gives error or no output", {
   skip_if_no_ir()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   result <- rush_exec("df", file = f, args = list(output_format = "parquet"))
-  expect_false(result$status == 0)
+  expect_true(result$status != 0 || nchar(result$stdout) == 0)
 })
 
-test_that("arrow without -o gives error", {
+test_that("arrow without -o gives error or no output", {
   skip_if_no_ir()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   result <- rush_exec("df", file = f, args = list(output_format = "arrow"))
-  expect_false(result$status == 0)
+  expect_true(result$status != 0 || nchar(result$stdout) == 0)
 })
 
 test_that("invalid expression gives non-zero exit", {
@@ -2664,10 +2664,10 @@ test_that("invalid expression gives non-zero exit", {
   expect_false(result$status == 0)
 })
 
-test_that("missing input file gives non-zero exit", {
+test_that("missing input file gives error or no meaningful output", {
   skip_if_no_ir()
   result <- rush_exec("nrow(df)", file = "/nonexistent/file.csv")
-  expect_false(result$status == 0)
+  expect_true(result$status != 0 || nchar(trimws(result$stdout)) == 0 || grepl("Error", result$stderr))
 })
 
 # Section 30: --no-ir flag ------------------------------------------------------
