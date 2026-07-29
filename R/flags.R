@@ -32,6 +32,8 @@ flags_df <-
     "F"    , "input-format"     , "format"    , "Input format"                    , "auto"   , "input_format"     , as.character       , "read"    ,
     NA     , "sheet"            , "name|int"  , "Excel sheet to read"             , NA       , NA                 , parse_guess        , "read"    ,
     "H"    , "no-header"        , NA          , "No header"                       , NA       , NA                 , as.logical         , "read"    ,
+    NA     , "xml-root-name"    , "str"       , "XML root element name"           , "data"   , "xml_root_name"    , as.character       , "read"    ,
+    NA     , "xml-row-name"     , "str"       , "XML row element name"            , "row"    , "xml_row_name"     , as.character       , "read"    ,
     "C"    , "no-clean-names"   , NA          , "No clean names"                  , NA       , NA                 , as.logical         , "read"    ,
     "t"    , "tidyverse"        , NA          , "Enter the Tidyverse"             , NA       , NA                 , as.logical         , "setup"   ,
     "l"    , "library"          , "name"      , "Libraries to load"               , NA       , NA                 , parse_syms         , "setup"   ,

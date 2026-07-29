@@ -317,10 +317,11 @@ emit_read_files <- function(con, files, flags) {
           .tmp
         }))
       }
+      row_name <- flags$xml_row_name %||% "row"
       read_expr <- expr(local({
         .doc <- xml2::read_xml(!!path)
         .rows <- xml2::xml_children(.doc)
-        if (length(.rows) > 0 && xml2::xml_name(.rows[[1]]) == "row") {
+        if (length(.rows) > 0 && xml2::xml_name(.rows[[1]]) == !!row_name) {
           do.call(
             rbind,
             lapply(.rows, function(.row) {
@@ -550,7 +551,9 @@ script_preamble <- function(flags) {
     dpi = flags$dpi,
     delimiter = flags$resolved_output_delimiter,
     head = flags$head,
-    has_post = !is.null(flags$post)
+    has_post = !is.null(flags$post),
+    xml_root_name = flags$xml_root_name,
+    xml_row_name = flags$xml_row_name
   )
   lines <- vapply(
     names(ctx),
@@ -663,9 +666,9 @@ if (.has_tty) options(width = if (is.null(.rush$width)) cli::console_width() els
     toml_out <- paste(.lines, collapse = "\n")
     if (is.null(output)) cat(toml_out, "\n") else writeLines(toml_out, output)
   } else if (identical(.rush$output_format, "xml")) {
-    root <- xml2::xml_new_root("data")
+    root <- xml2::xml_new_root(.rush$xml_root_name)
     for (.i in seq_len(nrow(result))) {
-      .row_node <- xml2::xml_add_child(root, "row")
+      .row_node <- xml2::xml_add_child(root, .rush$xml_row_name)
       for (.col in names(result)) {
         xml2::xml_add_child(.row_node, .col, as.character(result[[.col]][.i]))
       }

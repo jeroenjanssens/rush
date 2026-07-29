@@ -41,7 +41,9 @@ build_flags <- function(
   width = NULL,
   height = NULL,
   units = "in",
-  dpi = 300
+  dpi = 300,
+  xml_root_name = "data",
+  xml_row_name = "row"
 ) {
   expression <- if (!is.null(expr)) {
     if (is.character(expr)) {
@@ -140,7 +142,9 @@ build_flags <- function(
     width = width,
     height = height,
     units = units,
-    dpi = dpi
+    dpi = dpi,
+    xml_root_name = xml_root_name,
+    xml_row_name = xml_row_name
   )
 }
 
