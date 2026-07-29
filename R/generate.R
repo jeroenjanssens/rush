@@ -168,6 +168,14 @@ resolve_flags <- function(flags) {
     flags$output,
     flags$output_format
   )
+  if (
+    !is.null(flags$output) &&
+      identical(flags$resolved_output_format, "delim") &&
+      tolower(tools::file_ext(flags$output)) == "tsv" &&
+      is.null(flags$output_delimiter)
+  ) {
+    flags$resolved_output_delimiter <- "\t"
+  }
 
   if (!is.null(flags$output) && grepl("%\\(", flags$output)) {
     flags$output_template <- flags$output
