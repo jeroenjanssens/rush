@@ -87,17 +87,51 @@ test_that("-d still works as a shorthand for delimiter", {
   expect_equal(parse_arguments("run", "-d", "|", "1")$delimiter, "|")
 })
 
-test_that("--sheet parses string sheet name", {
+test_that("--input-sheet parses string sheet name", {
   expect_equal(
-    parse_arguments("run", "--sheet", "Sales", "1", "data.xlsx")$sheet,
+    parse_arguments(
+      "run",
+      "--input-sheet",
+      "Sales",
+      "1",
+      "data.xlsx"
+    )$input_sheet,
     "Sales"
   )
 })
 
-test_that("--sheet parses numeric sheet index", {
+test_that("--input-sheet parses numeric sheet index", {
   expect_equal(
-    parse_arguments("run", "--sheet", "2", "1", "data.xlsx")$sheet,
+    parse_arguments("run", "--input-sheet", "2", "1", "data.xlsx")$input_sheet,
     2
+  )
+})
+
+test_that("--output-root parses to output_root", {
+  expect_equal(
+    parse_arguments("run", "--output-root", "plants", "1")$output_root,
+    "plants"
+  )
+})
+
+test_that("--output-record parses to output_record", {
+  expect_equal(
+    parse_arguments("run", "--output-record", "item", "1")$output_record,
+    "item"
+  )
+})
+
+test_that("--output-indent parses to integer", {
+  expect_equal(
+    parse_arguments("run", "--output-indent", "4", "1")$output_indent,
+    4L
+  )
+})
+
+test_that("--output-sheet parses to output_sheet", {
+  expect_equal(
+    parse_arguments("run", "--output-sheet", "Results", "1")$output_sheet,
+    "Results"
   )
 })
 

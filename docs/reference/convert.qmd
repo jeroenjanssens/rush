@@ -125,10 +125,10 @@ cat cities_semi.csv
 
 ## XML element names
 
-Use `--xml-root-name` and `--xml-row-name` to customize the XML structure:
+Use `--output-root` and `--output-record` to customize the XML structure:
 
 ```{bash}
-rush convert --xml-root-name plants --xml-row-name observation --head 2 -o plants.xml penguins.csv
+rush convert --output-root plants --output-record observation --head 2 -o plants.xml penguins.csv
 cat plants.xml
 rm -f plants.xml
 ```

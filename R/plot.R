@@ -44,8 +44,8 @@
 #' @param library Character vector of package names to load in the generated
 #'   script.
 #' @param tidyverse If `TRUE`, loads the tidyverse and glue packages.
-#' @param sheet Sheet to read from an Excel file. Either a string (sheet name)
-#'   or an integer (sheet index).
+#' @param input_sheet Sheet to read from an Excel file. Either a string (sheet
+#'   name) or an integer (sheet index).
 #' @param seed Integer seed for the random number generator.
 #' @param dry_run If `TRUE`, print the generated script instead of executing
 #'   it.
@@ -108,7 +108,7 @@ rush_plot <- function(
   clean_names = TRUE,
   library = NULL,
   tidyverse = FALSE,
-  sheet = NULL,
+  input_sheet = NULL,
   seed = NULL,
   dry_run = FALSE,
   no_ir = FALSE,
@@ -125,7 +125,7 @@ rush_plot <- function(
     clean_names = clean_names,
     library = library,
     tidyverse = tidyverse,
-    sheet = sheet,
+    input_sheet = input_sheet,
     seed = seed,
     dry_run = dry_run,
     no_ir = no_ir,

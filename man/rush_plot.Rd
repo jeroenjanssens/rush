@@ -36,7 +36,7 @@ rush_plot(
   clean_names = TRUE,
   library = NULL,
   tidyverse = FALSE,
-  sheet = NULL,
+  input_sheet = NULL,
   seed = NULL,
   dry_run = FALSE,
   no_ir = FALSE,
@@ -105,8 +105,8 @@ script.}
 
 \item{tidyverse}{If \code{TRUE}, loads the tidyverse and glue packages.}
 
-\item{sheet}{Sheet to read from an Excel file. Either a string (sheet name)
-or an integer (sheet index).}
+\item{input_sheet}{Sheet to read from an Excel file. Either a string (sheet
+name) or an integer (sheet index).}
 
 \item{seed}{Integer seed for the random number generator.}
 

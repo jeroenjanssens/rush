@@ -30,8 +30,8 @@
 #'   script.
 #' @param tidyverse If `TRUE`, loads the tidyverse and glue packages.
 #' @param head Integer. Limit the output to this many rows.
-#' @param sheet Sheet to read from an Excel file. Either a string (sheet name)
-#'   or an integer (sheet index).
+#' @param input_sheet Sheet to read from an Excel file. Either a string (sheet
+#'   name) or an integer (sheet index).
 #' @param seed Integer seed for the random number generator.
 #' @param dry_run If `TRUE`, print the generated script instead of executing
 #'   it.
@@ -74,7 +74,11 @@ rush_run <- function(
   library = NULL,
   tidyverse = FALSE,
   head = NULL,
-  sheet = NULL,
+  input_sheet = NULL,
+  output_root = "root",
+  output_record = "record",
+  output_sheet = NULL,
+  output_indent = 2L,
   seed = NULL,
   dry_run = FALSE,
   no_ir = FALSE,
@@ -95,7 +99,11 @@ rush_run <- function(
     library = library,
     tidyverse = tidyverse,
     head = head,
-    sheet = sheet,
+    input_sheet = input_sheet,
+    output_root = output_root,
+    output_record = output_record,
+    output_sheet = output_sheet,
+    output_indent = output_indent,
     seed = seed,
     dry_run = dry_run,
     no_ir = no_ir,

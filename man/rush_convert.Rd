@@ -15,7 +15,11 @@ rush_convert(
   header = TRUE,
   clean_names = TRUE,
   head = NULL,
-  sheet = NULL,
+  input_sheet = NULL,
+  output_root = "root",
+  output_record = "record",
+  output_sheet = NULL,
+  output_indent = 2L,
   dry_run = FALSE,
   no_ir = FALSE,
   verbose = FALSE
@@ -51,8 +55,8 @@ when set.}
 
 \item{head}{Integer. Limit the output to this many rows.}
 
-\item{sheet}{Sheet to read from an Excel file. Either a string (sheet name)
-or an integer (sheet index).}
+\item{input_sheet}{Sheet to read from an Excel file. Either a string (sheet
+name) or an integer (sheet index).}
 
 \item{dry_run}{If \code{TRUE}, print the generated script instead of executing
 it.}

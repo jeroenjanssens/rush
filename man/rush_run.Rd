@@ -18,7 +18,11 @@ rush_run(
   library = NULL,
   tidyverse = FALSE,
   head = NULL,
-  sheet = NULL,
+  input_sheet = NULL,
+  output_root = "root",
+  output_record = "record",
+  output_sheet = NULL,
+  output_indent = 2L,
   seed = NULL,
   dry_run = FALSE,
   no_ir = FALSE,
@@ -65,8 +69,8 @@ script.}
 
 \item{head}{Integer. Limit the output to this many rows.}
 
-\item{sheet}{Sheet to read from an Excel file. Either a string (sheet name)
-or an integer (sheet index).}
+\item{input_sheet}{Sheet to read from an Excel file. Either a string (sheet
+name) or an integer (sheet index).}
 
 \item{seed}{Integer seed for the random number generator.}
 

@@ -62,12 +62,12 @@ rush run -n 'head(df)' data.xml
 rush run -n -O xml -o output.xml 'df' data.csv
 ```
 
-### `--xml-root-name` and `--xml-row-name`
+### `--output-root` and `--output-record`
 
-Customize the root and row element names (defaults: `data` and `row`):
+Customize the root and record element names (defaults: `root` and `record`):
 
 ```{bash}
-rush run -n -O xml --xml-root-name plants --xml-row-name observation 'head(df)' data.csv
+rush run -n -O xml --output-root plants --output-record observation 'head(df)' data.csv
 ```
 
 ## RDS

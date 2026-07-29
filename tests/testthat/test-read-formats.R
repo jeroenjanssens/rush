@@ -105,12 +105,12 @@ test_that("reads .xls files with readxl", {
   expect_true(any(grepl("^#\\|   - readxl$", script)))
 })
 
-test_that("sheet selects a specific Excel sheet", {
+test_that("input_sheet selects a specific Excel sheet", {
   script <- capture_script(
     rush_run,
     expr = "head(df)",
     file = "data.xlsx",
-    sheet = "Sales"
+    input_sheet = "Sales"
   )
   expect_true(any(grepl(
     'readxl::read_excel\\("data.xlsx", sheet = "Sales"\\)',
@@ -118,12 +118,12 @@ test_that("sheet selects a specific Excel sheet", {
   )))
 })
 
-test_that("sheet with numeric index works", {
+test_that("input_sheet with numeric index works", {
   script <- capture_script(
     rush_run,
     expr = "head(df)",
     file = "data.xlsx",
-    sheet = 2
+    input_sheet = 2
   )
   expect_true(any(grepl(
     'readxl::read_excel\\("data.xlsx", sheet = 2\\)',

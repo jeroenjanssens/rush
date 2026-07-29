@@ -197,13 +197,13 @@ rush run -o subset.parquet 'dplyr::filter(df, body_mass_g > 5000)' penguins.csv
 rush run 'df' subset.parquet
 ```
 
-### `--xml-root-name`, `--xml-row-name`
+### `--output-root`, `--output-record`
 
-Customize the XML element names when reading or writing XML. Defaults are `data`
-(root) and `row` (each record):
+Customize the XML element names when writing XML. Defaults are `root`
+(root) and `record` (each record). Also used by TOML for the record name:
 
 ```{bash}
-rush run -n -O xml --xml-root-name plants --xml-row-name observation 'head(df)' data.csv
+rush run -n -O xml --output-root plants --output-record observation 'head(df)' data.csv
 ```
 
 ### `--dry-run` (`-n`)

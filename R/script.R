@@ -241,8 +241,8 @@ emit_read_files <- function(con, files, flags) {
       }
     } else if (kind == "xlsx") {
       read_pkgs <- "readxl"
-      read_expr <- if (!is.null(flags$sheet)) {
-        expr(readxl::read_excel(!!path, sheet = !!flags$sheet))
+      read_expr <- if (!is.null(flags$input_sheet)) {
+        expr(readxl::read_excel(!!path, sheet = !!flags$input_sheet))
       } else {
         expr(readxl::read_excel(!!path))
       }
@@ -302,8 +302,9 @@ emit_read_files <- function(con, files, flags) {
       }
       read_expr <- expr(local({
         .parsed <- RcppTOML::parseTOML(!!path)
-        if (!is.null(.parsed$row)) {
-          as.data.frame(do.call(rbind, lapply(.parsed$row, as.data.frame)))
+        .items <- .parsed[[1]]
+        if (is.list(.items) && length(.items) > 0 && is.list(.items[[1]])) {
+          as.data.frame(do.call(rbind, lapply(.items, as.data.frame)))
         } else {
           as.data.frame(.parsed)
         }
@@ -547,8 +548,10 @@ script_preamble <- function(flags) {
     delimiter = flags$resolved_output_delimiter,
     head = flags$head,
     has_post = !is.null(flags$post),
-    xml_root_name = flags$xml_root_name,
-    xml_row_name = flags$xml_row_name
+    output_root = flags$output_root,
+    output_record = flags$output_record,
+    output_sheet = flags$output_sheet,
+    output_indent = flags$output_indent
   )
   lines <- vapply(
     names(ctx),
@@ -585,7 +588,8 @@ if (.has_tty) options(width = if (is.null(.rush$width)) cli::console_width() els
     if (is.null(output)) stop("Parquet format requires --output (-o) file path")
     nanoparquet::write_parquet(result, output)
   } else if (identical(.rush$output_format, "json")) {
-    json <- jsonlite::toJSON(result, dataframe = "rows", pretty = TRUE, auto_unbox = TRUE)
+    .pretty <- .rush$output_indent > 0L
+    json <- jsonlite::toJSON(result, dataframe = "rows", pretty = .pretty, auto_unbox = TRUE)
     if (is.null(output)) cat(json, "\n") else writeLines(json, output)
   } else if (identical(.rush$output_format, "jsonl")) {
     con_out <- if (is.null(output)) stdout() else file(output, "w")
@@ -595,7 +599,12 @@ if (.has_tty) options(width = if (is.null(.rush$width)) cli::console_width() els
     if (is.null(output)) stop("Arrow format requires --output (-o) file path")
     arrow::write_ipc_file(result, output)
   } else if (identical(.rush$output_format, "xlsx")) {
-    writexl::write_xlsx(result, output)
+    .xlsx_data <- if (!is.null(.rush$output_sheet)) {
+      stats::setNames(list(result), .rush$output_sheet)
+    } else {
+      result
+    }
+    writexl::write_xlsx(.xlsx_data, output)
   } else if (identical(.rush$output_format, "sav")) {
     haven::write_sav(result, output)
   } else if (identical(.rush$output_format, "zsav")) {
@@ -638,13 +647,13 @@ if (.has_tty) options(width = if (is.null(.rush$width)) cli::console_width() els
     rows <- lapply(seq_len(nrow(result)), function(.i) {
       as.list(result[.i, , drop = FALSE])
     })
-    yaml_out <- yaml::as.yaml(rows)
+    yaml_out <- yaml::as.yaml(rows, indent = .rush$output_indent)
     if (is.null(output)) cat(yaml_out) else writeLines(yaml_out, output)
   } else if (identical(.rush$output_format, "toml")) {
     .dq <- rawToChar(as.raw(0x22))
     .lines <- character(0)
     for (.i in seq_len(nrow(result))) {
-      .lines <- c(.lines, "[[row]]")
+      .lines <- c(.lines, paste0("[[", .rush$output_record, "]]"))
       for (.col in names(result)) {
         .val <- result[[.col]][.i]
         .key <- paste0(.dq, .col, .dq)
@@ -661,9 +670,9 @@ if (.has_tty) options(width = if (is.null(.rush$width)) cli::console_width() els
     toml_out <- paste(.lines, collapse = "\n")
     if (is.null(output)) cat(toml_out, "\n") else writeLines(toml_out, output)
   } else if (identical(.rush$output_format, "xml")) {
-    root <- xml2::xml_new_root(.rush$xml_root_name)
+    root <- xml2::xml_new_root(.rush$output_root)
     for (.i in seq_len(nrow(result))) {
-      .row_node <- xml2::xml_add_child(root, .rush$xml_row_name)
+      .row_node <- xml2::xml_add_child(root, .rush$output_record)
       for (.col in names(result)) {
         xml2::xml_add_child(.row_node, .col, as.character(result[[.col]][.i]))
       }

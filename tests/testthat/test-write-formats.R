@@ -72,6 +72,38 @@ test_that("output = 'data.jsonl' infers JSONL format", {
   expect_true(any(grepl("jsonlite::stream_out", script)))
 })
 
+test_that("JSON uses default output_indent of 2", {
+  script <- capture_script(
+    rush_run,
+    expr = "df",
+    file = "data.csv",
+    output_format = "json"
+  )
+  expect_true(any(grepl("output_indent = 2L", script)))
+})
+
+test_that("JSON uses custom output_indent", {
+  script <- capture_script(
+    rush_run,
+    expr = "df",
+    file = "data.csv",
+    output_format = "json",
+    output_indent = 4L
+  )
+  expect_true(any(grepl("output_indent = 4L", script)))
+})
+
+test_that("JSON output_indent = 0 means compact", {
+  script <- capture_script(
+    rush_run,
+    expr = "df",
+    file = "data.csv",
+    output_format = "json",
+    output_indent = 0L
+  )
+  expect_true(any(grepl("output_indent = 0L", script)))
+})
+
 # Arrow ----------------------------------------------------------------------
 
 test_that("output_format = 'arrow' emits Arrow IPC output", {
@@ -122,6 +154,17 @@ test_that("output = 'out.xlsx' infers Excel format", {
   )
   expect_true(any(grepl('output_format = "xlsx"', script)))
   expect_true(any(grepl("writexl::write_xlsx", script)))
+})
+
+test_that("Excel uses custom output_sheet", {
+  script <- capture_script(
+    rush_run,
+    expr = "df",
+    file = "data.csv",
+    output = "out.xlsx",
+    output_sheet = "Results"
+  )
+  expect_true(any(grepl('output_sheet = "Results"', script)))
 })
 
 # Haven: SPSS ----------------------------------------------------------------
@@ -307,6 +350,29 @@ test_that("output_format = 'yaml' emits yaml::as.yaml", {
   expect_true(any(grepl("^#\\|   - yaml$", script)))
 })
 
+test_that("YAML uses default output_indent of 2", {
+  script <- capture_script(
+    rush_run,
+    expr = "df",
+    file = "data.csv",
+    output_format = "yaml",
+    output = "out.yaml"
+  )
+  expect_true(any(grepl("output_indent = 2L", script)))
+})
+
+test_that("YAML uses custom output_indent", {
+  script <- capture_script(
+    rush_run,
+    expr = "df",
+    file = "data.csv",
+    output_format = "yaml",
+    output = "out.yaml",
+    output_indent = 4L
+  )
+  expect_true(any(grepl("output_indent = 4L", script)))
+})
+
 # TOML ------------------------------------------------------------------------
 
 test_that("output_format = 'toml' emits manual TOML writer", {
@@ -319,6 +385,29 @@ test_that("output_format = 'toml' emits manual TOML writer", {
   )
   expect_true(any(grepl('output_format = "toml"', script)))
   expect_false(any(grepl("RcppTOML", script)))
+})
+
+test_that("TOML uses default record name 'record'", {
+  script <- capture_script(
+    rush_run,
+    expr = "df",
+    file = "data.csv",
+    output_format = "toml",
+    output = "out.toml"
+  )
+  expect_true(any(grepl('output_record = "record"', script)))
+})
+
+test_that("TOML uses custom output_record", {
+  script <- capture_script(
+    rush_run,
+    expr = "df",
+    file = "data.csv",
+    output_format = "toml",
+    output = "out.toml",
+    output_record = "item"
+  )
+  expect_true(any(grepl('output_record = "item"', script)))
 })
 
 # XML -------------------------------------------------------------------------
@@ -334,6 +423,32 @@ test_that("output_format = 'xml' emits xml2::write_xml", {
   expect_true(any(grepl('output_format = "xml"', script)))
   expect_true(any(grepl("xml2::write_xml", script)))
   expect_true(any(grepl("^#\\|   - xml2$", script)))
+})
+
+test_that("XML uses default root 'root' and record 'record'", {
+  script <- capture_script(
+    rush_run,
+    expr = "df",
+    file = "data.csv",
+    output_format = "xml",
+    output = "out.xml"
+  )
+  expect_true(any(grepl('output_root = "root"', script)))
+  expect_true(any(grepl('output_record = "record"', script)))
+})
+
+test_that("XML uses custom output_root and output_record", {
+  script <- capture_script(
+    rush_run,
+    expr = "df",
+    file = "data.csv",
+    output_format = "xml",
+    output = "out.xml",
+    output_root = "plants",
+    output_record = "observation"
+  )
+  expect_true(any(grepl('output_root = "plants"', script)))
+  expect_true(any(grepl('output_record = "observation"', script)))
 })
 
 # Nesting behavior ------------------------------------------------------------

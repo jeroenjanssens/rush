@@ -17,12 +17,12 @@ rush run -o sales.xlsx 'data.frame(product = c("Widget", "Gadget", "Doohickey"),
 rush run 'df' sales.xlsx
 ```
 
-### `--sheet`
+### `--input-sheet`
 
 Select a specific sheet by name or index:
 
 ```{bash}
-rush run --sheet 1 'names(df)' sales.xlsx
+rush run --input-sheet 1 'names(df)' sales.xlsx
 ```
 
 ### Writing

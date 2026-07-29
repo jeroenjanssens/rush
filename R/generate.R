@@ -14,7 +14,6 @@ build_flags <- function(
   library = NULL,
   tidyverse = FALSE,
   head = NULL,
-  sheet = NULL,
   seed = NULL,
   dry_run = FALSE,
   no_ir = FALSE,
@@ -42,8 +41,11 @@ build_flags <- function(
   height = NULL,
   units = "in",
   dpi = 300,
-  xml_root_name = "data",
-  xml_row_name = "row"
+  output_root = "root",
+  output_record = "record",
+  output_sheet = NULL,
+  output_indent = 2L,
+  input_sheet = NULL
 ) {
   expression <- if (!is.null(expr)) {
     if (is.character(expr)) {
@@ -115,7 +117,7 @@ build_flags <- function(
     library = lib_syms,
     tidyverse = tidyverse,
     head = head_val,
-    sheet = sheet,
+    input_sheet = input_sheet,
     seed = seed_val,
     dry_run = dry_run,
     no_ir = no_ir,
@@ -143,8 +145,11 @@ build_flags <- function(
     height = height,
     units = units,
     dpi = dpi,
-    xml_root_name = xml_root_name,
-    xml_row_name = xml_row_name
+    output_root = output_root,
+    output_record = output_record,
+    output_sheet = output_sheet,
+    output_indent = output_indent,
+    input_sheet = input_sheet
   )
 }
 

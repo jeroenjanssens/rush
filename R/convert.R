@@ -23,8 +23,8 @@
 #' @param clean_names If `TRUE` (the default), column names are cleaned with
 #'   [janitor::clean_names()].
 #' @param head Integer. Limit the output to this many rows.
-#' @param sheet Sheet to read from an Excel file. Either a string (sheet name)
-#'   or an integer (sheet index).
+#' @param input_sheet Sheet to read from an Excel file. Either a string (sheet
+#'   name) or an integer (sheet index).
 #' @param dry_run If `TRUE`, print the generated script instead of executing
 #'   it.
 #' @param no_ir If `TRUE`, execute the script with `Rscript` instead of `ir`.
@@ -60,7 +60,11 @@ rush_convert <- function(
   header = TRUE,
   clean_names = TRUE,
   head = NULL,
-  sheet = NULL,
+  input_sheet = NULL,
+  output_root = "root",
+  output_record = "record",
+  output_sheet = NULL,
+  output_indent = 2L,
   dry_run = FALSE,
   no_ir = FALSE,
   verbose = FALSE
@@ -77,7 +81,11 @@ rush_convert <- function(
     header = header,
     clean_names = clean_names,
     head = head,
-    sheet = sheet,
+    input_sheet = input_sheet,
+    output_root = output_root,
+    output_record = output_record,
+    output_sheet = output_sheet,
+    output_indent = output_indent,
     dry_run = dry_run,
     no_ir = no_ir,
     verbose = verbose
