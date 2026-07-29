@@ -284,7 +284,7 @@
     "href": "reference/convert.html#database-output",
     "title": "rush convert",
     "section": "Database output",
-    "text": "Database output\nWhen the output is a database format (DuckDB or SQLite), multiple inputs become separate tables named after the input file stems:\n\necho \"id,val\n1,a\n2,b\" &gt; a.csv\necho \"id,val\n3,c\n4,d\" &gt; b.csv\nrush convert -o combined.duckdb a.csv b.csv\nrush run 'names(dfs$combined)' combined.duckdb\n#&gt; a\n#&gt; b\n\nA single input also uses the file name as the table name:\n\nrush convert -o penguins_db.duckdb penguins.csv\nrush sql \"SELECT species, COUNT(*) AS n FROM penguins_db.penguins GROUP BY species\" penguins_db.duckdb\nrm -f penguins_db.duckdb\n#&gt; species,n\n#&gt; Gentoo,119\n#&gt; Chinstrap,68\n#&gt; Adelie,146\n\nConvert between database formats:\n\nrush convert -o copy.sqlite shop.duckdb\nrush run 'names(dfs$copy)' copy.sqlite"
+    "text": "Database output\nWhen the output is a database format (DuckDB or SQLite), multiple inputs become separate tables named after the input file stems:\n\necho \"id,val\n1,a\n2,b\" &gt; a.csv\necho \"id,val\n3,c\n4,d\" &gt; b.csv\nrush convert -o combined.duckdb a.csv b.csv\nrush run 'names(dfs$combined)' combined.duckdb\n#&gt; a\n#&gt; b\n\nA single input also uses the file name as the table name:\n\nrush convert -o penguins_db.duckdb penguins.csv\nrush sql \"SELECT species, COUNT(*) AS n FROM penguins_db.penguins GROUP BY species\" penguins_db.duckdb\nrm -f penguins_db.duckdb\n#&gt; species,n\n#&gt; Chinstrap,68\n#&gt; Gentoo,119\n#&gt; Adelie,146\n\nConvert between database formats:\n\nrush convert -o copy.sqlite shop.duckdb\nrush run 'names(dfs$copy)' copy.sqlite"
   },
   {
     "objectID": "reference/convert.html#limiting-rows",
@@ -494,7 +494,7 @@
     "href": "reference/plot.html#saving-plots",
     "title": "rush plot",
     "section": "Saving plots",
-    "text": "Saving plots\n\n--output (-o)\nWhen --output points to a file, the plot is saved (device inferred from extension):\n\nrush plot -x bill_length_mm -y body_mass_g -c species -o scatter.png penguins.csv\nls -la scatter.png\nrm -f scatter.png\n#&gt; -rw-r--r-- 1 runner runner 149622 Jul 29 07:00 scatter.png\n\n\n\n--width, --height, --units, --dpi\nControl the saved image dimensions and resolution:\n\nrush plot -x bill_length_mm -y body_mass_g -o hires.png --width 10 --height 6 --units in --dpi 150 penguins.csv\nls -la hires.png\nrm -f hires.png\n#&gt; -rw-r--r-- 1 runner runner 93207 Jul 29 07:00 hires.png"
+    "text": "Saving plots\n\n--output (-o)\nWhen --output points to a file, the plot is saved (device inferred from extension):\n\nrush plot -x bill_length_mm -y body_mass_g -c species -o scatter.png penguins.csv\nls -la scatter.png\nrm -f scatter.png\n#&gt; -rw-r--r-- 1 runner runner 149622 Jul 29 07:11 scatter.png\n\n\n\n--width, --height, --units, --dpi\nControl the saved image dimensions and resolution:\n\nrush plot -x bill_length_mm -y body_mass_g -o hires.png --width 10 --height 6 --units in --dpi 150 penguins.csv\nls -la hires.png\nrm -f hires.png\n#&gt; -rw-r--r-- 1 runner runner 93207 Jul 29 07:11 hires.png"
   },
   {
     "objectID": "reference/plot.html#reading-from-stdin",
