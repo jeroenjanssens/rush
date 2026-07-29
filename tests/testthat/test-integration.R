@@ -4,57 +4,57 @@
 # Section 1: Scalar and vector output -------------------------------------------
 
 test_that("scalar numeric prints without [1] prefix", {
-  skip_if_no_ir()
+  skip_on_ci()
   result <- rush_run_exec("6 * 7")
   expect_equal(stdout_lines(result), "42")
 })
 
 test_that("scalar float prints correctly", {
-  skip_if_no_ir()
+  skip_on_ci()
   result <- rush_run_exec("pi")
   expect_match(stdout_lines(result), "^3\\.14159")
 })
 
 test_that("scalar string prints without quotes", {
-  skip_if_no_ir()
+  skip_on_ci()
   result <- rush_run_exec('paste("hello")')
   expect_equal(stdout_lines(result), "hello")
 })
 
 test_that("integer vector prints one value per line", {
-  skip_if_no_ir()
+  skip_on_ci()
   result <- rush_run_exec("seq(5)")
   expect_equal(stdout_lines(result), as.character(1:5))
 })
 
 test_that("character vector prints one value per line", {
 
-  skip_if_no_ir()
+  skip_on_ci()
   result <- rush_run_exec("LETTERS[1:4]")
   expect_equal(stdout_lines(result), c("A", "B", "C", "D"))
 })
 
 test_that("logical vector prints one value per line", {
-  skip_if_no_ir()
+  skip_on_ci()
   result <- rush_run_exec("c(TRUE, FALSE, TRUE)")
   expect_equal(stdout_lines(result), c("TRUE", "FALSE", "TRUE"))
 })
 
 test_that("named vector prints values only", {
-  skip_if_no_ir()
+  skip_on_ci()
   result <- rush_run_exec("c(a = 1, b = 2, c = 3)")
   lines <- stdout_lines(result)
   expect_true(all(c("1", "2", "3") %in% lines))
 })
 
 test_that("invisible NULL produces no output", {
-  skip_if_no_ir()
+  skip_on_ci()
   result <- rush_run_exec("invisible(NULL)")
   expect_equal(nchar(trimws(result$stdout)), 0)
 })
 
 test_that("long vector prints without index prefixes", {
-  skip_if_no_ir()
+  skip_on_ci()
   result <- rush_run_exec("1:100")
   lines <- stdout_lines(result)
   expect_equal(length(lines), 100)
@@ -62,7 +62,7 @@ test_that("long vector prints without index prefixes", {
 })
 
 test_that("paste result prints correctly", {
-  skip_if_no_ir()
+  skip_on_ci()
   result <- rush_run_exec('paste("a", "b")')
   expect_equal(stdout_lines(result), "a b")
 })
@@ -70,7 +70,7 @@ test_that("paste result prints correctly", {
 # Section 2: Scalar/vector to file ---------------------------------------------
 
 test_that("vector to CSV creates one-column file", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   out <- file.path(dir, "out.csv")
   result <- rush_run_exec("seq(5)", args = list(output = out))
@@ -82,7 +82,7 @@ test_that("vector to CSV creates one-column file", {
 })
 
 test_that("scalar to CSV creates one-row file", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   out <- file.path(dir, "out.csv")
   result <- rush_run_exec("6 * 7", args = list(output = out))
@@ -93,7 +93,7 @@ test_that("scalar to CSV creates one-row file", {
 })
 
 test_that("vector to JSON creates array", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   out <- file.path(dir, "out.json")
   result <- rush_run_exec("LETTERS[1:3]", args = list(output = out))
@@ -103,7 +103,7 @@ test_that("vector to JSON creates array", {
 })
 
 test_that("vector to Parquet is readable", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   out <- file.path(dir, "out.parquet")
   result <- rush_run_exec("seq(3)", args = list(output = out))
@@ -114,7 +114,7 @@ test_that("vector to Parquet is readable", {
 })
 
 test_that("logical vector to CSV", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   out <- file.path(dir, "out.csv")
   result <- rush_run_exec("c(TRUE, FALSE)", args = list(output = out))
@@ -126,19 +126,19 @@ test_that("logical vector to CSV", {
 # Section 3: Expression features ------------------------------------------------
 
 test_that("multiple semicolons work, last value returned", {
-  skip_if_no_ir()
+  skip_on_ci()
   result <- rush_run_exec("x <- 5; x * 2")
   expect_equal(stdout_lines(result), "10")
 })
 
 test_that("sum of sequence via intermediate", {
-  skip_if_no_ir()
+  skip_on_ci()
   result <- rush_run_exec("x <- 1:5; sum(x)")
   expect_equal(stdout_lines(result), "15")
 })
 
 test_that("data.frame expression to CSV stdout", {
-  skip_if_no_ir()
+  skip_on_ci()
   result <- rush_run_exec(
     'data.frame(a = 1:3, b = c("x","y","z"))',
     args = list(output_format = "csv")
@@ -149,7 +149,7 @@ test_that("data.frame expression to CSV stdout", {
 })
 
 test_that("three expressions, last is result", {
-  skip_if_no_ir()
+  skip_on_ci()
   result <- rush_run_exec("a <- 1; b <- 2; a + b")
   expect_equal(stdout_lines(result), "3")
 })
@@ -157,7 +157,7 @@ test_that("three expressions, last is result", {
 # Section 4: Reading flat formats -----------------------------------------------
 
 test_that("read CSV: correct row count", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   result <- rush_run_exec("nrow(df)", file = f)
@@ -165,7 +165,7 @@ test_that("read CSV: correct row count", {
 })
 
 test_that("read CSV: column names are cleaned", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   df <- data.frame(`First Name` = "Alice", `Last Name` = "Smith", check.names = FALSE)
   f <- make_csv(df, dir)
@@ -176,7 +176,7 @@ test_that("read CSV: column names are cleaned", {
 })
 
 test_that("read TSV: correct row count", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_tsv(test_df(), dir)
   result <- rush_run_exec("nrow(df)", file = f)
@@ -184,7 +184,7 @@ test_that("read TSV: correct row count", {
 })
 
 test_that("read TSV: values are correct", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_tsv(test_df(), dir)
   result <- rush_run_exec("df$name[1]", file = f)
@@ -192,7 +192,7 @@ test_that("read TSV: values are correct", {
 })
 
 test_that("read with semicolon delimiter", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   path <- file.path(dir, "data.csv")
   writeLines(c("a;b", "1;2", "3;4"), path)
@@ -201,7 +201,7 @@ test_that("read with semicolon delimiter", {
 })
 
 test_that("read with --input-delimiter override", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   path <- file.path(dir, "data.csv")
   writeLines(c("a\tb", "1\t2", "3\t4"), path)
@@ -210,7 +210,7 @@ test_that("read with --input-delimiter override", {
 })
 
 test_that("read with -H (no header): columns named x1, x2", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   path <- file.path(dir, "data.csv")
   writeLines(c("1,2", "3,4", "5,6"), path)
@@ -221,7 +221,7 @@ test_that("read with -H (no header): columns named x1, x2", {
 })
 
 test_that("read with -H: first row is data not header", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   path <- file.path(dir, "data.csv")
   writeLines(c("10,20", "30,40"), path)
@@ -230,7 +230,7 @@ test_that("read with -H: first row is data not header", {
 })
 
 test_that("read with -C preserves original names", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   df <- data.frame(`First Name` = "Alice", `Score (%)` = 95, check.names = FALSE)
   f <- make_csv(df, dir)
@@ -240,7 +240,7 @@ test_that("read with -C preserves original names", {
 })
 
 test_that("read default cleans names", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   df <- data.frame(`First Name` = "Alice", check.names = FALSE)
   f <- make_csv(df, dir)
@@ -251,7 +251,7 @@ test_that("read default cleans names", {
 # Section 5: Reading nested formats ---------------------------------------------
 
 test_that("read JSON: correct row count", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_json(test_df(), dir)
   result <- rush_run_exec("nrow(df)", file = f)
@@ -259,7 +259,7 @@ test_that("read JSON: correct row count", {
 })
 
 test_that("read JSON: column values correct", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_json(test_df(), dir)
   result <- rush_run_exec("df$name[2]", file = f)
@@ -267,7 +267,7 @@ test_that("read JSON: column values correct", {
 })
 
 test_that("read JSONL: correct row count", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_jsonl(test_df(), dir)
   result <- rush_run_exec("nrow(df)", file = f)
@@ -275,7 +275,7 @@ test_that("read JSONL: correct row count", {
 })
 
 test_that("read JSONL: values correct", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_jsonl(test_df(), dir)
   result <- rush_run_exec("df$score[1]", file = f)
@@ -283,7 +283,7 @@ test_that("read JSONL: values correct", {
 })
 
 test_that("read YAML: correct row count", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_yaml(test_df(), dir)
   result <- rush_run_exec("nrow(df)", file = f)
@@ -291,7 +291,7 @@ test_that("read YAML: correct row count", {
 })
 
 test_that("read YAML: column names correct", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_yaml(test_df(), dir)
   result <- rush_run_exec("names(df)", file = f)
@@ -301,7 +301,7 @@ test_that("read YAML: column names correct", {
 })
 
 test_that("read TOML: correct row count", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_toml(test_df(), dir)
   result <- rush_run_exec("nrow(df)", file = f)
@@ -309,7 +309,7 @@ test_that("read TOML: correct row count", {
 })
 
 test_that("read TOML: values correct", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_toml(test_df(), dir)
   result <- rush_run_exec("df$name[1]", file = f)
@@ -317,7 +317,7 @@ test_that("read TOML: values correct", {
 })
 
 test_that("read XML: correct row count", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_xml(test_df(), dir)
   result <- rush_run_exec("nrow(df)", file = f)
@@ -325,7 +325,7 @@ test_that("read XML: correct row count", {
 })
 
 test_that("read XML: column names and values correct", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_xml(test_df(), dir)
   result <- rush_run_exec("df$name[3]", file = f)
@@ -333,7 +333,7 @@ test_that("read XML: column names and values correct", {
 })
 
 test_that("read XML with non-standard root/record names", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_xml(test_df(), dir, root = "people", record = "person")
   result <- rush_run_exec("nrow(df)", file = f)
@@ -343,7 +343,7 @@ test_that("read XML with non-standard root/record names", {
 # Section 6: Reading binary/special formats -------------------------------------
 
 test_that("read Parquet: correct row count", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_parquet(test_df(), dir)
   result <- rush_run_exec("nrow(df)", file = f)
@@ -351,7 +351,7 @@ test_that("read Parquet: correct row count", {
 })
 
 test_that("read Parquet: values correct", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_parquet(test_df(), dir)
   result <- rush_run_exec("df$score[2]", file = f)
@@ -359,7 +359,7 @@ test_that("read Parquet: values correct", {
 })
 
 test_that("read RDS: data frame class", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_rds(test_df(), dir)
   result <- rush_run_exec("class(df)[1]", file = f)
@@ -367,7 +367,7 @@ test_that("read RDS: data frame class", {
 })
 
 test_that("read RDS: non-data-frame object", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_rds(1:10, dir)
   result <- rush_run_exec("sum(df)", file = f, args = list(no_clean_names = TRUE))
@@ -375,7 +375,7 @@ test_that("read RDS: non-data-frame object", {
 })
 
 test_that("read Excel: correct row count", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_xlsx(test_df(), dir)
   result <- rush_run_exec("nrow(df)", file = f)
@@ -383,7 +383,7 @@ test_that("read Excel: correct row count", {
 })
 
 test_that("read Excel: values correct", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_xlsx(test_df(), dir)
   result <- rush_run_exec("df$name[1]", file = f)
@@ -391,7 +391,7 @@ test_that("read Excel: values correct", {
 })
 
 test_that("read Excel with --input-sheet by name", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   sheets <- list(Sales = data.frame(a = 1:2), Costs = data.frame(b = 3:4))
   f <- make_xlsx(sheets, dir)
@@ -400,7 +400,7 @@ test_that("read Excel with --input-sheet by name", {
 })
 
 test_that("read Excel with --input-sheet by index", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   sheets <- list(Sales = data.frame(a = 1:2), Costs = data.frame(b = 3:4))
   f <- make_xlsx(sheets, dir)
@@ -409,7 +409,7 @@ test_that("read Excel with --input-sheet by index", {
 })
 
 test_that("read DuckDB: table names", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   tables <- list(t1 = data.frame(x = 1:3), t2 = data.frame(y = 4:6))
   f <- make_duckdb(tables, dir)
@@ -420,7 +420,7 @@ test_that("read DuckDB: table names", {
 })
 
 test_that("read DuckDB: access table values", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   tables <- list(t1 = data.frame(x = 1:3))
   f <- make_duckdb(tables, dir)
@@ -429,7 +429,7 @@ test_that("read DuckDB: access table values", {
 })
 
 test_that("read SQLite: table names", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   tables <- list(t1 = data.frame(x = 1:3), t2 = data.frame(y = 4:6))
   f <- make_sqlite(tables, dir)
@@ -440,7 +440,7 @@ test_that("read SQLite: table names", {
 })
 
 test_that("read SQLite: access table values", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   tables <- list(t1 = data.frame(x = 10:12))
   f <- make_sqlite(tables, dir)
@@ -451,7 +451,7 @@ test_that("read SQLite: access table values", {
 # Section 7: Writing flat formats -----------------------------------------------
 
 test_that("write CSV: header and values match", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.csv")
@@ -463,7 +463,7 @@ test_that("write CSV: header and values match", {
 })
 
 test_that("write TSV: tab-separated output", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.tsv")
@@ -474,7 +474,7 @@ test_that("write TSV: tab-separated output", {
 })
 
 test_that("write with -D semicolon delimiter", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.csv")
@@ -485,7 +485,7 @@ test_that("write with -D semicolon delimiter", {
 })
 
 test_that("-O csv to stdout produces CSV header + rows", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   result <- rush_run_exec("df", file = f, args = list(output_format = "csv"))
@@ -495,7 +495,7 @@ test_that("-O csv to stdout produces CSV header + rows", {
 })
 
 test_that("-O tsv to stdout produces tab-separated", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   result <- rush_run_exec("df", file = f, args = list(output_format = "tsv"))
@@ -504,7 +504,7 @@ test_that("-O tsv to stdout produces tab-separated", {
 })
 
 test_that("default stdout on non-TTY produces delimited output", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   result <- rush_run_exec("df", file = f)
@@ -515,7 +515,7 @@ test_that("default stdout on non-TTY produces delimited output", {
 # Section 8: Writing nested formats to files ------------------------------------
 
 test_that("write JSON file: valid and correct", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.json")
@@ -527,7 +527,7 @@ test_that("write JSON file: valid and correct", {
 })
 
 test_that("write JSONL file: one object per line", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.jsonl")
@@ -540,7 +540,7 @@ test_that("write JSONL file: one object per line", {
 })
 
 test_that("write YAML file: valid", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.yaml")
@@ -552,7 +552,7 @@ test_that("write YAML file: valid", {
 })
 
 test_that("write TOML file: valid with [[record]] headers", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.toml")
@@ -564,7 +564,7 @@ test_that("write TOML file: valid with [[record]] headers", {
 })
 
 test_that("write XML file: valid structure", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.xml")
@@ -578,7 +578,7 @@ test_that("write XML file: valid structure", {
 })
 
 test_that("write Parquet file: readable", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.parquet")
@@ -590,7 +590,7 @@ test_that("write Parquet file: readable", {
 })
 
 test_that("write RDS file: identical round-trip", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.rds")
@@ -602,7 +602,7 @@ test_that("write RDS file: identical round-trip", {
 })
 
 test_that("write Excel file: readable", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.xlsx")
@@ -614,7 +614,7 @@ test_that("write Excel file: readable", {
 })
 
 test_that("write DuckDB file: table created", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.duckdb")
@@ -628,7 +628,7 @@ test_that("write DuckDB file: table created", {
 })
 
 test_that("write SQLite file: table created", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.sqlite")
@@ -644,7 +644,7 @@ test_that("write SQLite file: table created", {
 # Section 9: Writing nested formats to stdout -----------------------------------
 
 test_that("-O json to stdout: valid JSON", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   result <- rush_run_exec("df", file = f, args = list(output_format = "json"))
@@ -653,7 +653,7 @@ test_that("-O json to stdout: valid JSON", {
 })
 
 test_that("-O jsonl to stdout: one object per line", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   result <- rush_run_exec("df", file = f, args = list(output_format = "jsonl"))
@@ -663,7 +663,7 @@ test_that("-O jsonl to stdout: one object per line", {
 })
 
 test_that("-O yaml to stdout: valid YAML", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   result <- rush_run_exec("df", file = f, args = list(output_format = "yaml"))
@@ -672,7 +672,7 @@ test_that("-O yaml to stdout: valid YAML", {
 })
 
 test_that("-O toml to stdout: has [[record]] headers", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   result <- rush_run_exec("df", file = f, args = list(output_format = "toml"))
@@ -680,7 +680,7 @@ test_that("-O toml to stdout: has [[record]] headers", {
 })
 
 test_that("-O xml to stdout: valid XML", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   result <- rush_run_exec("df", file = f, args = list(output_format = "xml"))
@@ -692,7 +692,7 @@ test_that("-O xml to stdout: valid XML", {
 # Section 10: --output-root and --output-record (XML) ---------------------------
 
 test_that("XML default: root='root', record='record'", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.xml")
@@ -703,7 +703,7 @@ test_that("XML default: root='root', record='record'", {
 })
 
 test_that("XML custom --output-root and --output-record", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.xml")
@@ -716,7 +716,7 @@ test_that("XML custom --output-root and --output-record", {
 })
 
 test_that("XML custom root only", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.xml")
@@ -729,7 +729,7 @@ test_that("XML custom root only", {
 })
 
 test_that("XML custom record only", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.xml")
@@ -744,7 +744,7 @@ test_that("XML custom record only", {
 # Section 11: --output-record (TOML) -------------------------------------------
 
 test_that("TOML default: uses [[record]]", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.toml")
@@ -754,7 +754,7 @@ test_that("TOML default: uses [[record]]", {
 })
 
 test_that("TOML custom --output-record", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.toml")
@@ -767,7 +767,7 @@ test_that("TOML custom --output-record", {
 })
 
 test_that("TOML custom --output-record 'measurement'", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.toml")
@@ -781,7 +781,7 @@ test_that("TOML custom --output-record 'measurement'", {
 # Section 12: --output-indent (JSON) -------------------------------------------
 
 test_that("JSON default indent 2: pretty with 2 spaces", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.json")
@@ -794,7 +794,7 @@ test_that("JSON default indent 2: pretty with 2 spaces", {
 })
 
 test_that("JSON --output-indent 4: pretty-printed", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.json")
@@ -806,7 +806,7 @@ test_that("JSON --output-indent 4: pretty-printed", {
 })
 
 test_that("JSON --output-indent 0: compact single line", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.json")
@@ -818,7 +818,7 @@ test_that("JSON --output-indent 0: compact single line", {
 # Section 13: --output-indent (YAML) -------------------------------------------
 
 test_that("YAML default indent 2", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.yaml")
@@ -829,7 +829,7 @@ test_that("YAML default indent 2", {
 })
 
 test_that("YAML --output-indent 4", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.yaml")
@@ -842,7 +842,7 @@ test_that("YAML --output-indent 4", {
 # Section 14: --output-sheet (Excel) -------------------------------------------
 
 test_that("Excel default sheet name", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.xlsx")
@@ -852,7 +852,7 @@ test_that("Excel default sheet name", {
 })
 
 test_that("Excel --output-sheet 'Results'", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.xlsx")
@@ -862,7 +862,7 @@ test_that("Excel --output-sheet 'Results'", {
 })
 
 test_that("Excel --output-sheet with spaces", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.xlsx")
@@ -874,7 +874,7 @@ test_that("Excel --output-sheet with spaces", {
 # Section 15: --head (row limiting) ---------------------------------------------
 
 test_that("--head 2 limits CSV output", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.csv")
@@ -884,7 +884,7 @@ test_that("--head 2 limits CSV output", {
 })
 
 test_that("--head 2 limits JSON output", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.json")
@@ -894,7 +894,7 @@ test_that("--head 2 limits JSON output", {
 })
 
 test_that("--head 2 limits YAML output", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.yaml")
@@ -904,7 +904,7 @@ test_that("--head 2 limits YAML output", {
 })
 
 test_that("--head 2 limits XML output", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.xml")
@@ -914,7 +914,7 @@ test_that("--head 2 limits XML output", {
 })
 
 test_that("--head 2 limits TOML output", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.toml")
@@ -925,7 +925,7 @@ test_that("--head 2 limits TOML output", {
 })
 
 test_that("--head larger than data returns all rows", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.csv")
@@ -935,7 +935,7 @@ test_that("--head larger than data returns all rows", {
 })
 
 test_that("--head with rush convert", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.json")
@@ -947,14 +947,14 @@ test_that("--head with rush convert", {
 # Section 16: --seed ------------------------------------------------------------
 
 test_that("same seed produces same output", {
-  skip_if_no_ir()
+  skip_on_ci()
   r1 <- rush_run_exec("sample(1:100, 5)", args = list(seed = 42))
   r2 <- rush_run_exec("sample(1:100, 5)", args = list(seed = 42))
   expect_equal(stdout_lines(r1), stdout_lines(r2))
 })
 
 test_that("different seed produces different output", {
-  skip_if_no_ir()
+  skip_on_ci()
   r1 <- rush_run_exec("sample(1:100, 5)", args = list(seed = 42))
   r2 <- rush_run_exec("sample(1:100, 5)", args = list(seed = 99))
   expect_false(identical(stdout_lines(r1), stdout_lines(r2)))
@@ -963,7 +963,7 @@ test_that("different seed produces different output", {
 # Section 17: --library and --tidyverse -----------------------------------------
 
 test_that("-l stringr loads package", {
-  skip_if_no_ir()
+  skip_on_ci()
   result <- rush_run_exec(
     'stringr::str_to_upper("hi")',
     args = list(library = "stringr")
@@ -972,7 +972,7 @@ test_that("-l stringr loads package", {
 })
 
 test_that("-t loads tidyverse (filter works unqualified)", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   result <- rush_run_exec(
@@ -984,7 +984,7 @@ test_that("-t loads tidyverse (filter works unqualified)", {
 })
 
 test_that("-t loads glue", {
-  skip_if_no_ir()
+  skip_on_ci()
   result <- rush_run_exec(
     'glue("x is {1+1}")',
     args = list(tidyverse = TRUE)
@@ -995,14 +995,14 @@ test_that("-t loads glue", {
 # Section 18: Stdin reading -----------------------------------------------------
 
 test_that("stdin CSV: correct row count", {
-  skip_if_no_ir()
+  skip_on_ci()
   csv_data <- c("a,b", "1,2", "3,4", "5,6")
   result <- rush_run_exec("nrow(df)", file = "-", stdin_data = csv_data)
   expect_equal(stdout_lines(result), "3")
 })
 
 test_that("stdin CSV: column names", {
-  skip_if_no_ir()
+  skip_on_ci()
   csv_data <- c("name,score", "Alice,95")
   result <- rush_run_exec("names(df)", file = "-", stdin_data = csv_data)
   lines <- stdout_lines(result)
@@ -1011,7 +1011,7 @@ test_that("stdin CSV: column names", {
 })
 
 test_that("stdin JSON with -F json", {
-  skip_if_no_ir()
+  skip_on_ci()
   df <- test_df()
   json_data <- jsonlite::toJSON(df, dataframe = "rows", auto_unbox = TRUE)
   result <- rush_run_exec(
@@ -1023,7 +1023,7 @@ test_that("stdin JSON with -F json", {
 })
 
 test_that("stdin YAML with -F yaml", {
-  skip_if_no_ir()
+  skip_on_ci()
   df <- test_df()
   rows <- lapply(seq_len(nrow(df)), function(i) as.list(df[i, , drop = FALSE]))
   yaml_data <- strsplit(yaml::as.yaml(rows), "\n")[[1]]
@@ -1036,7 +1036,7 @@ test_that("stdin YAML with -F yaml", {
 })
 
 test_that("stdin TOML with -F toml", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_toml(test_df(), dir)
   toml_data <- readLines(f)
@@ -1049,7 +1049,7 @@ test_that("stdin TOML with -F toml", {
 })
 
 test_that("stdin XML with -F xml", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_xml(test_df(), dir)
   xml_data <- readLines(f)
@@ -1062,7 +1062,7 @@ test_that("stdin XML with -F xml", {
 })
 
 test_that("stdin TSV with -F tsv", {
-  skip_if_no_ir()
+  skip_on_ci()
   tsv_data <- c("a\tb", "1\t2", "3\t4")
   result <- rush_run_exec(
     "nrow(df)", file = "-",
@@ -1073,7 +1073,7 @@ test_that("stdin TSV with -F tsv", {
 })
 
 test_that("stdin with -H (no header)", {
-  skip_if_no_ir()
+  skip_on_ci()
   csv_data <- c("1,2", "3,4")
   result <- rush_run_exec(
     "names(df)", file = "-",
@@ -1087,7 +1087,7 @@ test_that("stdin with -H (no header)", {
 # Section 19: Pipeline chaining -------------------------------------------------
 
 test_that("CSV stdout -> CSV stdin round-trip", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   r1 <- rush_run_exec("head(df, 2)", file = f, args = list(output_format = "csv"))
@@ -1096,7 +1096,7 @@ test_that("CSV stdout -> CSV stdin round-trip", {
 })
 
 test_that("JSON stdout -> JSON stdin round-trip", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   r1 <- rush_run_exec("head(df, 2)", file = f, args = list(output_format = "json"))
@@ -1109,7 +1109,7 @@ test_that("JSON stdout -> JSON stdin round-trip", {
 })
 
 test_that("YAML stdout -> YAML stdin round-trip", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   r1 <- rush_run_exec("head(df, 2)", file = f, args = list(output_format = "yaml"))
@@ -1122,7 +1122,7 @@ test_that("YAML stdout -> YAML stdin round-trip", {
 })
 
 test_that("TOML stdout -> TOML stdin round-trip", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   r1 <- rush_run_exec("head(df, 2)", file = f, args = list(output_format = "toml"))
@@ -1135,7 +1135,7 @@ test_that("TOML stdout -> TOML stdin round-trip", {
 })
 
 test_that("XML stdout -> XML stdin round-trip", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   r1 <- rush_run_exec("head(df, 2)", file = f, args = list(output_format = "xml"))
@@ -1148,7 +1148,7 @@ test_that("XML stdout -> XML stdin round-trip", {
 })
 
 test_that("JSONL stdout -> JSONL stdin round-trip", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   r1 <- rush_run_exec("head(df, 2)", file = f, args = list(output_format = "jsonl"))
@@ -1161,7 +1161,7 @@ test_that("JSONL stdout -> JSONL stdin round-trip", {
 })
 
 test_that("JSON pipe preserves column names", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   r1 <- rush_run_exec("df", file = f, args = list(output_format = "json"))
@@ -1178,7 +1178,7 @@ test_that("JSON pipe preserves column names", {
 # Section 20: Flat -> nested conversions ----------------------------------------
 
 test_that("CSV -> JSON: columns and values preserved", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.json")
@@ -1189,7 +1189,7 @@ test_that("CSV -> JSON: columns and values preserved", {
 })
 
 test_that("CSV -> YAML: columns and values preserved", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.yaml")
@@ -1200,7 +1200,7 @@ test_that("CSV -> YAML: columns and values preserved", {
 })
 
 test_that("CSV -> TOML: columns and values preserved", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.toml")
@@ -1211,7 +1211,7 @@ test_that("CSV -> TOML: columns and values preserved", {
 })
 
 test_that("CSV -> XML: columns and values preserved", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.xml")
@@ -1223,7 +1223,7 @@ test_that("CSV -> XML: columns and values preserved", {
 })
 
 test_that("TSV -> JSON: columns preserved", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_tsv(test_df(), dir)
   out <- file.path(dir, "out.json")
@@ -1233,7 +1233,7 @@ test_that("TSV -> JSON: columns preserved", {
 })
 
 test_that("CSV -> JSONL: each line is valid", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.jsonl")
@@ -1247,7 +1247,7 @@ test_that("CSV -> JSONL: each line is valid", {
 # Section 21: Nested -> flat conversions ----------------------------------------
 
 test_that("JSON -> CSV: columns and values preserved", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_json(test_df(), dir)
   out <- file.path(dir, "out.csv")
@@ -1258,7 +1258,7 @@ test_that("JSON -> CSV: columns and values preserved", {
 })
 
 test_that("YAML -> CSV: columns and values preserved", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_yaml(test_df(), dir)
   out <- file.path(dir, "out.csv")
@@ -1269,7 +1269,7 @@ test_that("YAML -> CSV: columns and values preserved", {
 })
 
 test_that("TOML -> CSV: columns and values preserved", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_toml(test_df(), dir)
   out <- file.path(dir, "out.csv")
@@ -1280,7 +1280,7 @@ test_that("TOML -> CSV: columns and values preserved", {
 })
 
 test_that("XML -> CSV: columns and values preserved", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_xml(test_df(), dir)
   out <- file.path(dir, "out.csv")
@@ -1291,7 +1291,7 @@ test_that("XML -> CSV: columns and values preserved", {
 })
 
 test_that("JSONL -> CSV: all rows preserved", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_jsonl(test_df(), dir)
   out <- file.path(dir, "out.csv")
@@ -1301,7 +1301,7 @@ test_that("JSONL -> CSV: all rows preserved", {
 })
 
 test_that("JSON -> TSV: tab delimiter used", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_json(test_df(), dir)
   out <- file.path(dir, "out.tsv")
@@ -1313,7 +1313,7 @@ test_that("JSON -> TSV: tab delimiter used", {
 # Section 22: Nested -> nested conversions --------------------------------------
 
 test_that("JSON -> YAML: values preserved", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_json(test_df(), dir)
   out <- file.path(dir, "out.yaml")
@@ -1323,7 +1323,7 @@ test_that("JSON -> YAML: values preserved", {
 })
 
 test_that("JSON -> XML: values preserved", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_json(test_df(), dir)
   out <- file.path(dir, "out.xml")
@@ -1334,7 +1334,7 @@ test_that("JSON -> XML: values preserved", {
 })
 
 test_that("JSON -> TOML: values preserved", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_json(test_df(), dir)
   out <- file.path(dir, "out.toml")
@@ -1344,7 +1344,7 @@ test_that("JSON -> TOML: values preserved", {
 })
 
 test_that("YAML -> JSON: values preserved", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_yaml(test_df(), dir)
   out <- file.path(dir, "out.json")
@@ -1354,7 +1354,7 @@ test_that("YAML -> JSON: values preserved", {
 })
 
 test_that("YAML -> XML: values preserved", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_yaml(test_df(), dir)
   out <- file.path(dir, "out.xml")
@@ -1364,7 +1364,7 @@ test_that("YAML -> XML: values preserved", {
 })
 
 test_that("YAML -> TOML: values preserved", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_yaml(test_df(), dir)
   out <- file.path(dir, "out.toml")
@@ -1374,7 +1374,7 @@ test_that("YAML -> TOML: values preserved", {
 })
 
 test_that("XML -> JSON: values preserved", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_xml(test_df(), dir)
   out <- file.path(dir, "out.json")
@@ -1384,7 +1384,7 @@ test_that("XML -> JSON: values preserved", {
 })
 
 test_that("XML -> YAML: values preserved", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_xml(test_df(), dir)
   out <- file.path(dir, "out.yaml")
@@ -1394,7 +1394,7 @@ test_that("XML -> YAML: values preserved", {
 })
 
 test_that("XML -> TOML: values preserved", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_xml(test_df(), dir)
   out <- file.path(dir, "out.toml")
@@ -1404,7 +1404,7 @@ test_that("XML -> TOML: values preserved", {
 })
 
 test_that("TOML -> JSON: values preserved", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_toml(test_df(), dir)
   out <- file.path(dir, "out.json")
@@ -1414,7 +1414,7 @@ test_that("TOML -> JSON: values preserved", {
 })
 
 test_that("TOML -> YAML: values preserved", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_toml(test_df(), dir)
   out <- file.path(dir, "out.yaml")
@@ -1424,7 +1424,7 @@ test_that("TOML -> YAML: values preserved", {
 })
 
 test_that("TOML -> XML: values preserved", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_toml(test_df(), dir)
   out <- file.path(dir, "out.xml")
@@ -1434,7 +1434,7 @@ test_that("TOML -> XML: values preserved", {
 })
 
 test_that("JSONL -> JSON: values preserved", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_jsonl(test_df(), dir)
   out <- file.path(dir, "out.json")
@@ -1444,7 +1444,7 @@ test_that("JSONL -> JSON: values preserved", {
 })
 
 test_that("JSON -> JSONL: values preserved", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_json(test_df(), dir)
   out <- file.path(dir, "out.jsonl")
@@ -1456,7 +1456,7 @@ test_that("JSON -> JSONL: values preserved", {
 # Section 23: Full round-trip tests ---------------------------------------------
 
 test_that("round-trip: CSV -> Parquet -> CSV", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(numeric_df(), dir)
   pq <- file.path(dir, "mid.parquet")
@@ -1469,7 +1469,7 @@ test_that("round-trip: CSV -> Parquet -> CSV", {
 })
 
 test_that("round-trip: CSV -> JSON -> CSV", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(numeric_df(), dir)
   mid <- file.path(dir, "mid.json")
@@ -1481,7 +1481,7 @@ test_that("round-trip: CSV -> JSON -> CSV", {
 })
 
 test_that("round-trip: CSV -> YAML -> CSV", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(numeric_df(), dir)
   mid <- file.path(dir, "mid.yaml")
@@ -1493,7 +1493,7 @@ test_that("round-trip: CSV -> YAML -> CSV", {
 })
 
 test_that("round-trip: CSV -> TOML -> CSV", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(numeric_df(), dir)
   mid <- file.path(dir, "mid.toml")
@@ -1505,7 +1505,7 @@ test_that("round-trip: CSV -> TOML -> CSV", {
 })
 
 test_that("round-trip: CSV -> XML -> CSV", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(numeric_df(), dir)
   mid <- file.path(dir, "mid.xml")
@@ -1517,7 +1517,7 @@ test_that("round-trip: CSV -> XML -> CSV", {
 })
 
 test_that("round-trip: CSV -> RDS -> CSV", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   mid <- file.path(dir, "mid.rds")
@@ -1529,7 +1529,7 @@ test_that("round-trip: CSV -> RDS -> CSV", {
 })
 
 test_that("round-trip: CSV -> Excel -> CSV", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   mid <- file.path(dir, "mid.xlsx")
@@ -1541,7 +1541,7 @@ test_that("round-trip: CSV -> Excel -> CSV", {
 })
 
 test_that("round-trip: CSV -> DuckDB -> CSV", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   mid <- file.path(dir, "mid.duckdb")
@@ -1553,7 +1553,7 @@ test_that("round-trip: CSV -> DuckDB -> CSV", {
 })
 
 test_that("round-trip: CSV -> SQLite -> CSV", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   mid <- file.path(dir, "mid.sqlite")
@@ -1567,7 +1567,7 @@ test_that("round-trip: CSV -> SQLite -> CSV", {
 # Section 24: Multiple input files ----------------------------------------------
 
 test_that("two CSVs: names(dfs) correct", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f1 <- make_csv(data.frame(x = 1:2), dir, "a.csv")
   f2 <- make_csv(data.frame(y = 3:4), dir, "b.csv")
@@ -1578,7 +1578,7 @@ test_that("two CSVs: names(dfs) correct", {
 })
 
 test_that("two CSVs: nrow(dfs$a) correct", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f1 <- make_csv(data.frame(x = 1:5), dir, "a.csv")
   f2 <- make_csv(data.frame(y = 1:3), dir, "b.csv")
@@ -1587,7 +1587,7 @@ test_that("two CSVs: nrow(dfs$a) correct", {
 })
 
 test_that("two CSVs: nrow(dfs$b) correct", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f1 <- make_csv(data.frame(x = 1:5), dir, "a.csv")
   f2 <- make_csv(data.frame(y = 1:3), dir, "b.csv")
@@ -1596,7 +1596,7 @@ test_that("two CSVs: nrow(dfs$b) correct", {
 })
 
 test_that("CSV + TSV: mixed flat formats", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f1 <- make_csv(data.frame(a = 1:2), dir, "one.csv")
   f2 <- make_tsv(data.frame(b = 3:4), dir, "two.tsv")
@@ -1607,7 +1607,7 @@ test_that("CSV + TSV: mixed flat formats", {
 })
 
 test_that("CSV + JSON: mixed flat + nested", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f1 <- make_csv(data.frame(a = 1:2), dir, "flat.csv")
   f2 <- make_json(data.frame(b = 3:4), dir, "nested.json")
@@ -1616,7 +1616,7 @@ test_that("CSV + JSON: mixed flat + nested", {
 })
 
 test_that("CSV + Parquet: mixed flat + binary", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f1 <- make_csv(data.frame(a = 1:2), dir, "text.csv")
   f2 <- make_parquet(data.frame(b = 5:7), dir, "bin.parquet")
@@ -1625,7 +1625,7 @@ test_that("CSV + Parquet: mixed flat + binary", {
 })
 
 test_that("three files: all names present", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f1 <- make_csv(data.frame(x = 1), dir, "a.csv")
   f2 <- make_csv(data.frame(x = 1), dir, "b.csv")
@@ -1636,7 +1636,7 @@ test_that("three files: all names present", {
 })
 
 test_that("name collision: files with same basename get suffixed", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   d1 <- file.path(dir, "a")
   d2 <- file.path(dir, "b")
@@ -1651,7 +1651,7 @@ test_that("name collision: files with same basename get suffixed", {
 })
 
 test_that("name collision: both data frames accessible", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   d1 <- file.path(dir, "a")
   d2 <- file.path(dir, "b")
@@ -1666,7 +1666,7 @@ test_that("name collision: both data frames accessible", {
 })
 
 test_that("name collision: three files with same basename", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   d1 <- file.path(dir, "a")
   d2 <- file.path(dir, "b")
@@ -1691,7 +1691,7 @@ test_that("name collision: three files with same basename", {
 })
 
 test_that("digit-prefix file: dfs$x2024", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(data.frame(val = 42), dir, "2024.csv")
   result <- rush_run_exec("dfs$x2024$val", file = f)
@@ -1699,7 +1699,7 @@ test_that("digit-prefix file: dfs$x2024", {
 })
 
 test_that("DuckDB input: table names via dfs", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   tables <- list(orders = data.frame(id = 1:3), items = data.frame(sku = c("a", "b")))
   f <- make_duckdb(tables, dir)
@@ -1710,7 +1710,7 @@ test_that("DuckDB input: table names via dfs", {
 })
 
 test_that("DuckDB input: access table row count", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   tables <- list(orders = data.frame(id = 1:5))
   f <- make_duckdb(tables, dir)
@@ -1719,7 +1719,7 @@ test_that("DuckDB input: access table row count", {
 })
 
 test_that("SQLite input: table names via dfs", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   tables <- list(users = data.frame(name = c("A", "B")))
   f <- make_sqlite(tables, dir)
@@ -1730,7 +1730,7 @@ test_that("SQLite input: table names via dfs", {
 # Section 25: rush convert end-to-end -------------------------------------------
 
 test_that("convert CSV -> Parquet", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.parquet")
@@ -1742,7 +1742,7 @@ test_that("convert CSV -> Parquet", {
 })
 
 test_that("convert CSV -> JSON", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.json")
@@ -1753,7 +1753,7 @@ test_that("convert CSV -> JSON", {
 })
 
 test_that("convert CSV -> YAML", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.yaml")
@@ -1764,7 +1764,7 @@ test_that("convert CSV -> YAML", {
 })
 
 test_that("convert CSV -> TOML", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.toml")
@@ -1775,7 +1775,7 @@ test_that("convert CSV -> TOML", {
 })
 
 test_that("convert CSV -> XML", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.xml")
@@ -1786,7 +1786,7 @@ test_that("convert CSV -> XML", {
 })
 
 test_that("convert CSV -> Excel", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.xlsx")
@@ -1797,7 +1797,7 @@ test_that("convert CSV -> Excel", {
 })
 
 test_that("convert CSV -> RDS", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.rds")
@@ -1808,7 +1808,7 @@ test_that("convert CSV -> RDS", {
 })
 
 test_that("convert CSV -> DuckDB", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.duckdb")
@@ -1820,7 +1820,7 @@ test_that("convert CSV -> DuckDB", {
 })
 
 test_that("convert CSV -> SQLite", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.sqlite")
@@ -1832,7 +1832,7 @@ test_that("convert CSV -> SQLite", {
 })
 
 test_that("convert JSON -> CSV", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_json(test_df(), dir)
   out <- file.path(dir, "out.csv")
@@ -1842,7 +1842,7 @@ test_that("convert JSON -> CSV", {
 })
 
 test_that("convert Parquet -> CSV", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_parquet(test_df(), dir)
   out <- file.path(dir, "out.csv")
@@ -1852,7 +1852,7 @@ test_that("convert Parquet -> CSV", {
 })
 
 test_that("convert Excel -> CSV", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_xlsx(test_df(), dir)
   out <- file.path(dir, "out.csv")
@@ -1862,7 +1862,7 @@ test_that("convert Excel -> CSV", {
 })
 
 test_that("convert YAML -> JSON", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_yaml(test_df(), dir)
   out <- file.path(dir, "out.json")
@@ -1872,7 +1872,7 @@ test_that("convert YAML -> JSON", {
 })
 
 test_that("convert XML -> YAML", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_xml(test_df(), dir)
   out <- file.path(dir, "out.yaml")
@@ -1882,7 +1882,7 @@ test_that("convert XML -> YAML", {
 })
 
 test_that("convert TOML -> XML", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_toml(test_df(), dir)
   out <- file.path(dir, "out.xml")
@@ -1892,7 +1892,7 @@ test_that("convert TOML -> XML", {
 })
 
 test_that("convert with --head 2", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.json")
@@ -1902,7 +1902,7 @@ test_that("convert with --head 2", {
 })
 
 test_that("convert with --output-root and --output-record (XML)", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.xml")
@@ -1915,7 +1915,7 @@ test_that("convert with --output-root and --output-record (XML)", {
 })
 
 test_that("convert with --output-record (TOML)", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.toml")
@@ -1925,7 +1925,7 @@ test_that("convert with --output-record (TOML)", {
 })
 
 test_that("convert with --output-indent 4 (JSON)", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.json")
@@ -1936,7 +1936,7 @@ test_that("convert with --output-indent 4 (JSON)", {
 })
 
 test_that("convert with --output-sheet (Excel)", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.xlsx")
@@ -1946,7 +1946,7 @@ test_that("convert with --output-sheet (Excel)", {
 })
 
 test_that("convert with --input-sheet (Excel -> CSV)", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   sheets <- list(Sales = data.frame(a = 1:2), Costs = data.frame(b = 3:4))
   f <- make_xlsx(sheets, dir)
@@ -1957,7 +1957,7 @@ test_that("convert with --input-sheet (Excel -> CSV)", {
 })
 
 test_that("convert with -F override: .txt treated as JSON", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   path <- file.path(dir, "data.txt")
   writeLines(jsonlite::toJSON(test_df(), dataframe = "rows", auto_unbox = TRUE), path)
@@ -1968,7 +1968,7 @@ test_that("convert with -F override: .txt treated as JSON", {
 })
 
 test_that("convert with -O override: output to .txt as YAML", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.txt")
@@ -1978,7 +1978,7 @@ test_that("convert with -O override: output to .txt as YAML", {
 })
 
 test_that("convert multiple CSVs -> DuckDB: tables named after files", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f1 <- make_csv(data.frame(x = 1:2), dir, "orders.csv")
   f2 <- make_csv(data.frame(y = 3:4), dir, "items.csv")
@@ -1992,7 +1992,7 @@ test_that("convert multiple CSVs -> DuckDB: tables named after files", {
 })
 
 test_that("convert multiple CSVs -> SQLite: tables named after files", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f1 <- make_csv(data.frame(x = 1:2), dir, "orders.csv")
   f2 <- make_csv(data.frame(y = 3:4), dir, "items.csv")
@@ -2006,7 +2006,7 @@ test_that("convert multiple CSVs -> SQLite: tables named after files", {
 })
 
 test_that("convert output template %(file_name)s.parquet", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f1 <- make_csv(data.frame(x = 1:2), dir, "a.csv")
   f2 <- make_csv(data.frame(x = 3:4), dir, "b.csv")
@@ -2019,14 +2019,14 @@ test_that("convert output template %(file_name)s.parquet", {
 # Section 26: rush sql end-to-end -----------------------------------------------
 
 test_that("sql SELECT 1", {
-  skip_if_no_ir()
+  skip_on_ci()
   result <- rush_sql_exec("SELECT 1 AS x")
   lines <- stdout_lines(result)
   expect_true(any(grepl("1", lines)))
 })
 
 test_that("sql COUNT from CSV", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   result <- rush_sql_exec("SELECT COUNT(*) AS n FROM data", file = f)
@@ -2035,7 +2035,7 @@ test_that("sql COUNT from CSV", {
 })
 
 test_that("sql WHERE filter", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   result <- rush_sql_exec("SELECT name FROM data WHERE score > 90", file = f)
@@ -2046,7 +2046,7 @@ test_that("sql WHERE filter", {
 })
 
 test_that("sql JOIN two CSVs", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f1 <- make_csv(data.frame(id = 1:3, name = c("A", "B", "C")), dir, "left.csv")
   f2 <- make_csv(data.frame(id = c(1, 3), val = c(10, 30)), dir, "right.csv")
@@ -2060,7 +2060,7 @@ test_that("sql JOIN two CSVs", {
 })
 
 test_that("sql from Parquet", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_parquet(test_df(), dir)
   result <- rush_sql_exec("SELECT name FROM data LIMIT 1", file = f)
@@ -2069,7 +2069,7 @@ test_that("sql from Parquet", {
 })
 
 test_that("sql with -O json output", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   result <- rush_sql_exec(
@@ -2082,7 +2082,7 @@ test_that("sql with -O json output", {
 })
 
 test_that("sql with -o parquet output", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.parquet")
@@ -2097,7 +2097,7 @@ test_that("sql with -o parquet output", {
 })
 
 test_that("sql with --head 2", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.csv")
@@ -2111,7 +2111,7 @@ test_that("sql with --head 2", {
 })
 
 test_that("sql from stdin", {
-  skip_if_no_ir()
+  skip_on_ci()
   csv_data <- c("id,val", "1,10", "2,20", "3,30")
   result <- rush_sql_exec(
     "SELECT SUM(val) AS total FROM stdin",
@@ -2125,7 +2125,7 @@ test_that("sql from stdin", {
 # Section 27: rush plot end-to-end ----------------------------------------------
 
 test_that("plot scatter to PNG", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(data.frame(wt = runif(20), mpg = runif(20)), dir, "mtcars.csv")
   out <- file.path(dir, "plot.png")
@@ -2136,7 +2136,7 @@ test_that("plot scatter to PNG", {
 })
 
 test_that("plot histogram to PNG", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(data.frame(mpg = rnorm(50)), dir, "data.csv")
   out <- file.path(dir, "hist.png")
@@ -2146,7 +2146,7 @@ test_that("plot histogram to PNG", {
 })
 
 test_that("plot line geom to PNG", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(data.frame(x = 1:10, y = cumsum(rnorm(10))), dir, "data.csv")
   out <- file.path(dir, "line.png")
@@ -2156,7 +2156,7 @@ test_that("plot line geom to PNG", {
 })
 
 test_that("plot bar geom to PNG", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(data.frame(cat = c("A", "B", "C", "A", "B")), dir, "data.csv")
   out <- file.path(dir, "bar.png")
@@ -2166,7 +2166,7 @@ test_that("plot bar geom to PNG", {
 })
 
 test_that("plot boxplot geom to PNG", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(
     data.frame(group = rep(c("A", "B"), each = 10), val = rnorm(20)),
@@ -2179,7 +2179,7 @@ test_that("plot boxplot geom to PNG", {
 })
 
 test_that("plot density geom to PNG", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(data.frame(x = rnorm(50)), dir, "data.csv")
   out <- file.path(dir, "dens.png")
@@ -2189,7 +2189,7 @@ test_that("plot density geom to PNG", {
 })
 
 test_that("plot violin geom to PNG", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(
     data.frame(group = rep(c("A", "B"), each = 20), val = rnorm(40)),
@@ -2204,7 +2204,7 @@ test_that("plot violin geom to PNG", {
 })
 
 test_that("plot color aesthetic", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(
     data.frame(x = 1:10, y = 1:10, g = rep(c("a", "b"), 5)),
@@ -2217,7 +2217,7 @@ test_that("plot color aesthetic", {
 })
 
 test_that("plot fill aesthetic", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(
     data.frame(cat = c("A", "B", "C", "A"), grp = c("x", "x", "y", "y")),
@@ -2230,7 +2230,7 @@ test_that("plot fill aesthetic", {
 })
 
 test_that("plot alpha aesthetic", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(data.frame(x = 1:10, y = 1:10, a = runif(10)), dir, "data.csv")
   out <- file.path(dir, "alpha.png")
@@ -2240,7 +2240,7 @@ test_that("plot alpha aesthetic", {
 })
 
 test_that("plot size aesthetic", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(data.frame(x = 1:10, y = 1:10, s = 1:10), dir, "data.csv")
   out <- file.path(dir, "size.png")
@@ -2250,7 +2250,7 @@ test_that("plot size aesthetic", {
 })
 
 test_that("plot shape aesthetic", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(
     data.frame(x = 1:6, y = 1:6, sh = rep(c("a", "b"), 3)),
@@ -2263,7 +2263,7 @@ test_that("plot shape aesthetic", {
 })
 
 test_that("plot group aesthetic with line", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(
     data.frame(x = rep(1:5, 2), y = rnorm(10), g = rep(c("a", "b"), each = 5)),
@@ -2278,7 +2278,7 @@ test_that("plot group aesthetic with line", {
 })
 
 test_that("plot facet_wrap", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(
     data.frame(x = 1:12, y = rnorm(12), g = rep(c("A", "B", "C"), 4)),
@@ -2293,7 +2293,7 @@ test_that("plot facet_wrap", {
 })
 
 test_that("plot facet_grid", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(
     data.frame(
@@ -2311,7 +2311,7 @@ test_that("plot facet_grid", {
 })
 
 test_that("plot facet_grid with margins", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(
     data.frame(x = 1:8, y = rnorm(8), g1 = rep(c("A", "B"), 4), g2 = rep(c("X", "Y"), each = 4)),
@@ -2326,7 +2326,7 @@ test_that("plot facet_grid with margins", {
 })
 
 test_that("plot log x", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(data.frame(x = c(1, 10, 100), y = c(1, 2, 3)), dir, "data.csv")
   out <- file.path(dir, "logx.png")
@@ -2336,7 +2336,7 @@ test_that("plot log x", {
 })
 
 test_that("plot log y", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(data.frame(x = 1:3, y = c(1, 10, 100)), dir, "data.csv")
   out <- file.path(dir, "logy.png")
@@ -2346,7 +2346,7 @@ test_that("plot log y", {
 })
 
 test_that("plot log xy", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(data.frame(x = c(1, 10, 100), y = c(1, 10, 100)), dir, "data.csv")
   out <- file.path(dir, "logxy.png")
@@ -2356,7 +2356,7 @@ test_that("plot log xy", {
 })
 
 test_that("plot title", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(data.frame(x = 1:5, y = 1:5), dir, "data.csv")
   out <- file.path(dir, "title.png")
@@ -2368,7 +2368,7 @@ test_that("plot title", {
 })
 
 test_that("plot xlab and ylab", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(data.frame(x = 1:5, y = 1:5), dir, "data.csv")
   out <- file.path(dir, "labels.png")
@@ -2380,7 +2380,7 @@ test_that("plot xlab and ylab", {
 })
 
 test_that("plot title + xlab + ylab combined", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(data.frame(x = 1:5, y = 1:5), dir, "data.csv")
   out <- file.path(dir, "all_labs.png")
@@ -2392,7 +2392,7 @@ test_that("plot title + xlab + ylab combined", {
 })
 
 test_that("plot width and height", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(data.frame(x = 1:5, y = 1:5), dir, "data.csv")
   out <- file.path(dir, "wh.png")
@@ -2405,7 +2405,7 @@ test_that("plot width and height", {
 })
 
 test_that("plot units cm", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(data.frame(x = 1:5, y = 1:5), dir, "data.csv")
   out <- file.path(dir, "cm.png")
@@ -2417,7 +2417,7 @@ test_that("plot units cm", {
 })
 
 test_that("plot dpi 72 produces smaller file", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(data.frame(x = 1:5, y = 1:5), dir, "data.csv")
   out_lo <- file.path(dir, "lo.png")
@@ -2428,7 +2428,7 @@ test_that("plot dpi 72 produces smaller file", {
 })
 
 test_that("plot --pre transforms data", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(data.frame(x = 1:20, y = 1:20), dir, "data.csv")
   out <- file.path(dir, "pre.png")
@@ -2440,7 +2440,7 @@ test_that("plot --pre transforms data", {
 })
 
 test_that("plot --post adds layer", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(data.frame(x = 1:5, y = 1:5), dir, "data.csv")
   out <- file.path(dir, "post.png")
@@ -2452,7 +2452,7 @@ test_that("plot --post adds layer", {
 })
 
 test_that("plot SVG output", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(data.frame(x = 1:5, y = 1:5), dir, "data.csv")
   out <- file.path(dir, "plot.svg")
@@ -2464,7 +2464,7 @@ test_that("plot SVG output", {
 })
 
 test_that("plot PDF output", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(data.frame(x = 1:5, y = 1:5), dir, "data.csv")
   out <- file.path(dir, "plot.pdf")
@@ -2475,7 +2475,7 @@ test_that("plot PDF output", {
 })
 
 test_that("plot from stdin", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   out <- file.path(dir, "stdin.png")
   csv_data <- c("a,b", "1,2", "3,4", "5,6", "7,8")
@@ -2489,7 +2489,7 @@ test_that("plot from stdin", {
 })
 
 test_that("plot from TSV input", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_tsv(data.frame(a = 1:5, b = 1:5), dir, "data.tsv")
   out <- file.path(dir, "tsv.png")
@@ -2499,7 +2499,7 @@ test_that("plot from TSV input", {
 })
 
 test_that("plot from Parquet input", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_parquet(data.frame(x = 1:5, y = 1:5), dir)
   out <- file.path(dir, "pq.png")
@@ -2509,7 +2509,7 @@ test_that("plot from Parquet input", {
 })
 
 test_that("plot from JSON input", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_json(data.frame(x = 1:5, y = 1:5), dir)
   out <- file.path(dir, "json.png")
@@ -2521,7 +2521,7 @@ test_that("plot from JSON input", {
 })
 
 test_that("plot from DuckDB input", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_duckdb(list(points = data.frame(x = 1:10, y = rnorm(10))), dir)
   out <- file.path(dir, "duckdb.png")
@@ -2531,7 +2531,7 @@ test_that("plot from DuckDB input", {
 })
 
 test_that("plot with -l library", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(data.frame(x = 1:5, y = 1:5), dir, "data.csv")
   out <- file.path(dir, "lib.png")
@@ -2543,7 +2543,7 @@ test_that("plot with -l library", {
 })
 
 test_that("plot with -t tidyverse", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(data.frame(x = 1:5, y = 1:5), dir, "data.csv")
   out <- file.path(dir, "tv.png")
@@ -2555,7 +2555,7 @@ test_that("plot with -t tidyverse", {
 })
 
 test_that("plot with --seed for reproducibility", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(data.frame(x = 1:5, y = 1:5), dir, "data.csv")
   out1 <- file.path(dir, "s1.png")
@@ -2566,7 +2566,7 @@ test_that("plot with --seed for reproducibility", {
 })
 
 test_that("plot from Excel with --input-sheet", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   sheets <- list(
     Sheet1 = data.frame(a = 1:3, b = 4:6),
@@ -2584,7 +2584,7 @@ test_that("plot from Excel with --input-sheet", {
 # Section 28: Edge cases --------------------------------------------------------
 
 test_that("single-row data frame -> CSV", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(data.frame(x = 1, y = "a"), dir)
   out <- file.path(dir, "out.csv")
@@ -2594,7 +2594,7 @@ test_that("single-row data frame -> CSV", {
 })
 
 test_that("single-column data frame -> CSV", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(data.frame(x = 1:5), dir)
   out <- file.path(dir, "out.csv")
@@ -2605,7 +2605,7 @@ test_that("single-column data frame -> CSV", {
 })
 
 test_that("NA values in CSV -> JSON -> CSV round-trip", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   df_na <- data.frame(a = c(1, NA, 3), b = c("x", NA, "z"), stringsAsFactors = FALSE)
   f <- make_csv(df_na, dir)
@@ -2619,7 +2619,7 @@ test_that("NA values in CSV -> JSON -> CSV round-trip", {
 })
 
 test_that("columns with dots in TOML output are quoted", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   df_dots <- data.frame(`Sepal.Length` = 5.1, `Petal.Width` = 0.2, check.names = FALSE)
   f <- make_csv(df_dots, dir)
@@ -2631,7 +2631,7 @@ test_that("columns with dots in TOML output are quoted", {
 })
 
 test_that("columns with dots in XML output become valid elements", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   df_dots <- data.frame(sepal_length = 5.1, petal_width = 0.2)
   f <- make_csv(df_dots, dir)
@@ -2644,7 +2644,7 @@ test_that("columns with dots in XML output become valid elements", {
 })
 
 test_that("numeric precision survives JSON round-trip", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   df_prec <- data.frame(x = c(3.14159265358979, 1e-10, 1e10))
   f <- make_csv(df_prec, dir)
@@ -2658,7 +2658,7 @@ test_that("numeric precision survives JSON round-trip", {
 })
 
 test_that("wide data frame (50 columns) survives JSON round-trip", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   wide <- as.data.frame(matrix(1:100, nrow = 2, ncol = 50))
   f <- make_csv(wide, dir)
@@ -2671,7 +2671,7 @@ test_that("wide data frame (50 columns) survives JSON round-trip", {
 })
 
 test_that("many rows (500) survive Parquet round-trip", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   big <- data.frame(x = seq_len(500), y = runif(500))
   f <- make_csv(big, dir)
@@ -2684,7 +2684,7 @@ test_that("many rows (500) survive Parquet round-trip", {
 })
 
 test_that("unicode characters survive CSV -> JSON -> CSV", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   df_uni <- data.frame(name = c("café", "über", "ñoño"), stringsAsFactors = FALSE)
   f <- make_csv(df_uni, dir)
@@ -2700,7 +2700,7 @@ test_that("unicode characters survive CSV -> JSON -> CSV", {
 # Section 29: Error cases -------------------------------------------------------
 
 test_that("parquet without -o gives error or no output", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   result <- rush_run_exec("df", file = f, args = list(output_format = "parquet"))
@@ -2708,7 +2708,7 @@ test_that("parquet without -o gives error or no output", {
 })
 
 test_that("arrow without -o gives error or no output", {
-  skip_if_no_ir()
+  skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   result <- rush_run_exec("df", file = f, args = list(output_format = "arrow"))
@@ -2716,13 +2716,13 @@ test_that("arrow without -o gives error or no output", {
 })
 
 test_that("invalid expression gives non-zero exit", {
-  skip_if_no_ir()
+  skip_on_ci()
   result <- rush_run_exec("this is not valid R code !!!")
   expect_false(result$status == 0)
 })
 
 test_that("missing input file gives error or no meaningful output", {
-  skip_if_no_ir()
+  skip_on_ci()
   result <- rush_run_exec("nrow(df)", file = "/nonexistent/file.csv")
   expect_true(result$status != 0 || nchar(trimws(result$stdout)) == 0 || grepl("Error", result$stderr))
 })
@@ -2730,7 +2730,7 @@ test_that("missing input file gives error or no meaningful output", {
 # Section 30: --no-ir flag ------------------------------------------------------
 
 test_that("--no-ir still produces correct output", {
-  skip_if_no_ir()
+  skip_on_ci()
   script <- withr::local_tempfile(fileext = ".R")
   writeLines(c(
     "library(rush)",
