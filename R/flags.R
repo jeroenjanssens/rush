@@ -27,6 +27,7 @@ flags_df <-
     "v"    , "verbose"          , NA          , "Be verbose"                      , NA       , NA                 , as.logical         , "general" ,
     "n"    , "dry-run"          , NA          , "Only print generated script"     , NA       , "dry_run"          , as.logical         , "general" ,
     "I"    , "no-ir"            , NA          , "Run with Rscript, not ir"        , NA       , "no_ir"            , as.logical         , "general" ,
+    "R"    , "no-rush"          , NA          , "Inline all code (no rush dep)"   , NA       , "no_rush"          , as.logical         , "general" ,
     "d"    , "delimiter"        , "str"       , "Delimiter (input and output)"    , ","      , NA                 , as.character       , "read"    ,
     NA     , "input-delimiter"  , "str"       , "Input delimiter (overrides -d)"  , NA       , "input_delimiter"  , as.character       , "read"    ,
     "F"    , "input-format"     , "format"    , "Input format"                    , "auto"   , "input_format"     , as.character       , "read"    ,
