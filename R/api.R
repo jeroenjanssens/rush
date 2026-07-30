@@ -9,6 +9,8 @@
 #'
 #' @param output Output file path, or NULL for stdout.
 #' @param output_format Output format string (e.g. "delim", "json", "parquet").
+#' @param output_header If `FALSE`, omit the header row when writing delimited
+#'   output.
 #' @param delimiter Output delimiter for delimited formats.
 #' @param head Maximum number of rows to output.
 #' @param width Plot width or console width.

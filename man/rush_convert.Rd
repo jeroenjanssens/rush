@@ -72,10 +72,21 @@ Implies \code{input_header = FALSE}.}
 \item{input_sheet}{Sheet to read from an Excel file. Either a string (sheet
 name) or an integer (sheet index).}
 
+\item{output_root}{Root element name for XML output.}
+
+\item{output_record}{Record element name for XML/TOML output.}
+
+\item{output_sheet}{Excel sheet name for xlsx output.}
+
+\item{output_indent}{Indentation level for JSON/YAML output.}
+
 \item{dry_run}{If \code{TRUE}, print the generated script instead of executing
 it.}
 
 \item{no_ir}{If \code{TRUE}, execute the script with \code{Rscript} instead of \code{ir}.}
+
+\item{no_rush}{If \code{TRUE}, generate fully inlined code with no dependency on
+the rush package.}
 
 \item{verbose}{If \code{TRUE}, print debugging information to stderr.}
 }

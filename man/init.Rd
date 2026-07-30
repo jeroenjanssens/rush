@@ -26,6 +26,9 @@ init(
 
 \item{output_format}{Output format string (e.g. "delim", "json", "parquet").}
 
+\item{output_header}{If \code{FALSE}, omit the header row when writing delimited
+output.}
+
 \item{delimiter}{Output delimiter for delimited formats.}
 
 \item{head}{Maximum number of rows to output.}

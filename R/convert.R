@@ -34,7 +34,13 @@
 #'   name) or an integer (sheet index).
 #' @param dry_run If `TRUE`, print the generated script instead of executing
 #'   it.
+#' @param output_root Root element name for XML output.
+#' @param output_record Record element name for XML/TOML output.
+#' @param output_sheet Excel sheet name for xlsx output.
+#' @param output_indent Indentation level for JSON/YAML output.
 #' @param no_ir If `TRUE`, execute the script with `Rscript` instead of `ir`.
+#' @param no_rush If `TRUE`, generate fully inlined code with no dependency on
+#'   the rush package.
 #' @param verbose If `TRUE`, print debugging information to stderr.
 #'
 #' @return Invisibly returns the exit status of the script (integer), or

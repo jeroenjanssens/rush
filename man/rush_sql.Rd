@@ -60,6 +60,9 @@ it.}
 
 \item{no_ir}{If \code{TRUE}, execute the script with \code{Rscript} instead of \code{ir}.}
 
+\item{no_rush}{If \code{TRUE}, generate fully inlined code with no dependency on
+the rush package.}
+
 \item{verbose}{If \code{TRUE}, print debugging information to stderr.}
 }
 \value{

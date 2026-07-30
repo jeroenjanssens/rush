@@ -28,6 +28,8 @@
 #' @param dry_run If `TRUE`, print the generated script instead of executing
 #'   it.
 #' @param no_ir If `TRUE`, execute the script with `Rscript` instead of `ir`.
+#' @param no_rush If `TRUE`, generate fully inlined code with no dependency on
+#'   the rush package.
 #' @param verbose If `TRUE`, print debugging information to stderr.
 #'
 #' @return Invisibly returns the exit status of the script (integer), or

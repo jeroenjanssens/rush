@@ -50,6 +50,10 @@ Suggests:
     yaml,
     RcppTOML,
     xml2,
+    ggplot2,
+    fs,
+    devoutansi,
+    withr,
     testthat (>= 3.0.0),
     roxygen2
 VignetteBuilder: knitr
