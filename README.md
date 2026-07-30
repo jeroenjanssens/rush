@@ -21,7 +21,8 @@ and `jq`.
 
 ## Highlights
 
-- **One-liners, not scripts.** Evaluate any R expression straight from the shell.
+- **Quick one-liners.** Evaluate any R expression straight from the shell.
+- **Scaffold scripts.** Use `--dry-run` to generate self-contained R scripts you can save, edit, and share.
 - **Pipeline-native.** Reads from standard input and writes to standard output.
 - **Reads what you have.** CSV, Parquet, JSON, Excel, Arrow, DuckDB, SPSS/Stata/SAS, SQLite, YAML, TOML, XML, and more.
 - **Converts between formats.** The `convert` command handles it in one step.
@@ -76,8 +77,11 @@ $ rush convert -o penguins.parquet penguins.csv
 
 `rush` is, to our knowledge, the only CLI tool that combines R expression
 evaluation, automatic package resolution, multi-format I/O, SQL queries, and
-plotting in a single command. That said, several excellent tools cover parts
-of this space, often faster or with fewer dependencies:
+plotting in a single command. It also doubles as a script scaffolder: every
+invocation can emit a self-contained R script via `--dry-run`, giving you a
+starting point you can save, tweak, and version-control. That said, several
+excellent tools cover parts of this space, often faster or with fewer
+dependencies:
 
 - **[DuckDB CLI](https://duckdb.org/)**: An embedded SQL engine that queries CSV, Parquet, and JSON files directly. Faster for pure SQL workloads; no R expressions or plotting.
 - **[Miller (mlr)](https://miller.readthedocs.io/)**: A streaming processor for CSV, TSV, and JSON with its own verb language. Handles files larger than RAM; no Parquet, SQL, or plotting.
