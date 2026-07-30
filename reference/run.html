@@ -331,7 +331,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> run <span class="st">'nrow(df)'</span> penguins.csv</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 333</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>With just a file and no expression, the data is printed — a quick way to peek:</p>
+<p>With just a file and no expression, the data is printed. A quick way to peek:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> run <span class="st">'head(df, 5)'</span> penguins.csv</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; species,island,bill_length_mm,bill_depth_mm,flipper_length_mm,body_mass_g,sex,year</span></span>
@@ -345,8 +345,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h3 class="anchored" data-anchor-id="the-df-and-dfs-variables">The <code>df</code> and <code>dfs</code> variables</h3>
 <p>Two variables are always available in your expression:</p>
 <ul>
-<li><strong><code>df</code></strong> — the first input (a data frame for flat files, or a named list of tables for database files).</li>
-<li><strong><code>dfs</code></strong> — a named list of all inputs, keyed by file stem. Database entries are nested one level deeper: <code>dfs$dbname$tablename</code>.</li>
+<li><strong><code>df</code></strong>: the first input (a data frame for flat files, or a named list of tables for database files).</li>
+<li><strong><code>dfs</code></strong>: a named list of all inputs, keyed by file stem. Database entries are nested one level deeper: <code>dfs$dbname$tablename</code>.</li>
 </ul>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> run <span class="st">'names(dfs)'</span> penguins.csv cities.tsv</span>
@@ -381,7 +381,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Adelie,36.7,3450</span></span>
 <span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Adelie,39.3,3650</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>Use <code>-F</code> to read non-CSV formats from stdin — for example, JSON:</p>
+<p>Use <code>-F</code> to read non-CSV formats from stdin, for example JSON:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> run <span class="at">-O</span> json <span class="st">'head(df, 3)'</span> penguins.csv <span class="kw">|</span> <span class="ex">rush</span> run <span class="at">-F</span> json <span class="st">'dplyr::select(df, species, body_mass_g)'</span> <span class="at">-</span></span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; species,body_mass_g</span></span>
@@ -524,7 +524,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 74</span></span>
 <span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 18</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>Run it again — same seed, same result:</p>
+<p>Run it again; same seed, same result:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> run <span class="at">--seed</span> 42 <span class="st">'sample(1:100, 5)'</span></span>
 <span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 49</span></span>
@@ -658,7 +658,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="no-ir--i" class="level3">
 <h3 class="anchored" data-anchor-id="no-ir--i"><code>--no-ir</code> (<code>-I</code>)</h3>
-<p>Run with plain <code>Rscript</code> instead of <code>ir</code>. No package resolution happens — everything must already be installed:</p>
+<p>Run with plain <code>Rscript</code> instead of <code>ir</code>. No package resolution happens – everything must already be installed:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> run <span class="at">-I</span> <span class="st">'2 + 2'</span></span>
 <span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 4</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>

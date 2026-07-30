@@ -269,7 +269,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <section id="saving-and-reusing-scripts" class="level2">
 <h2 class="anchored" data-anchor-id="saving-and-reusing-scripts">Saving and reusing scripts</h2>
-<p>The script that <code>--dry-run</code> prints is not a throwaway — it is a complete, self-contained <code>ir</code> script. Redirect it to a file and you have a reproducible artifact you can version, share, or run again later:</p>
+<p>The script that <code>--dry-run</code> prints is not a throwaway. It is a complete, self-contained <code>ir</code> script. Redirect it to a file and you have a reproducible artifact you can version, share, or run again later:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> run <span class="at">--dry-run</span> <span class="st">'df |&gt; dplyr::filter(body_mass_g &gt; 5000)'</span> penguins.csv <span class="op">&gt;</span> analysis.R</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span> <span class="at">-3</span> analysis.R</span>
@@ -277,7 +277,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; #| packages:</span></span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; #|   - rush</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>Run it with <code>ir run</code>. The <code>#|</code> frontmatter declares the script’s dependencies, so <code>ir</code> installs any missing packages and executes it — the saved script carries its own dependencies and needs nothing but <code>ir</code> on the target machine:</p>
+<p>Run it with <code>ir run</code>. The <code>#|</code> frontmatter declares the script’s dependencies, so <code>ir</code> installs any missing packages and executes it. The saved script carries its own dependencies and needs nothing but <code>ir</code> on the target machine:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">ir</span> run analysis.R</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell">
 <pre><code>#&gt; species,island,bill_length_mm,bill_depth_mm,flipper_length_mm,body_mass_g,sex,year
@@ -351,7 +351,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="running-without-ir" class="level2">
 <h2 class="anchored" data-anchor-id="running-without-ir">Running without <code>ir</code></h2>
-<p>By default <code>rush</code> runs each script with <code>ir</code>, which resolves the packages declared in the frontmatter on the fly. If you would rather run against the packages already installed in your library — for speed, to work offline, or in an environment where dependencies are pinned — pass <code>--no-ir</code> (<code>-I</code>) and <code>rush</code> runs the script with plain <code>Rscript</code> instead:</p>
+<p>By default <code>rush</code> runs each script with <code>ir</code>, which resolves the packages declared in the frontmatter on the fly. If you would rather run against the packages already installed in your library (for speed, to work offline, or in an environment where dependencies are pinned), pass <code>--no-ir</code> (<code>-I</code>) and <code>rush</code> runs the script with plain <code>Rscript</code> instead:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> run <span class="at">--no-ir</span> <span class="st">'6 * 7'</span></span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 42</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>

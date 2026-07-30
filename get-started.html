@@ -271,11 +271,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="installation">Installation</h2>
 <p>First install <a href="https://r-lib.github.io/ir/#installation"><code>ir</code></a>. Then install <code>rush</code> as an <code>ir</code> tool, which puts a <code>rush</code> launcher on your <code>PATH</code>:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">ir</span> tool install github::jeroenjanssens/rush</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>That’s it — there’s no separate R package to load. The first time a command needs a package (say, ggplot2 for a plot), <code>ir</code> fetches and caches it for you.</p>
+<p>That’s it; there’s no separate R package to load. The first time a command needs a package (say, ggplot2 for a plot), <code>ir</code> fetches and caches it for you.</p>
 </section>
 <section id="quick-tour" class="level2">
 <h2 class="anchored" data-anchor-id="quick-tour">Quick tour</h2>
-<p>Evaluate an expression — the value of the last expression is printed:</p>
+<p>Evaluate an expression. The value of the last expression is printed:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> run <span class="st">'6 * 7'</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 42</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -285,7 +285,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">seq</span> 6 <span class="kw">|</span> <span class="ex">rush</span> run <span class="at">-H</span> <span class="st">'2 * sum(df$x1)'</span> <span class="at">-</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 42</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>Give <code>rush run</code> a file and it is read into <code>df</code> before your expression runs. With no expression, the data frame is simply printed back out — a handy way to peek at a file:</p>
+<p>Give <code>rush run</code> a file and it is read into <code>df</code> before your expression runs. With no expression, the data frame is simply printed back out, a handy way to peek at a file:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> run <span class="st">'head(df, 5)'</span> penguins.csv</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; species,island,bill_length_mm,bill_depth_mm,flipper_length_mm,body_mass_g,sex,year</span></span>
@@ -295,7 +295,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Adelie,Torgersen,36.7,19.3,193,3450,female,2007</span></span>
 <span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Adelie,Torgersen,39.3,20.6,190,3650,male,2007</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>Because <code>rush</code> writes plain CSV to standard output, you can keep piping into the next command — including another <code>rush</code>:</p>
+<p>Because <code>rush</code> writes plain CSV to standard output, you can keep piping into the next command, including another <code>rush</code>:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> run <span class="st">'head(df, 100)'</span> penguins.csv <span class="kw">|</span> <span class="ex">rush</span> run <span class="st">'df |&gt; dplyr::select(species, bill_length_mm, body_mass_g)'</span> <span class="at">-</span></span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; species,bill_length_mm,body_mass_g</span></span>

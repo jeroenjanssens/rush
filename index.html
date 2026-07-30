@@ -241,6 +241,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <ul>
   <li><a href="#highlights" id="toc-highlights" class="nav-link active" data-scroll-target="#highlights">Highlights</a></li>
   <li><a href="#how-it-works" id="toc-how-it-works" class="nav-link" data-scroll-target="#how-it-works">How it works</a></li>
+  <li><a href="#related-tools" id="toc-related-tools" class="nav-link" data-scroll-target="#related-tools">Related tools</a></li>
   </ul>
 <div class="toc-actions"><ul><li><a href="https://github.com/jeroenjanssens/rush/edit/main/index.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/jeroenjanssens/rush/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
@@ -273,7 +274,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <figcaption>R-CMD-check</figcaption>
 </figure>
 </div>
-<p><strong><code>rush</code> brings R to the command line.</strong> Run an R expression, wrangle a CSV, query a Parquet file with SQL, or draw a plot right in your terminal — all without opening an R session or writing a script.</p>
+<p><strong><code>rush</code> brings R to the command line.</strong> Run an R expression, wrangle a CSV, query a Parquet file with SQL, or draw a plot right in your terminal, all without opening an R session or writing a script.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> run <span class="st">'dplyr::filter(df, body_mass_g &gt; 5000) |&gt; head()'</span> penguins.csv</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; species,island,bill_length_mm,bill_depth_mm,flipper_length_mm,body_mass_g,sex,year</span></span>
@@ -284,13 +285,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Gentoo,Biscoe,46.8,15.4,215,5150,male,2007</span></span>
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Gentoo,Biscoe,49,16.1,216,5550,male,2007</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>R has a wonderful ecosystem for working with data, but reaching for it usually means launching R, loading packages, and reading files by hand. <code>rush</code> collapses that into a single command you can pipe, redirect, and drop into any shell pipeline — so R becomes just another Unix tool, at home next to <code>grep</code>, <code>awk</code>, and <code>jq</code>.</p>
+<p>R has a wonderful ecosystem for working with data, but reaching for it usually means launching R, loading packages, and reading files by hand. <code>rush</code> collapses that into a single command you can pipe, redirect, and drop into any shell pipeline. R becomes just another Unix tool, at home next to <code>grep</code>, <code>awk</code>, and <code>jq</code>.</p>
 <section id="highlights" class="level2">
 <h2 class="anchored" data-anchor-id="highlights">Highlights</h2>
 <ul>
 <li><strong>One-liners, not scripts.</strong> Evaluate any R expression straight from the shell.</li>
 <li><strong>Pipeline-native.</strong> Reads from standard input and writes to standard output, so it composes with every other command-line tool.</li>
-<li><strong>Reads what you have.</strong> CSV, Parquet, JSON/JSONL, Excel, Arrow IPC, DuckDB, SPSS/Stata/SAS, SQLite, YAML, TOML, XML, and more — chosen automatically by file extension.</li>
+<li><strong>Reads what you have.</strong> CSV, Parquet, JSON/JSONL, Excel, Arrow IPC, DuckDB, SPSS/Stata/SAS, SQLite, YAML, TOML, XML, and more, chosen automatically by file extension.</li>
 <li><strong>Converts between formats.</strong> The <a href="./reference/convert.html"><code>convert</code></a> command converts files directly between any supported format.</li>
 <li><strong>Query with SQL.</strong> The <a href="./reference/sql.html"><code>sql</code></a> command runs DuckDB queries directly against your files, no import step required.</li>
 <li><strong>Plots in your terminal.</strong> The <a href="./reference/plot.html"><code>plot</code></a> command renders ggplot2 graphics as ANSI/ASCII art, or saves them to PNG, PDF, and more.</li>
@@ -313,6 +314,21 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>Head over to <a href="./get-started.html">Get started</a> for installation instructions and a quick tour.</p>
 </div>
 </div>
+</section>
+<section id="related-tools" class="level2">
+<h2 class="anchored" data-anchor-id="related-tools">Related tools</h2>
+<p><code>rush</code> is, to our knowledge, the only CLI tool that combines R expression evaluation, automatic package resolution, multi-format I/O, SQL queries, and plotting in a single command. That said, several excellent tools cover parts of this space, often faster or with fewer dependencies:</p>
+<ul>
+<li><strong><a href="https://duckdb.org/">DuckDB CLI</a></strong>: An embedded SQL engine that queries CSV, Parquet, and JSON files directly. Faster for pure SQL workloads; no R expressions or plotting.</li>
+<li><strong><a href="https://miller.readthedocs.io/">Miller (mlr)</a></strong>: A streaming processor for CSV, TSV, and JSON with its own verb language. Handles files larger than RAM; no Parquet, SQL, or plotting.</li>
+<li><strong><a href="https://github.com/dathere/qsv">qsv</a></strong>: A fast Rust-based CSV toolkit with 90+ subcommands, Polars SQL, and Luau scripting. CSV-focused; no R ecosystem access.</li>
+<li><strong><a href="https://csvkit.readthedocs.io/">csvkit</a></strong>: A Python suite for converting, slicing, and querying CSV files. Mature and widely used; slower and CSV-only for output.</li>
+<li><strong><a href="https://jqlang.github.io/jq/">jq</a></strong>: The standard CLI JSON processor. Powerful for reshaping JSON in pipelines; JSON-only.</li>
+<li><strong><a href="https://mikefarah.gitbook.io/yq">yq</a></strong>: Like jq but for YAML, TOML, XML, and JSON. Aimed at config-file editing rather than data analysis.</li>
+<li><strong><a href="https://www.nushell.sh/">Nushell</a></strong>: A shell where every command outputs structured tables. Requires adopting a new shell; limited analytical depth.</li>
+<li><strong><a href="https://www.visidata.org/">VisiData</a></strong>: An interactive terminal spreadsheet for exploring tabular data. Designed for interactive use, not scripted pipelines.</li>
+<li><strong><a href="https://eddelbuettel.github.io/littler/">littler</a></strong>: A lightweight front-end for running R one-liners from the shell. No format I/O helpers, no dependency resolution, no SQL or plotting, but a useful building block for R scripting.</li>
+</ul>
 
 
 </section>
