@@ -375,7 +375,8 @@ write <- function(result) {
       if (is.null(w)) {
         w <- cli::console_width()
       }
-      devoutansi::ansi(
+      rlang::check_installed("devoutansi", reason = "for terminal plot output")
+      getExportedValue("devoutansi", "ansi")(
         width = w,
         height = h,
         plain_ascii = TRUE,

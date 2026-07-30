@@ -52,14 +52,9 @@ Suggests:
     xml2,
     ggplot2,
     fs,
-    devoutansi,
     withr,
     testthat (>= 3.0.0),
     roxygen2
-Remotes:
-    coolbutuseless/devout,
-    jeroenjanssens/miniansi,
-    coolbutuseless/devoutansi
 VignetteBuilder: knitr
 SystemRequirements: ir (https://r-lib.github.io/ir/)
 Config/testthat/edition: 3
