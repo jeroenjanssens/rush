@@ -170,6 +170,50 @@ rush plot -x bill_length_mm -y body_mass_g --post 'p + ggplot2::theme_minimal() 
 ```
 ![](plot-post.png)
 
+## Terminal output
+
+When no `--output` is given and stdout is connected to a terminal, `rush`
+renders the plot as ASCII art using
+[devoutansi](https://github.com/coolbutuseless/devoutansi):
+
+```bash
+rush plot -x bill_length_mm -y body_mass_g penguins.csv
+```
+
+The output uses block characters and ANSI colors to approximate the scatter
+plot directly in your terminal, with axis labels and tick marks.
+
+### `--width`
+
+Control how many characters wide the terminal art is (defaults to your
+terminal width):
+
+```bash
+rush plot -x bill_length_mm -y body_mass_g --width 60 penguins.csv
+```
+
+### `--output-format ansi` / `ascii` (`-O`)
+
+When piping to another command or redirecting to a file, stdout is not a TTY
+and rush defaults to PNG output. Use `-O ansi` to force terminal art
+regardless:
+
+```bash
+rush plot -x bill_length_mm -y body_mass_g -O ansi penguins.csv | less -R
+```
+
+The `ascii` variant produces the same output (plain ASCII characters only,
+no ANSI color codes).
+
+### Without a terminal
+
+When stdout is not a terminal (for example, piped into another command), rush
+outputs raw PNG bytes by default. You can redirect this to a file:
+
+```bash
+rush plot -x bill_length_mm -y body_mass_g penguins.csv > scatter.png
+```
+
 ## Saving plots
 
 ### `--output` (`-o`)

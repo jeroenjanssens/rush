@@ -152,6 +152,62 @@ test_that("rush_plot with database input auto-selects first table", {
   expect_true(any(grepl("df <- df\\[\\[1L\\]\\]", script)))
 })
 
+test_that("rush_plot generates devoutansi dispatch when no output", {
+  script <- capture_script(rush_plot, file = "mtcars.csv", x = "wt")
+  expect_true(any(grepl("devoutansi::ansi\\(", script)))
+  expect_true(any(grepl('out %in% c\\("ansi", "ascii"\\)', script)))
+})
+
+test_that("rush_plot applies theme_minimal when no --post", {
+  script <- capture_script(rush_plot, file = "mtcars.csv", x = "wt")
+  expect_true(any(grepl("theme_minimal\\(\\)", script)))
+  expect_true(any(grepl("panel.grid = .*element_blank", script)))
+})
+
+test_that("rush_plot skips default theme when --post is used", {
+  script <- capture_script(
+    rush_plot,
+    file = "mtcars.csv",
+    x = "wt",
+    post = "p + theme_bw()"
+  )
+  expect_true(any(grepl("!.rush\\$has_post", script)))
+})
+
+test_that("rush_plot passes width to ansi device", {
+  script <- capture_script(
+    rush_plot,
+    file = "mtcars.csv",
+    x = "wt",
+    width = 40
+  )
+  expect_true(any(grepl("width = 40", script)))
+})
+
+test_that("rush_plot output_format ansi forces terminal art in script", {
+  script <- capture_script(
+    rush_plot,
+    file = "mtcars.csv",
+    x = "wt",
+    output_format = "ansi"
+  )
+  expect_true(any(grepl("output_format.*ansi", script)))
+  expect_true(any(grepl(
+    'if \\(.rush\\$output_format %in% c\\("ansi", "ascii"\\)',
+    script
+  )))
+})
+
+test_that("rush_plot output_format ascii forces terminal art in script", {
+  script <- capture_script(
+    rush_plot,
+    file = "mtcars.csv",
+    x = "wt",
+    output_format = "ascii"
+  )
+  expect_true(any(grepl("output_format.*ascii", script)))
+})
+
 test_that("rush_plot color aesthetic works", {
   script <- capture_script(
     rush_plot,

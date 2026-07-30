@@ -362,7 +362,13 @@ write <- function(result) {
     w <- cfg$width
     h <- cfg$height
     if (is.null(out)) {
-      out <- if (has_tty) "ansi" else "png"
+      out <- if (cfg$output_format %in% c("ansi", "ascii")) {
+        cfg$output_format
+      } else if (has_tty) {
+        "ansi"
+      } else {
+        "png"
+      }
     }
 
     if (out %in% c("ansi", "ascii")) {

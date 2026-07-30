@@ -188,6 +188,9 @@ rush_plot_exec <- function(
   if (!is.null(args[["output"]])) {
     a <- c(a, "-o", args[["output"]])
   }
+  if (!is.null(args[["output_format"]])) {
+    a <- c(a, "-O", args[["output_format"]])
+  }
   if (!is.null(args[["width"]])) {
     a <- c(a, "-w", as.character(args[["width"]]))
   }

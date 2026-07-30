@@ -2888,6 +2888,60 @@ test_that("plot from Excel with --input-sheet", {
   expect_true(file.exists(out))
 })
 
+# Section 27b: rush plot terminal output ----------------------------------------
+
+test_that("plot -O ansi produces non-empty text output", {
+  skip_on_ci()
+  dir <- withr::local_tempdir()
+  f <- make_csv(data.frame(x = 1:10, y = (1:10)^2), dir)
+  result <- rush_plot_exec(
+    f,
+    args = list(x = "x", y = "y", output_format = "ansi", width = 40)
+  )
+  expect_equal(result$status, 0)
+  expect_true(nchar(result$stdout) > 0)
+  expect_false(grepl("PNG", result$stdout, fixed = TRUE))
+})
+
+test_that("plot -O ascii produces text output without ANSI codes", {
+  skip_on_ci()
+  dir <- withr::local_tempdir()
+  f <- make_csv(data.frame(x = 1:10, y = (1:10)^2), dir)
+  result <- rush_plot_exec(
+    f,
+    args = list(x = "x", y = "y", output_format = "ascii", width = 40)
+  )
+  expect_equal(result$status, 0)
+  expect_true(nchar(result$stdout) > 0)
+})
+
+test_that("plot without -o and non-TTY produces PNG bytes", {
+  skip_on_ci()
+  dir <- withr::local_tempdir()
+  f <- make_csv(data.frame(x = 1:10, y = (1:10)^2), dir)
+  result <- rush_plot_exec(f, args = list(x = "x", y = "y"))
+  expect_equal(result$status, 0)
+  raw_bytes <- charToRaw(substr(result$stdout, 1, 4))
+  expect_true(raw_bytes[1] == as.raw(0x89))
+})
+
+test_that("plot -O ansi with --width 60 produces wider output", {
+  skip_on_ci()
+  dir <- withr::local_tempdir()
+  f <- make_csv(data.frame(x = 1:10, y = (1:10)^2), dir)
+  narrow <- rush_plot_exec(
+    f,
+    args = list(x = "x", y = "y", output_format = "ansi", width = 30)
+  )
+  wide <- rush_plot_exec(
+    f,
+    args = list(x = "x", y = "y", output_format = "ansi", width = 80)
+  )
+  expect_equal(narrow$status, 0)
+  expect_equal(wide$status, 0)
+  expect_true(nchar(wide$stdout) > nchar(narrow$stdout))
+})
+
 # Section 28: Edge cases --------------------------------------------------------
 
 test_that("single-row data frame -> CSV", {

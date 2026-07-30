@@ -290,6 +290,31 @@ test_that("plot frontmatter injects the terminal-plotting GitHub packages", {
   )))
 })
 
+test_that("plot generates devoutansi terminal dispatch", {
+  script <- dry_run("plot", "-n", "-x", "wt", "mtcars.csv")
+  expect_true(any(grepl("devoutansi::ansi\\(", script)))
+  expect_true(any(grepl('out %in% c\\("ansi", "ascii"\\)', script)))
+})
+
+test_that("plot -O ansi forces terminal art in generated script", {
+  script <- dry_run("plot", "-n", "-x", "wt", "-O", "ansi", "mtcars.csv")
+  expect_true(any(grepl("output_format.*ansi", script)))
+  expect_true(any(grepl(
+    'if \\(.rush\\$output_format %in% c\\("ansi", "ascii"\\)',
+    script
+  )))
+})
+
+test_that("plot -O ascii forces terminal art in generated script", {
+  script <- dry_run("plot", "-n", "-x", "wt", "-O", "ascii", "mtcars.csv")
+  expect_true(any(grepl("output_format.*ascii", script)))
+})
+
+test_that("plot --width sets terminal art width", {
+  script <- dry_run("plot", "-n", "-x", "wt", "--width", "40", "mtcars.csv")
+  expect_true(any(grepl("width = 40", script)))
+})
+
 test_that("plot generates a ggplot call with aesthetics", {
   script <- dry_run("plot", "-n", "-x", "wt", "-y", "mpg", "mtcars.csv")
   expect_true(any(grepl("^library\\(ggplot2\\)$", script)))

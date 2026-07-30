@@ -760,7 +760,11 @@ dispatch_plot <- function() {
 out <- .rush$output
 w <- .rush$width
 h <- .rush$height
-if (is.null(out)) out <- if (.has_tty) "ansi" else "png"
+if (is.null(out)) {
+  out <- if (.rush$output_format %in% c("ansi", "ascii")) .rush$output_format
+         else if (.has_tty) "ansi"
+         else "png"
+}
 
 if (out %in% c("ansi", "ascii")) {
   if (is.null(w)) w <- cli::console_width()
