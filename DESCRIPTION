@@ -56,6 +56,8 @@ Suggests:
     withr,
     testthat (>= 3.0.0),
     roxygen2
+Remotes:
+    coolbutuseless/devoutansi
 VignetteBuilder: knitr
 SystemRequirements: ir (https://r-lib.github.io/ir/)
 Config/testthat/edition: 3
