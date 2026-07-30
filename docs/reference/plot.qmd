@@ -201,8 +201,8 @@ terminal art regardless:
 rush plot -x bill_length_mm -y body_mass_g -O ansi penguins.csv | less -R
 ```
 
-The `ascii` variant produces the same output (plain ASCII characters only,
-no ANSI color codes).
+The `ascii` variant uses plain ASCII characters without ANSI color codes,
+which is useful for environments that do not support colors:
 
 ### Without a terminal
 

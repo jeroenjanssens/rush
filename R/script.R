@@ -768,7 +768,11 @@ if (is.null(out)) {
 
 if (out %in% c("ansi", "ascii")) {
   if (is.null(w)) w <- cli::console_width()
-  devoutansi::ansi(width = w, height = h, plain_ascii = TRUE, char_lookup_table = 2)
+  if (out == "ascii") {
+    devoutansi::ansi(width = w, height = h, plain_ascii = TRUE, char_lookup_table = 2)
+  } else {
+    devoutansi::ansi(width = w, height = h)
+  }
   if (!.rush$has_post) {
     result <- result +
       ggplot2::theme_minimal() +

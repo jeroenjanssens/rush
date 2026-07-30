@@ -29,9 +29,10 @@
 #'   add layers to `p`).
 #' @param output Path to save the plot. When `NULL` (the default), renders to
 #'   the terminal as ANSI art if interactive, or streams PNG to stdout.
-#' @param output_format Output format override. Use `"ansi"` or `"ascii"` to
-#'   force terminal art regardless of TTY detection. When `"auto"` (the
-#'   default), the format is inferred from `output` or the terminal.
+#' @param output_format Output format override. Use `"ansi"` for colored
+#'   terminal art or `"ascii"` for plain-text characters without escape codes.
+#'   Both force terminal rendering regardless of TTY detection. When `"auto"`
+#'   (the default), the format is inferred from `output` or the terminal.
 #' @param width,height Plot dimensions. In terminal mode, `width` is in
 #'   characters; for file output, in `units`.
 #' @param units Size units for file output. One of `"in"`, `"cm"`, `"mm"`, or

@@ -84,9 +84,10 @@ add layers to \code{p}).}
 \item{output}{Path to save the plot. When \code{NULL} (the default), renders to
 the terminal as ANSI art if interactive, or streams PNG to stdout.}
 
-\item{output_format}{Output format override. Use \code{"ansi"} or \code{"ascii"} to
-force terminal art regardless of TTY detection. When \code{"auto"} (the
-default), the format is inferred from \code{output} or the terminal.}
+\item{output_format}{Output format override. Use \code{"ansi"} for colored
+terminal art or \code{"ascii"} for plain-text characters without escape codes.
+Both force terminal rendering regardless of TTY detection. When \code{"auto"}
+(the default), the format is inferred from \code{output} or the terminal.}
 
 \item{width, height}{Plot dimensions. In terminal mode, \code{width} is in
 characters; for file output, in \code{units}.}

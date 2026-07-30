@@ -376,12 +376,17 @@ write <- function(result) {
         w <- cli::console_width()
       }
       rlang::check_installed("devoutansi", reason = "for terminal plot output")
-      getExportedValue("devoutansi", "ansi")(
-        width = w,
-        height = h,
-        plain_ascii = TRUE,
-        char_lookup_table = 2
-      )
+      ansi_fn <- getExportedValue("devoutansi", "ansi")
+      if (out == "ascii") {
+        ansi_fn(
+          width = w,
+          height = h,
+          plain_ascii = TRUE,
+          char_lookup_table = 2
+        )
+      } else {
+        ansi_fn(width = w, height = h)
+      }
       print(result)
       invisible(grDevices::dev.off())
     } else {
