@@ -269,6 +269,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#pre" id="toc-pre" class="nav-link" data-scroll-target="#pre"><code>--pre</code></a></li>
   <li><a href="#post" id="toc-post" class="nav-link" data-scroll-target="#post"><code>--post</code></a></li>
   </ul></li>
+  <li><a href="#terminal-output" id="toc-terminal-output" class="nav-link" data-scroll-target="#terminal-output">Terminal output</a>
+  <ul class="collapse">
+  <li><a href="#width" id="toc-width" class="nav-link" data-scroll-target="#width"><code>--width</code></a></li>
+  <li><a href="#output-format-ansi-ascii--o" id="toc-output-format-ansi-ascii--o" class="nav-link" data-scroll-target="#output-format-ansi-ascii--o"><code>--output-format ansi</code> / <code>ascii</code> (<code>-O</code>)</a></li>
+  <li><a href="#without-a-terminal" id="toc-without-a-terminal" class="nav-link" data-scroll-target="#without-a-terminal">Without a terminal</a></li>
+  </ul></li>
   <li><a href="#saving-plots" id="toc-saving-plots" class="nav-link" data-scroll-target="#saving-plots">Saving plots</a>
   <ul class="collapse">
   <li><a href="#output--o" id="toc-output--o" class="nav-link" data-scroll-target="#output--o"><code>--output</code> (<code>-o</code>)</a></li>
@@ -450,15 +456,37 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p><img src="plot-post.png" class="img-fluid"></p>
 </section>
 </section>
+<section id="terminal-output" class="level2">
+<h2 class="anchored" data-anchor-id="terminal-output">Terminal output</h2>
+<p>When no <code>--output</code> is given and stdout is connected to a terminal, <code>rush</code> renders the plot as ASCII art using <a href="https://github.com/coolbutuseless/devoutansi">devoutansi</a>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> plot <span class="at">-x</span> bill_length_mm <span class="at">-y</span> body_mass_g penguins.csv</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The output uses block characters and ANSI colors to approximate the scatter plot directly in your terminal, with axis labels and tick marks.</p>
+<section id="width" class="level3">
+<h3 class="anchored" data-anchor-id="width"><code>--width</code></h3>
+<p>Control how many characters wide the terminal art is (defaults to your terminal width):</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb21"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> plot <span class="at">-x</span> bill_length_mm <span class="at">-y</span> body_mass_g <span class="at">--width</span> 60 penguins.csv</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="output-format-ansi-ascii--o" class="level3">
+<h3 class="anchored" data-anchor-id="output-format-ansi-ascii--o"><code>--output-format ansi</code> / <code>ascii</code> (<code>-O</code>)</h3>
+<p>When piping to another command or redirecting to a file, stdout is not a TTY and rush defaults to PNG output. Use <code>-O ansi</code> to force terminal art regardless:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> plot <span class="at">-x</span> bill_length_mm <span class="at">-y</span> body_mass_g <span class="at">-O</span> ansi penguins.csv <span class="kw">|</span> <span class="fu">less</span> <span class="at">-R</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The <code>ascii</code> variant produces the same output (plain ASCII characters only, no ANSI color codes).</p>
+</section>
+<section id="without-a-terminal" class="level3">
+<h3 class="anchored" data-anchor-id="without-a-terminal">Without a terminal</h3>
+<p>When stdout is not a terminal (for example, piped into another command), rush outputs raw PNG bytes by default. You can redirect this to a file:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb23"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> plot <span class="at">-x</span> bill_length_mm <span class="at">-y</span> body_mass_g penguins.csv <span class="op">&gt;</span> scatter.png</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+</section>
 <section id="saving-plots" class="level2">
 <h2 class="anchored" data-anchor-id="saving-plots">Saving plots</h2>
 <section id="output--o" class="level3">
 <h3 class="anchored" data-anchor-id="output--o"><code>--output</code> (<code>-o</code>)</h3>
 <p>When <code>--output</code> points to a file, the plot is saved (device inferred from extension):</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> plot <span class="at">-x</span> bill_length_mm <span class="at">-y</span> body_mass_g <span class="at">-c</span> species <span class="at">-o</span> scatter.png penguins.csv</span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ls</span> <span class="at">-la</span> scatter.png</span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; -rw-r--r-- 1 runner runner 149622 Jul 30 07:15 scatter.png</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> plot <span class="at">-x</span> bill_length_mm <span class="at">-y</span> body_mass_g <span class="at">-c</span> species <span class="at">-o</span> scatter.png penguins.csv</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ls</span> <span class="at">-la</span> scatter.png</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; -rw-r--r-- 1 runner runner 149622 Jul 30 08:16 scatter.png</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p><img src="scatter.png" class="img-fluid"></p>
 </section>
@@ -466,9 +494,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h3 class="anchored" data-anchor-id="width---height---units---dpi"><code>--width</code>, <code>--height</code>, <code>--units</code>, <code>--dpi</code></h3>
 <p>Control the saved image dimensions and resolution:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> plot <span class="at">-x</span> bill_length_mm <span class="at">-y</span> body_mass_g <span class="at">-o</span> hires.png <span class="at">--width</span> 10 <span class="at">--height</span> 6 <span class="at">--units</span> in <span class="at">--dpi</span> 150 penguins.csv</span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ls</span> <span class="at">-la</span> hires.png</span>
-<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; -rw-r--r-- 1 runner runner 93207 Jul 30 07:15 hires.png</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> plot <span class="at">-x</span> bill_length_mm <span class="at">-y</span> body_mass_g <span class="at">-o</span> hires.png <span class="at">--width</span> 10 <span class="at">--height</span> 6 <span class="at">--units</span> in <span class="at">--dpi</span> 150 penguins.csv</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ls</span> <span class="at">-la</span> hires.png</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; -rw-r--r-- 1 runner runner 93207 Jul 30 08:16 hires.png</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p><img src="hires.png" class="img-fluid"></p>
 </section>
@@ -477,7 +505,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="reading-from-stdin">Reading from stdin</h2>
 <p>Without a file argument, <code>plot</code> reads from standard input:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> run <span class="st">'head(df, 50)'</span> penguins.csv <span class="kw">|</span> <span class="ex">rush</span> plot <span class="at">-x</span> bill_length_mm <span class="at">-y</span> body_mass_g <span class="at">-o</span> plot-stdin.png <span class="at">-</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> run <span class="st">'head(df, 50)'</span> penguins.csv <span class="kw">|</span> <span class="ex">rush</span> plot <span class="at">-x</span> bill_length_mm <span class="at">-y</span> body_mass_g <span class="at">-o</span> plot-stdin.png <span class="at">-</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p><img src="plot-stdin.png" class="img-fluid"></p>
 </section>
@@ -485,97 +513,97 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="multiple-files">Multiple files</h2>
 <p>With multiple files, each is read into <code>dfs</code>. Use <code>--pre</code> to combine them into <code>df</code> before plotting:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">"src,x,y</span></span>
-<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="st">A,1,2</span></span>
-<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a><span class="st">A,2,4</span></span>
-<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a><span class="st">A,3,5"</span> <span class="op">&gt;</span> a.csv</span>
-<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">"src,x,y</span></span>
-<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a><span class="st">B,1,3</span></span>
-<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a><span class="st">B,2,2</span></span>
-<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a><span class="st">B,3,6"</span> <span class="op">&gt;</span> b.csv</span>
-<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> plot <span class="at">-x</span> x <span class="at">-y</span> y <span class="at">-c</span> src <span class="at">--pre</span> <span class="st">'df &lt;- dplyr::bind_rows(dfs)'</span> <span class="at">-o</span> plot-multi.png a.csv b.csv</span>
-<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span> <span class="at">-f</span> a.csv b.csv</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">"src,x,y</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="st">A,1,2</span></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a><span class="st">A,2,4</span></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a><span class="st">A,3,5"</span> <span class="op">&gt;</span> a.csv</span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">"src,x,y</span></span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a><span class="st">B,1,3</span></span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a><span class="st">B,2,2</span></span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a><span class="st">B,3,6"</span> <span class="op">&gt;</span> b.csv</span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> plot <span class="at">-x</span> x <span class="at">-y</span> y <span class="at">-c</span> src <span class="at">--pre</span> <span class="st">'df &lt;- dplyr::bind_rows(dfs)'</span> <span class="at">-o</span> plot-multi.png a.csv b.csv</span>
+<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span> <span class="at">-f</span> a.csv b.csv</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p><img src="plot-multi.png" class="img-fluid"></p>
 </section>
 <section id="help" class="level2">
 <h2 class="anchored" data-anchor-id="help">Help</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> plot <span class="at">-h</span></span>
-<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; rush: Quick plot</span></span>
-<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Usage:</span></span>
-<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   rush plot [options] [--] [&lt;file&gt;...]</span></span>
-<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Arguments:</span></span>
-<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   &lt;file&gt;                   Data file(s) to read before plotting. The reader is</span></span>
-<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                            chosen by extension: '.parquet'/'.pq' via</span></span>
-<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                            nanoparquet, '.duckdb'/'.ddb' via DuckDB, everything</span></span>
-<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                            else as delimited text. A single file is read into a</span></span>
-<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                            data frame named 'df'; use '-' or omit to read</span></span>
-<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                            delimited text from standard input. Multiple files</span></span>
-<span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                            are each read into a named element of a list 'dfs';</span></span>
-<span id="cb24-15"><a href="#cb24-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                            combine them into 'df' yourself with the --pre</span></span>
-<span id="cb24-16"><a href="#cb24-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                            option, e.g. 'df &lt;- dplyr::bind_rows(dfs)'.</span></span>
-<span id="cb24-17"><a href="#cb24-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb24-18"><a href="#cb24-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Reading options:</span></span>
-<span id="cb24-19"><a href="#cb24-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   -d, --delimiter &lt;str&gt;         Delimiter (input and output) [default: ,].</span></span>
-<span id="cb24-20"><a href="#cb24-20" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --input-delimiter &lt;str&gt;   Input delimiter (overrides -d).</span></span>
-<span id="cb24-21"><a href="#cb24-21" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   -F, --input-format &lt;format&gt;   Input format [default: auto].</span></span>
-<span id="cb24-22"><a href="#cb24-22" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --input-sheet &lt;name|int&gt;  Excel sheet to read.</span></span>
-<span id="cb24-23"><a href="#cb24-23" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --names &lt;a,b,c&gt;           Column names (implies no input header).</span></span>
-<span id="cb24-24"><a href="#cb24-24" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   -C, --no-clean-names          No clean names.</span></span>
-<span id="cb24-25"><a href="#cb24-25" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   -H, --no-header               No header (input and output).</span></span>
-<span id="cb24-26"><a href="#cb24-26" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --no-input-header         No input header.</span></span>
-<span id="cb24-27"><a href="#cb24-27" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --no-output-header        No output header.</span></span>
-<span id="cb24-28"><a href="#cb24-28" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb24-29"><a href="#cb24-29" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Setup options:</span></span>
-<span id="cb24-30"><a href="#cb24-30" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   -l, --library &lt;name&gt;          Libraries to load.</span></span>
-<span id="cb24-31"><a href="#cb24-31" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   -t, --tidyverse               Enter the Tidyverse.</span></span>
-<span id="cb24-32"><a href="#cb24-32" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb24-33"><a href="#cb24-33" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Plotting options:</span></span>
-<span id="cb24-34"><a href="#cb24-34" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --aes &lt;key=value&gt;         Additional aesthetics.</span></span>
-<span id="cb24-35"><a href="#cb24-35" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   -a, --alpha &lt;name&gt;            Alpha column.</span></span>
-<span id="cb24-36"><a href="#cb24-36" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   -c, --color &lt;name&gt;            Color column.</span></span>
-<span id="cb24-37"><a href="#cb24-37" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --facets &lt;formula&gt;        Facet specification.</span></span>
-<span id="cb24-38"><a href="#cb24-38" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   -f, --fill &lt;name&gt;             Fill column.</span></span>
-<span id="cb24-39"><a href="#cb24-39" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   -g, --geom &lt;geom&gt;             Geometry [default: auto].</span></span>
-<span id="cb24-40"><a href="#cb24-40" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --group &lt;name&gt;            Group column.</span></span>
-<span id="cb24-41"><a href="#cb24-41" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --log &lt;x|y|xy&gt;            Variables to log transform.</span></span>
-<span id="cb24-42"><a href="#cb24-42" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --margins                 Display marginal facets.</span></span>
-<span id="cb24-43"><a href="#cb24-43" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --post &lt;code&gt;             Code to run after plotting.</span></span>
-<span id="cb24-44"><a href="#cb24-44" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --pre &lt;code&gt;              Code to run before plotting.</span></span>
-<span id="cb24-45"><a href="#cb24-45" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --shape &lt;name&gt;            Shape column.</span></span>
-<span id="cb24-46"><a href="#cb24-46" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --size &lt;name&gt;             Size column.</span></span>
-<span id="cb24-47"><a href="#cb24-47" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --title &lt;str&gt;             Plot title.</span></span>
-<span id="cb24-48"><a href="#cb24-48" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   -x, --x &lt;name&gt;                X column.</span></span>
-<span id="cb24-49"><a href="#cb24-49" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --xlab &lt;str&gt;              X axis label.</span></span>
-<span id="cb24-50"><a href="#cb24-50" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   -y, --y &lt;name&gt;                Y column.</span></span>
-<span id="cb24-51"><a href="#cb24-51" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --ylab &lt;str&gt;              Y axis label.</span></span>
-<span id="cb24-52"><a href="#cb24-52" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   -z, --z &lt;name&gt;                Z column.</span></span>
-<span id="cb24-53"><a href="#cb24-53" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb24-54"><a href="#cb24-54" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Saving options:</span></span>
-<span id="cb24-55"><a href="#cb24-55" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --dpi &lt;str|int&gt;           Plot resolution [default: 300].</span></span>
-<span id="cb24-56"><a href="#cb24-56" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --head &lt;int&gt;              Limit output rows.</span></span>
-<span id="cb24-57"><a href="#cb24-57" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --height &lt;int&gt;            Plot height.</span></span>
-<span id="cb24-58"><a href="#cb24-58" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   -o, --output &lt;str&gt;            Output file.</span></span>
-<span id="cb24-59"><a href="#cb24-59" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   -D, --output-delimiter &lt;str&gt;  Output delimiter (overrides -d).</span></span>
-<span id="cb24-60"><a href="#cb24-60" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   -O, --output-format &lt;format&gt;  Output format [default: auto].</span></span>
-<span id="cb24-61"><a href="#cb24-61" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --output-indent &lt;int&gt;     Indentation level (JSON, YAML) [default: 2].</span></span>
-<span id="cb24-62"><a href="#cb24-62" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --output-record &lt;str&gt;     Record element name (XML, TOML) [default: record].</span></span>
-<span id="cb24-63"><a href="#cb24-63" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --output-root &lt;str&gt;       Root element name (XML) [default: root].</span></span>
-<span id="cb24-64"><a href="#cb24-64" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --output-sheet &lt;str&gt;      Excel sheet name to write.</span></span>
-<span id="cb24-65"><a href="#cb24-65" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --units &lt;str&gt;             Plot size units [default: in].</span></span>
-<span id="cb24-66"><a href="#cb24-66" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   -w, --width &lt;int&gt;             Plot width.</span></span>
-<span id="cb24-67"><a href="#cb24-67" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb24-68"><a href="#cb24-68" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; General options:</span></span>
-<span id="cb24-69"><a href="#cb24-69" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   -n, --dry-run                 Only print generated script.</span></span>
-<span id="cb24-70"><a href="#cb24-70" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   -h, --help                    Show this help.</span></span>
-<span id="cb24-71"><a href="#cb24-71" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   -I, --no-ir                   Run with Rscript, not ir.</span></span>
-<span id="cb24-72"><a href="#cb24-72" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   -R, --no-rush                 Inline all code (no rush dep).</span></span>
-<span id="cb24-73"><a href="#cb24-73" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --seed &lt;int&gt;              Seed random number generator.</span></span>
-<span id="cb24-74"><a href="#cb24-74" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   -v, --verbose                 Be verbose.</span></span>
-<span id="cb24-75"><a href="#cb24-75" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --version                 Show version.</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> plot <span class="at">-h</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; rush: Quick plot</span></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Usage:</span></span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   rush plot [options] [--] [&lt;file&gt;...]</span></span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Arguments:</span></span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   &lt;file&gt;                   Data file(s) to read before plotting. The reader is</span></span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                            chosen by extension: '.parquet'/'.pq' via</span></span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                            nanoparquet, '.duckdb'/'.ddb' via DuckDB, everything</span></span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                            else as delimited text. A single file is read into a</span></span>
+<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                            data frame named 'df'; use '-' or omit to read</span></span>
+<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                            delimited text from standard input. Multiple files</span></span>
+<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                            are each read into a named element of a list 'dfs';</span></span>
+<span id="cb28-15"><a href="#cb28-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                            combine them into 'df' yourself with the --pre</span></span>
+<span id="cb28-16"><a href="#cb28-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                            option, e.g. 'df &lt;- dplyr::bind_rows(dfs)'.</span></span>
+<span id="cb28-17"><a href="#cb28-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb28-18"><a href="#cb28-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Reading options:</span></span>
+<span id="cb28-19"><a href="#cb28-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   -d, --delimiter &lt;str&gt;         Delimiter (input and output) [default: ,].</span></span>
+<span id="cb28-20"><a href="#cb28-20" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --input-delimiter &lt;str&gt;   Input delimiter (overrides -d).</span></span>
+<span id="cb28-21"><a href="#cb28-21" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   -F, --input-format &lt;format&gt;   Input format [default: auto].</span></span>
+<span id="cb28-22"><a href="#cb28-22" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --input-sheet &lt;name|int&gt;  Excel sheet to read.</span></span>
+<span id="cb28-23"><a href="#cb28-23" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --names &lt;a,b,c&gt;           Column names (implies no input header).</span></span>
+<span id="cb28-24"><a href="#cb28-24" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   -C, --no-clean-names          No clean names.</span></span>
+<span id="cb28-25"><a href="#cb28-25" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   -H, --no-header               No header (input and output).</span></span>
+<span id="cb28-26"><a href="#cb28-26" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --no-input-header         No input header.</span></span>
+<span id="cb28-27"><a href="#cb28-27" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --no-output-header        No output header.</span></span>
+<span id="cb28-28"><a href="#cb28-28" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb28-29"><a href="#cb28-29" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Setup options:</span></span>
+<span id="cb28-30"><a href="#cb28-30" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   -l, --library &lt;name&gt;          Libraries to load.</span></span>
+<span id="cb28-31"><a href="#cb28-31" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   -t, --tidyverse               Enter the Tidyverse.</span></span>
+<span id="cb28-32"><a href="#cb28-32" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb28-33"><a href="#cb28-33" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Plotting options:</span></span>
+<span id="cb28-34"><a href="#cb28-34" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --aes &lt;key=value&gt;         Additional aesthetics.</span></span>
+<span id="cb28-35"><a href="#cb28-35" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   -a, --alpha &lt;name&gt;            Alpha column.</span></span>
+<span id="cb28-36"><a href="#cb28-36" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   -c, --color &lt;name&gt;            Color column.</span></span>
+<span id="cb28-37"><a href="#cb28-37" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --facets &lt;formula&gt;        Facet specification.</span></span>
+<span id="cb28-38"><a href="#cb28-38" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   -f, --fill &lt;name&gt;             Fill column.</span></span>
+<span id="cb28-39"><a href="#cb28-39" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   -g, --geom &lt;geom&gt;             Geometry [default: auto].</span></span>
+<span id="cb28-40"><a href="#cb28-40" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --group &lt;name&gt;            Group column.</span></span>
+<span id="cb28-41"><a href="#cb28-41" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --log &lt;x|y|xy&gt;            Variables to log transform.</span></span>
+<span id="cb28-42"><a href="#cb28-42" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --margins                 Display marginal facets.</span></span>
+<span id="cb28-43"><a href="#cb28-43" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --post &lt;code&gt;             Code to run after plotting.</span></span>
+<span id="cb28-44"><a href="#cb28-44" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --pre &lt;code&gt;              Code to run before plotting.</span></span>
+<span id="cb28-45"><a href="#cb28-45" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --shape &lt;name&gt;            Shape column.</span></span>
+<span id="cb28-46"><a href="#cb28-46" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --size &lt;name&gt;             Size column.</span></span>
+<span id="cb28-47"><a href="#cb28-47" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --title &lt;str&gt;             Plot title.</span></span>
+<span id="cb28-48"><a href="#cb28-48" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   -x, --x &lt;name&gt;                X column.</span></span>
+<span id="cb28-49"><a href="#cb28-49" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --xlab &lt;str&gt;              X axis label.</span></span>
+<span id="cb28-50"><a href="#cb28-50" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   -y, --y &lt;name&gt;                Y column.</span></span>
+<span id="cb28-51"><a href="#cb28-51" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --ylab &lt;str&gt;              Y axis label.</span></span>
+<span id="cb28-52"><a href="#cb28-52" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   -z, --z &lt;name&gt;                Z column.</span></span>
+<span id="cb28-53"><a href="#cb28-53" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb28-54"><a href="#cb28-54" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Saving options:</span></span>
+<span id="cb28-55"><a href="#cb28-55" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --dpi &lt;str|int&gt;           Plot resolution [default: 300].</span></span>
+<span id="cb28-56"><a href="#cb28-56" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --head &lt;int&gt;              Limit output rows.</span></span>
+<span id="cb28-57"><a href="#cb28-57" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --height &lt;int&gt;            Plot height.</span></span>
+<span id="cb28-58"><a href="#cb28-58" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   -o, --output &lt;str&gt;            Output file.</span></span>
+<span id="cb28-59"><a href="#cb28-59" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   -D, --output-delimiter &lt;str&gt;  Output delimiter (overrides -d).</span></span>
+<span id="cb28-60"><a href="#cb28-60" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   -O, --output-format &lt;format&gt;  Output format [default: auto].</span></span>
+<span id="cb28-61"><a href="#cb28-61" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --output-indent &lt;int&gt;     Indentation level (JSON, YAML) [default: 2].</span></span>
+<span id="cb28-62"><a href="#cb28-62" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --output-record &lt;str&gt;     Record element name (XML, TOML) [default: record].</span></span>
+<span id="cb28-63"><a href="#cb28-63" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --output-root &lt;str&gt;       Root element name (XML) [default: root].</span></span>
+<span id="cb28-64"><a href="#cb28-64" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --output-sheet &lt;str&gt;      Excel sheet name to write.</span></span>
+<span id="cb28-65"><a href="#cb28-65" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --units &lt;str&gt;             Plot size units [default: in].</span></span>
+<span id="cb28-66"><a href="#cb28-66" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   -w, --width &lt;int&gt;             Plot width.</span></span>
+<span id="cb28-67"><a href="#cb28-67" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb28-68"><a href="#cb28-68" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; General options:</span></span>
+<span id="cb28-69"><a href="#cb28-69" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   -n, --dry-run                 Only print generated script.</span></span>
+<span id="cb28-70"><a href="#cb28-70" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   -h, --help                    Show this help.</span></span>
+<span id="cb28-71"><a href="#cb28-71" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   -I, --no-ir                   Run with Rscript, not ir.</span></span>
+<span id="cb28-72"><a href="#cb28-72" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   -R, --no-rush                 Inline all code (no rush dep).</span></span>
+<span id="cb28-73"><a href="#cb28-73" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --seed &lt;int&gt;              Seed random number generator.</span></span>
+<span id="cb28-74"><a href="#cb28-74" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   -v, --verbose                 Be verbose.</span></span>
+<span id="cb28-75"><a href="#cb28-75" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       --version                 Show version.</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 
 

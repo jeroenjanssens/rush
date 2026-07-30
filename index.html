@@ -289,7 +289,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="highlights" class="level2">
 <h2 class="anchored" data-anchor-id="highlights">Highlights</h2>
 <ul>
-<li><strong>One-liners, not scripts.</strong> Evaluate any R expression straight from the shell.</li>
+<li><strong>Quick one-liners.</strong> Evaluate any R expression straight from the shell.</li>
+<li><strong>Scaffold scripts.</strong> Use <code>--dry-run</code> to generate self-contained R scripts you can save, edit, and share.</li>
 <li><strong>Pipeline-native.</strong> Reads from standard input and writes to standard output, so it composes with every other command-line tool.</li>
 <li><strong>Reads what you have.</strong> CSV, Parquet, JSON/JSONL, Excel, Arrow IPC, DuckDB, SPSS/Stata/SAS, SQLite, YAML, TOML, XML, and more, chosen automatically by file extension.</li>
 <li><strong>Converts between formats.</strong> The <a href="./reference/convert.html"><code>convert</code></a> command converts files directly between any supported format.</li>
@@ -317,7 +318,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="related-tools" class="level2">
 <h2 class="anchored" data-anchor-id="related-tools">Related tools</h2>
-<p><code>rush</code> is, to our knowledge, the only CLI tool that combines R expression evaluation, automatic package resolution, multi-format I/O, SQL queries, and plotting in a single command. That said, several excellent tools cover parts of this space, often faster or with fewer dependencies:</p>
+<p><code>rush</code> is, to our knowledge, the only CLI tool that combines R expression evaluation, automatic package resolution, multi-format I/O, SQL queries, and plotting in a single command. It also doubles as a script scaffolder: every invocation can emit a self-contained R script via <code>--dry-run</code>, giving you a starting point you can save, tweak, and version-control. That said, several excellent tools cover parts of this space, often faster or with fewer dependencies:</p>
 <ul>
 <li><strong><a href="https://duckdb.org/">DuckDB CLI</a></strong>: An embedded SQL engine that queries CSV, Parquet, and JSON files directly. Faster for pure SQL workloads; no R expressions or plotting.</li>
 <li><strong><a href="https://miller.readthedocs.io/">Miller (mlr)</a></strong>: A streaming processor for CSV, TSV, and JSON with its own verb language. Handles files larger than RAM; no Parquet, SQL, or plotting.</li>
