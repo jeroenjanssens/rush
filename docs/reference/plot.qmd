@@ -173,12 +173,12 @@ rush plot -x bill_length_mm -y body_mass_g --post 'p + ggplot2::theme_minimal() 
 ## Terminal output
 
 When no `--output` is given and stdout is connected to a terminal, `rush`
-renders the plot as ASCII art using
-[devoutansi](https://github.com/coolbutuseless/devoutansi). Use
-`-O ansi` to force this output mode (useful in scripts or when piping):
+renders the plot using
+[devoutansi](https://github.com/coolbutuseless/devoutansi). Use `-O ascii`
+for plain-text output or `-O ansi` for colored output with ANSI escape codes:
 
 ```{bash}
-rush plot -x bill_length_mm -y body_mass_g -O ansi --width 70 penguins.csv
+rush plot -x bill_length_mm -y body_mass_g -O ascii --width 70 penguins.csv
 ```
 
 ### `--width`
@@ -187,7 +187,7 @@ Control how many characters wide the terminal art is (defaults to your
 terminal width):
 
 ```{bash}
-rush plot -x bill_length_mm -y body_mass_g -O ansi --width 40 penguins.csv
+rush plot -x bill_length_mm -y body_mass_g -O ascii --width 40 penguins.csv
 ```
 
 ### `--output-format ansi` / `ascii` (`-O`)
