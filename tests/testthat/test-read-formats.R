@@ -292,9 +292,9 @@ test_that("input_format = 'fwf' overrides extension", {
 
 # RDS -------------------------------------------------------------------------
 
-test_that("reads a .rds file with readRDS", {
+test_that("reads a .rds file with read_rds", {
   script <- capture_script(rush_run, expr = "head(df)", file = "data.rds")
-  expect_true(any(grepl("readRDS\\(\"data.rds\"\\)", script)))
+  expect_true(any(grepl("read_rds\\(\"data.rds\"\\)", script)))
   expect_false(any(grepl("read_delim", script)))
 })
 

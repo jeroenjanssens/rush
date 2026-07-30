@@ -18,6 +18,8 @@
 #'   the format is inferred from `output`.
 #' @param delimiter Output column delimiter. Defaults to `","`.
 #' @param output_delimiter Output delimiter. Overrides `delimiter` for writing.
+#' @param output_header If `FALSE`, omit the header row when writing
+#'   delimited output.
 #' @param library Character vector of package names to load in the generated
 #'   script.
 #' @param tidyverse If `TRUE`, loads the tidyverse and glue packages.
@@ -56,12 +58,14 @@ rush_sql <- function(
   output_format = "auto",
   delimiter = ",",
   output_delimiter = NULL,
+  output_header = NULL,
   library = NULL,
   tidyverse = FALSE,
   head = NULL,
   seed = NULL,
   dry_run = FALSE,
   no_ir = FALSE,
+  no_rush = FALSE,
   verbose = FALSE
 ) {
   flags <- build_flags(
@@ -72,12 +76,14 @@ rush_sql <- function(
     output_format = output_format,
     delimiter = delimiter,
     output_delimiter = output_delimiter,
+    output_header = output_header,
     library = library,
     tidyverse = tidyverse,
     head = head,
     seed = seed,
     dry_run = dry_run,
     no_ir = no_ir,
+    no_rush = no_rush,
     verbose = verbose
   )
   flags <- resolve_flags(flags)

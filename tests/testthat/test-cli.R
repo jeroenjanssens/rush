@@ -9,7 +9,7 @@ dry_run <- function(...) {
   old_path <- Sys.getenv("PATH")
   Sys.setenv(PATH = "")
   on.exit(Sys.setenv(PATH = old_path))
-  utils::capture.output(rush(...))
+  utils::capture.output(rush(..., "-R"))
 }
 
 test_that("run without an expression or file errors gracefully", {
@@ -61,6 +61,37 @@ test_that("--no-clean-names omits the janitor call", {
 test_that("--no-header reads without column names", {
   script <- dry_run("run", "-n", "-H", "head(df)", "data.csv")
   expect_true(any(grepl("col_names = FALSE", script)))
+})
+
+test_that("--no-header suppresses output header", {
+  script <- dry_run("run", "-n", "-H", "head(df)", "data.csv")
+  expect_true(any(grepl("output_header = FALSE", script)))
+})
+
+test_that("--no-input-header only affects reading", {
+  script <- dry_run("run", "-n", "--no-input-header", "head(df)", "data.csv")
+  expect_true(any(grepl("col_names = FALSE", script)))
+  expect_true(any(grepl("output_header = TRUE", script)))
+})
+
+test_that("--no-output-header only affects writing", {
+  script <- dry_run("run", "-n", "--no-output-header", "head(df)", "data.csv")
+  expect_true(any(grepl("col_names = TRUE", script)))
+  expect_true(any(grepl("output_header = FALSE", script)))
+})
+
+test_that("--names provides column names and implies no input header", {
+  script <- dry_run("run", "-n", "--names", "a,b,c", "head(df)", "data.csv")
+  expect_true(any(grepl('col_names = c\\("a", "b", "c"\\)', script)))
+  expect_true(any(grepl("output_header = TRUE", script)))
+})
+
+test_that("--names with --no-output-header suppresses output header", {
+  script <- dry_run(
+    "run", "-n", "--names", "x,y", "--no-output-header", "df", "data.csv"
+  )
+  expect_true(any(grepl('col_names = c\\("x", "y"\\)', script)))
+  expect_true(any(grepl("output_header = FALSE", script)))
 })
 
 test_that("--seed emits set.seed before other code", {

@@ -13,6 +13,9 @@ rush_convert(
   input_delimiter = NULL,
   output_delimiter = NULL,
   header = TRUE,
+  input_header = NULL,
+  output_header = NULL,
+  names = NULL,
   clean_names = TRUE,
   head = NULL,
   input_sheet = NULL,
@@ -22,6 +25,7 @@ rush_convert(
   output_indent = 2L,
   dry_run = FALSE,
   no_ir = FALSE,
+  no_rush = FALSE,
   verbose = FALSE
 )
 }
@@ -48,7 +52,17 @@ when set.}
 
 \item{output_delimiter}{Output delimiter. Overrides \code{delimiter} for writing.}
 
-\item{header}{If \code{FALSE}, the input file is read without column names.}
+\item{header}{If \code{FALSE}, suppress headers on both input and output.
+Overridden by \code{input_header} or \code{output_header} when set.}
+
+\item{input_header}{If \code{FALSE}, the input file is read without column
+names. Overrides \code{header} for reading.}
+
+\item{output_header}{If \code{FALSE}, omit the header row when writing
+delimited output. Overrides \code{header} for writing.}
+
+\item{names}{Comma-separated column names to use (e.g. \code{"a,b,c"}).
+Implies \code{input_header = FALSE}.}
 
 \item{clean_names}{If \code{TRUE} (the default), column names are cleaned with
 \code{\link[janitor:clean_names]{janitor::clean_names()}}.}

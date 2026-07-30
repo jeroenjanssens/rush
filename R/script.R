@@ -270,7 +270,7 @@ emit_read_files <- function(con, files, flags) {
         col_positions = readr::fwf_empty(!!path)
       ))
     } else if (kind == "rds") {
-      read_expr <- expr(readRDS(!!path))
+      read_expr <- expr(readr::read_rds(!!path))
     } else if (kind == "ods") {
       read_pkgs <- "readODS"
       read_expr <- expr(readODS::read_ods(!!path))
@@ -341,7 +341,7 @@ emit_read_files <- function(con, files, flags) {
       read_expr <- expr(readr::read_delim(
         !!path,
         delim = !!delim,
-        col_names = !!(!flags$no_header)
+        col_names = !!(flags$resolved_col_names)
       ))
     }
     if (!flags$no_clean_names) {
@@ -541,6 +541,7 @@ script_preamble <- function(flags) {
     output = flags$output,
     output_template = flags$output_template,
     output_format = flags$resolved_output_format,
+    output_header = !flags$resolved_no_output_header,
     width = flags$width,
     height = flags$height,
     units = flags$units,
@@ -636,7 +637,7 @@ if (.has_tty) options(width = if (is.null(.rush$width)) cli::console_width() els
       }
     }
   } else if (identical(.rush$output_format, "rds")) {
-    saveRDS(result, output)
+    readr::write_rds(result, output)
   } else if (identical(.rush$output_format, "ods")) {
     readODS::write_ods(result, output)
   } else if (identical(.rush$output_format, "fasta")) {
@@ -684,7 +685,7 @@ if (.has_tty) options(width = if (is.null(.rush$width)) cli::console_width() els
     }
   } else {
     con <- if (is.null(output)) .stdout_binary() else output
-    readr::write_delim(result, con, delim = .rush$delimiter %||% ",")
+    readr::write_delim(result, con, delim = .rush$delimiter %||% ",", col_names = .rush$output_header)
   }
 }
 

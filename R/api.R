@@ -25,6 +25,7 @@
 init <- function(
   output = NULL,
   output_format = "delim",
+  output_header = TRUE,
   delimiter = ",",
   head = NULL,
   width = NULL,
@@ -39,6 +40,7 @@ init <- function(
 ) {
   .rush_env$output <- output
   .rush_env$output_format <- output_format
+  .rush_env$output_header <- output_header
   .rush_env$delimiter <- delimiter
   .rush_env$head <- head
   .rush_env$width <- width
@@ -115,7 +117,7 @@ read <- function(
     sas7bdat = haven::read_sas(path),
     xpt = haven::read_xpt(path),
     fwf = readr::read_fwf(path, col_positions = readr::fwf_empty(path)),
-    rds = readRDS(path),
+    rds = readr::read_rds(path),
     ods = readODS::read_ods(path),
     fasta = microseq::readFasta(path),
     fastq = microseq::readFastq(path),
@@ -285,7 +287,7 @@ write <- function(result) {
         }
       }
     } else if (identical(cfg$output_format, "rds")) {
-      saveRDS(result, output)
+      readr::write_rds(result, output)
     } else if (identical(cfg$output_format, "ods")) {
       readODS::write_ods(result, output)
     } else if (identical(cfg$output_format, "fasta")) {
@@ -333,7 +335,7 @@ write <- function(result) {
       }
     } else {
       con <- if (is.null(output)) stdout_binary() else output
-      readr::write_delim(result, con, delim = cfg$delimiter %||% ",")
+      readr::write_delim(result, con, delim = cfg$delimiter %||% ",", col_names = cfg$output_header %||% TRUE)
     }
   }
 

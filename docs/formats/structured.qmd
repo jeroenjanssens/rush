@@ -73,7 +73,7 @@ rush run -n -O xml --output-root plants --output-record observation 'head(df)' d
 ## RDS
 
 R's native serialisation format. Files ending in `.rds` are read with
-`readRDS()` and written with `saveRDS()` — no extra packages needed:
+`readr::read_rds()` and written with `readr::write_rds()`:
 
 ### Reading
 

@@ -20,7 +20,7 @@ determines which reader or writer is used automatically — override with `-F`
 | SAS | `.sas7bdat`, `.xpt` | yes | yes | haven |
 | SQLite | `.sqlite`, `.db` | yes | yes | RSQLite |
 | Fixed-width | `.fwf` | yes | — | readr |
-| RDS | `.rds` | yes | yes | *(base R)* |
+| RDS | `.rds` | yes | yes | readr |
 | ODS | `.ods` | yes | yes | readODS |
 | FASTA | `.fasta`, `.fa`, `.fna` | yes | yes | microseq |
 | FASTQ | `.fastq`, `.fq` | yes | yes | microseq |

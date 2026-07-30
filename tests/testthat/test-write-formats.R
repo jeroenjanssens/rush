@@ -279,7 +279,7 @@ test_that("output_format = 'sqlite' emits SQLite write", {
 
 # RDS -------------------------------------------------------------------------
 
-test_that("output_format = 'rds' emits saveRDS", {
+test_that("output_format = 'rds' emits write_rds", {
   script <- capture_script(
     rush_run,
     expr = "df",
@@ -288,7 +288,7 @@ test_that("output_format = 'rds' emits saveRDS", {
     output = "out.rds"
   )
   expect_true(any(grepl('output_format = "rds"', script)))
-  expect_true(any(grepl("saveRDS", script)))
+  expect_true(any(grepl("write_rds", script)))
 })
 
 # ODS -------------------------------------------------------------------------

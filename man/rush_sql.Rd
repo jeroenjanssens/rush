@@ -11,12 +11,14 @@ rush_sql(
   output_format = "auto",
   delimiter = ",",
   output_delimiter = NULL,
+  output_header = NULL,
   library = NULL,
   tidyverse = FALSE,
   head = NULL,
   seed = NULL,
   dry_run = FALSE,
   no_ir = FALSE,
+  no_rush = FALSE,
   verbose = FALSE
 )
 }
@@ -40,6 +42,9 @@ the format is inferred from \code{output}.}
 \item{delimiter}{Output column delimiter. Defaults to \code{","}.}
 
 \item{output_delimiter}{Output delimiter. Overrides \code{delimiter} for writing.}
+
+\item{output_header}{If \code{FALSE}, omit the header row when writing
+delimited output.}
 
 \item{library}{Character vector of package names to load in the generated
 script.}

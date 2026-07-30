@@ -39,6 +39,10 @@
 #' @param delimiter Input column delimiter. Defaults to `","`.
 #' @param input_delimiter Input delimiter. Overrides `delimiter` for reading.
 #' @param header If `FALSE`, the input file is read without column names.
+#' @param input_header If `FALSE`, the input file is read without column
+#'   names. Overrides `header` for reading.
+#' @param names Comma-separated column names to use (e.g. `"a,b,c"`).
+#'   Implies `input_header = FALSE`.
 #' @param clean_names If `TRUE` (the default), column names are cleaned with
 #'   [janitor::clean_names()].
 #' @param library Character vector of package names to load in the generated
@@ -105,6 +109,8 @@ rush_plot <- function(
   delimiter = ",",
   input_delimiter = NULL,
   header = TRUE,
+  input_header = NULL,
+  names = NULL,
   clean_names = TRUE,
   library = NULL,
   tidyverse = FALSE,
@@ -112,6 +118,7 @@ rush_plot <- function(
   seed = NULL,
   dry_run = FALSE,
   no_ir = FALSE,
+  no_rush = FALSE,
   verbose = FALSE
 ) {
   flags <- build_flags(
@@ -122,6 +129,8 @@ rush_plot <- function(
     delimiter = delimiter,
     input_delimiter = input_delimiter,
     header = header,
+    input_header = input_header,
+    names = names,
     clean_names = clean_names,
     library = library,
     tidyverse = tidyverse,
@@ -129,6 +138,7 @@ rush_plot <- function(
     seed = seed,
     dry_run = dry_run,
     no_ir = no_ir,
+    no_rush = no_rush,
     verbose = verbose,
     x = x,
     y = y,

@@ -84,7 +84,7 @@ test_that("rush_convert csv to sqlite", {
 
 test_that("rush_convert csv to rds", {
   script <- capture_script(rush_convert, file = "data.csv", output = "out.rds")
-  expect_true(any(grepl("saveRDS", script)))
+  expect_true(any(grepl("write_rds", script)))
 })
 
 test_that("rush_convert csv to ods", {

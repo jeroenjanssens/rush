@@ -7,6 +7,7 @@
 init(
   output = NULL,
   output_format = "delim",
+  output_header = TRUE,
   delimiter = ",",
   head = NULL,
   width = NULL,

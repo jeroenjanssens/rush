@@ -19,7 +19,14 @@
 #'   when set.
 #' @param input_delimiter Input delimiter. Overrides `delimiter` for reading.
 #' @param output_delimiter Output delimiter. Overrides `delimiter` for writing.
-#' @param header If `FALSE`, the input file is read without column names.
+#' @param header If `FALSE`, suppress headers on both input and output.
+#'   Overridden by `input_header` or `output_header` when set.
+#' @param input_header If `FALSE`, the input file is read without column
+#'   names. Overrides `header` for reading.
+#' @param output_header If `FALSE`, omit the header row when writing
+#'   delimited output. Overrides `header` for writing.
+#' @param names Comma-separated column names to use (e.g. `"a,b,c"`).
+#'   Implies `input_header = FALSE`.
 #' @param clean_names If `TRUE` (the default), column names are cleaned with
 #'   [janitor::clean_names()].
 #' @param head Integer. Limit the output to this many rows.
@@ -58,6 +65,9 @@ rush_convert <- function(
   input_delimiter = NULL,
   output_delimiter = NULL,
   header = TRUE,
+  input_header = NULL,
+  output_header = NULL,
+  names = NULL,
   clean_names = TRUE,
   head = NULL,
   input_sheet = NULL,
@@ -67,6 +77,7 @@ rush_convert <- function(
   output_indent = 2L,
   dry_run = FALSE,
   no_ir = FALSE,
+  no_rush = FALSE,
   verbose = FALSE
 ) {
   flags <- build_flags(
@@ -79,6 +90,9 @@ rush_convert <- function(
     input_delimiter = input_delimiter,
     output_delimiter = output_delimiter,
     header = header,
+    input_header = input_header,
+    output_header = output_header,
+    names = names,
     clean_names = clean_names,
     head = head,
     input_sheet = input_sheet,
@@ -88,6 +102,7 @@ rush_convert <- function(
     output_indent = output_indent,
     dry_run = dry_run,
     no_ir = no_ir,
+    no_rush = no_rush,
     verbose = verbose
   )
   flags <- resolve_flags(flags)

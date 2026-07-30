@@ -10,6 +10,9 @@ build_flags <- function(
   input_delimiter = NULL,
   output_delimiter = NULL,
   header = TRUE,
+  input_header = NULL,
+  output_header = NULL,
+  names = NULL,
   clean_names = TRUE,
   library = NULL,
   tidyverse = FALSE,
@@ -114,6 +117,9 @@ build_flags <- function(
     input_delimiter = input_delimiter,
     output_delimiter = output_delimiter,
     no_header = !header,
+    no_input_header = if (!is.null(input_header)) !input_header else NULL,
+    no_output_header = if (!is.null(output_header)) !output_header else NULL,
+    names = names,
     no_clean_names = !clean_names,
     library = lib_syms,
     tidyverse = tidyverse,
@@ -156,6 +162,23 @@ build_flags <- function(
 }
 
 resolve_flags <- function(flags) {
+  flags$resolved_no_input_header <- if (isTRUE(flags$no_input_header)) {
+    TRUE
+  } else {
+    !is.null(flags$names) || isTRUE(flags$no_header)
+  }
+  flags$resolved_no_output_header <- if (isTRUE(flags$no_output_header)) {
+    TRUE
+  } else {
+    isTRUE(flags$no_header)
+  }
+  flags$resolved_col_names <- if (!is.null(flags$names)) {
+    strsplit(flags$names, ",")[[1]]
+  } else if (flags$resolved_no_input_header) {
+    FALSE
+  } else {
+    TRUE
+  }
   flags$resolved_input_delimiter <- flags$input_delimiter %||% flags$delimiter
   flags$resolved_output_delimiter <- flags$output_delimiter %||% flags$delimiter
   if (identical(flags$input_format, "tsv") && is.null(flags$input_delimiter)) {
@@ -332,6 +355,7 @@ compact_init_call <- function(flags) {
   defaults <- list(
     output = NULL,
     output_format = "delim",
+    output_header = TRUE,
     delimiter = ",",
     head = NULL,
     width = NULL,
@@ -348,6 +372,7 @@ compact_init_call <- function(flags) {
   args <- list(
     output = flags$output,
     output_format = flags$resolved_output_format,
+    output_header = !flags$resolved_no_output_header,
     delimiter = flags$resolved_output_delimiter,
     head = flags$head,
     width = flags$width,
@@ -391,7 +416,9 @@ compact_read_call <- function(path, flags) {
     flags$resolved_input_delimiter != ",") {
     args$delimiter <- flags$resolved_input_delimiter
   }
-  if (flags$no_header) {
+  if (!is.null(flags$names)) {
+    args$col_names <- strsplit(flags$names, ",")[[1]]
+  } else if (flags$resolved_no_input_header) {
     args$col_names <- FALSE
   }
   if (flags$no_clean_names) {

@@ -100,6 +100,61 @@ test_that("header = FALSE reads without column names", {
   expect_true(any(grepl("col_names = FALSE", script)))
 })
 
+test_that("header = FALSE suppresses output header", {
+  script <- capture_script(
+    rush_run,
+    expr = "head(df)",
+    file = "data.csv",
+    header = FALSE
+  )
+  expect_true(any(grepl("output_header = FALSE", script)))
+})
+
+test_that("input_header = FALSE only affects reading", {
+  script <- capture_script(
+    rush_run,
+    expr = "head(df)",
+    file = "data.csv",
+    input_header = FALSE
+  )
+  expect_true(any(grepl("col_names = FALSE", script)))
+  expect_true(any(grepl("output_header = TRUE", script)))
+})
+
+test_that("output_header = FALSE only affects writing", {
+  script <- capture_script(
+    rush_run,
+    expr = "head(df)",
+    file = "data.csv",
+    output_header = FALSE
+  )
+  expect_true(any(grepl("col_names = TRUE", script)))
+  expect_true(any(grepl("output_header = FALSE", script)))
+})
+
+test_that("names provides column names and implies no input header", {
+  script <- capture_script(
+    rush_run,
+    expr = "head(df)",
+    file = "data.csv",
+    names = "a,b,c"
+  )
+  expect_true(any(grepl('col_names = c\\("a", "b", "c"\\)', script)))
+  expect_true(any(grepl("output_header = TRUE", script)))
+})
+
+test_that("names with output_header = FALSE suppresses output header", {
+  script <- capture_script(
+    rush_run,
+    expr = "head(df)",
+    file = "data.csv",
+    names = "x,y",
+    output_header = FALSE
+  )
+  expect_true(any(grepl('col_names = c\\("x", "y"\\)', script)))
+  expect_true(any(grepl("output_header = FALSE", script)))
+})
+
 test_that("clean_names = FALSE omits the janitor call", {
   script <- capture_script(
     rush_run,

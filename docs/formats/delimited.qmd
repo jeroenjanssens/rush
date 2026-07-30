@@ -7,6 +7,7 @@ title: "Delimited text (CSV/TSV)"
 CSV is the default format. Use `--delimiter` (`-d`) for other separators and
 `--no-header` (`-H`) for files without a header row. For finer control, use
 `--input-delimiter` and `--output-delimiter` (`-D`) to set them independently,
+`--no-input-header` and `--no-output-header` to control headers per side,
 or `-F`/`-O` to force a specific format regardless of extension.
 
 ## Reading CSV
@@ -79,6 +80,40 @@ Write as tab-separated even when piping (no output file):
 
 ```{bash}
 rush run -O tsv 'head(df, 3)' penguins.csv | cat
+```
+
+## Header control
+
+### `--no-header` (`-H`)
+
+Suppress the header on both input (no column names in the file) and output:
+
+```{bash}
+echo -e "1,Alice\n2,Bob\n3,Carol" | rush run -H 'df'
+```
+
+### `--no-input-header`
+
+Read a file without a header row, but still include a header in the output:
+
+```{bash}
+echo -e "1,Alice\n2,Bob\n3,Carol" | rush run --no-input-header 'df'
+```
+
+### `--no-output-header`
+
+Read normally but suppress the header in the output:
+
+```{bash}
+rush run --no-output-header 'head(df, 3)' penguins.csv | cat
+```
+
+### `--names`
+
+Provide explicit column names (comma-separated). Implies `--no-input-header`:
+
+```{bash}
+echo -e "1,Alice\n2,Bob\n3,Carol" | rush run --names "id,name" 'df'
 ```
 
 ## Limiting output with `--head`

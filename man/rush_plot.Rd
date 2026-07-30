@@ -33,6 +33,8 @@ rush_plot(
   delimiter = ",",
   input_delimiter = NULL,
   header = TRUE,
+  input_header = NULL,
+  names = NULL,
   clean_names = TRUE,
   library = NULL,
   tidyverse = FALSE,
@@ -40,6 +42,7 @@ rush_plot(
   seed = NULL,
   dry_run = FALSE,
   no_ir = FALSE,
+  no_rush = FALSE,
   verbose = FALSE
 )
 }
@@ -96,6 +99,12 @@ format is inferred from the file extension.}
 \item{input_delimiter}{Input delimiter. Overrides \code{delimiter} for reading.}
 
 \item{header}{If \code{FALSE}, the input file is read without column names.}
+
+\item{input_header}{If \code{FALSE}, the input file is read without column
+names. Overrides \code{header} for reading.}
+
+\item{names}{Comma-separated column names to use (e.g. \code{"a,b,c"}).
+Implies \code{input_header = FALSE}.}
 
 \item{clean_names}{If \code{TRUE} (the default), column names are cleaned with
 \code{\link[janitor:clean_names]{janitor::clean_names()}}.}

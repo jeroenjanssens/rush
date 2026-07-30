@@ -117,7 +117,8 @@ rush run -d "\t" 'head(df, 3)' penguins.csv | cat
 
 ### `--no-header` (`-H`)
 
-Read a file without a header row. Columns are auto-named `x1`, `x2`, ...:
+Suppress headers on both input and output. Input columns are auto-named
+`x1`, `x2`, ...:
 
 ```{bash}
 rush run -H 'sum(df$x1)' numbers.txt
@@ -125,6 +126,30 @@ rush run -H 'sum(df$x1)' numbers.txt
 
 ```{bash}
 seq 5 | rush run -H 'cumsum(df$x1)' -
+```
+
+### `--no-input-header`
+
+Read without a header row, but still include a header in the output:
+
+```{bash}
+seq 5 | rush run --no-input-header 'cumsum(df$x1)' -
+```
+
+### `--no-output-header`
+
+Read normally but omit the header row from the output:
+
+```{bash}
+rush run --no-output-header 'head(df, 3)' penguins.csv | cat
+```
+
+### `--names`
+
+Provide explicit column names (comma-separated). Implies `--no-input-header`:
+
+```{bash}
+echo -e "1,Alice\n2,Bob" | rush run --names "id,name" 'df'
 ```
 
 ### `--no-clean-names` (`-C`)
