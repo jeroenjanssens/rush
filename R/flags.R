@@ -66,10 +66,10 @@ flags_df <-
     NA     , "output-sheet"     , "str"       , "Excel sheet name to write"              , NA       , "output_sheet"     , as.character       , "save"    ,
     NA     , "output-indent"    , "int"       , "Indentation level (JSON, YAML)"         , "2"      , "output_indent"    , as.integer         , "save"    ,
     NA     , "head"             , "int"       , "Limit output rows"                      , NA       , NA                 , as.integer         , "save"    ,
-    "w"    , "width"            , "int"       , "Plot width"                             , NA       , NA                 , as.numeric         , "save"    ,
-    NA     , "height"           , "int"       , "Plot height"                            , NA       , NA                 , as.numeric         , "save"    ,
+    "w"    , "width"            , "num"       , "Plot width"                             , NA       , NA                 , as.numeric         , "save"    ,
+    NA     , "height"           , "num"       , "Plot height"                            , NA       , NA                 , as.numeric         , "save"    ,
     NA     , "units"            , "str"       , "Plot size units"                        , "in"     , NA                 , as.character       , "save"    ,
-    NA     , "dpi"              , "str|int"   , "Plot resolution"                        , "300"    , NA                 , parse_guess        , "save"    ,
+    NA     , "dpi"              , "int"       , "Plot resolution"                        , "300"    , NA                 , as.integer         , "save"    ,
     "o"    , "output"           , "str"       , "Output file"                            , NA       , NA                 , as.character       , "save"    ,
   ) |>
   dplyr::mutate(arg = dplyr::if_else(is.na(arg), long, arg))
