@@ -6,7 +6,7 @@ title: "Pipelines"
 
 The real power of `rush` is combining commands in Unix pipelines. Because `rush`
 reads from stdin and writes to stdout by default, it composes naturally with
-other command-line tools — including other `rush` invocations.
+other command-line tools, including other `rush` invocations.
 
 ## Chaining rush commands
 

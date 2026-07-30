@@ -45,7 +45,7 @@ Pass a file path after the expression, and it is read into a data frame called `
 rush run 'nrow(df)' penguins.csv
 ```
 
-With just a file and no expression, the data is printed — a quick way to peek:
+With just a file and no expression, the data is printed. A quick way to peek:
 
 ```{bash}
 rush run 'head(df, 5)' penguins.csv
@@ -55,9 +55,9 @@ rush run 'head(df, 5)' penguins.csv
 
 Two variables are always available in your expression:
 
-- **`df`** — the first input (a data frame for flat files, or a named list of
+- **`df`**: the first input (a data frame for flat files, or a named list of
   tables for database files).
-- **`dfs`** — a named list of all inputs, keyed by file stem. Database entries
+- **`dfs`**: a named list of all inputs, keyed by file stem. Database entries
   are nested one level deeper: `dfs$dbname$tablename`.
 
 ```{bash}
@@ -85,7 +85,7 @@ You can pipe the output of one `rush` into another:
 rush run 'head(df, 5)' penguins.csv | rush run 'dplyr::select(df, species, bill_length_mm, body_mass_g)' -
 ```
 
-Use `-F` to read non-CSV formats from stdin — for example, JSON:
+Use `-F` to read non-CSV formats from stdin, for example JSON:
 
 ```{bash}
 rush run -O json 'head(df, 3)' penguins.csv | rush run -F json 'dplyr::select(df, species, body_mass_g)' -
@@ -198,7 +198,7 @@ Set the random seed for reproducible results:
 rush run --seed 42 'sample(1:100, 5)'
 ```
 
-Run it again — same seed, same result:
+Run it again; same seed, same result:
 
 ```{bash}
 rush run --seed 42 'sample(1:100, 5)'
@@ -242,7 +242,7 @@ rush run -n 'df |> dplyr::filter(body_mass_g > 5000)' penguins.csv
 
 ### `--no-ir` (`-I`)
 
-Run with plain `Rscript` instead of `ir`. No package resolution happens —
+Run with plain `Rscript` instead of `ir`. No package resolution happens --
 everything must already be installed:
 
 ```{bash}

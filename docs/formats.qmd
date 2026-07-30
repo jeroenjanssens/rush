@@ -3,7 +3,7 @@ title: "Supported formats"
 ---
 
 `rush` can read and write a wide range of data formats. The file extension
-determines which reader or writer is used automatically — override with `-F`
+determines which reader or writer is used automatically. Override with `-F`
 (input) or `-O` (output).
 
 | Format | Extensions | Read | Write | Package |
@@ -19,7 +19,7 @@ determines which reader or writer is used automatically — override with `-F`
 | Stata | `.dta` | yes | yes | haven |
 | SAS | `.sas7bdat`, `.xpt` | yes | yes | haven |
 | SQLite | `.sqlite`, `.db` | yes | yes | RSQLite |
-| Fixed-width | `.fwf` | yes | — | readr |
+| Fixed-width | `.fwf` | yes | no | readr |
 | RDS | `.rds` | yes | yes | readr |
 | ODS | `.ods` | yes | yes | readODS |
 | FASTA | `.fasta`, `.fa`, `.fna` | yes | yes | microseq |
@@ -75,12 +75,12 @@ graph LR
 
 Each format has detailed documentation with examples:
 
-- [Delimited (CSV/TSV)](formats/delimited.qmd) — delimiter control, format flags, `--head`
-- [Parquet](formats/parquet.qmd) — columnar storage via nanoparquet
-- [JSON / JSONL](formats/json.qmd) — nested data, flattening, streaming
-- [Excel / ODS](formats/excel.qmd) — sheets, spreadsheets
-- [Arrow IPC](formats/arrow.qmd) — Feather / IPC format
-- [DuckDB / SQLite](formats/databases.qmd) — multi-table databases, combining files
-- [Statistical (SPSS, Stata, SAS)](formats/statistical.qmd) — labelled data via haven
-- [Bioinformatics (FASTA/FASTQ)](formats/bioinformatics.qmd) — sequence data
-- [Structured (YAML, TOML, XML, RDS, FWF)](formats/structured.qmd) — config files, serialization
+- [Delimited (CSV/TSV)](formats/delimited.qmd): delimiter control, format flags, `--head`
+- [Parquet](formats/parquet.qmd): columnar storage via nanoparquet
+- [JSON / JSONL](formats/json.qmd): nested data, flattening, streaming
+- [Excel / ODS](formats/excel.qmd): sheets, spreadsheets
+- [Arrow IPC](formats/arrow.qmd): Feather / IPC format
+- [DuckDB / SQLite](formats/databases.qmd): multi-table databases, combining files
+- [Statistical (SPSS, Stata, SAS)](formats/statistical.qmd): labelled data via haven
+- [Bioinformatics (FASTA/FASTQ)](formats/bioinformatics.qmd): sequence data
+- [Structured (YAML, TOML, XML, RDS, FWF)](formats/structured.qmd): config files, serialization

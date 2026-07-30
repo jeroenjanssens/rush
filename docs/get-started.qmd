@@ -13,12 +13,12 @@ First install [`ir`](https://r-lib.github.io/ir/#installation). Then install
 ir tool install github::jeroenjanssens/rush
 ```
 
-That's it — there's no separate R package to load. The first time a command
+That's it; there's no separate R package to load. The first time a command
 needs a package (say, ggplot2 for a plot), `ir` fetches and caches it for you.
 
 ## Quick tour
 
-Evaluate an expression — the value of the last expression is printed:
+Evaluate an expression. The value of the last expression is printed:
 
 ```{bash}
 rush run '6 * 7'
@@ -32,7 +32,7 @@ seq 6 | rush run -H '2 * sum(df$x1)' -
 ```
 
 Give `rush run` a file and it is read into `df` before your expression runs.
-With no expression, the data frame is simply printed back out — a handy way to
+With no expression, the data frame is simply printed back out, a handy way to
 peek at a file:
 
 ```{bash}
@@ -40,7 +40,7 @@ rush run 'head(df, 5)' penguins.csv
 ```
 
 Because `rush` writes plain CSV to standard output, you can keep piping into the
-next command — including another `rush`:
+next command, including another `rush`:
 
 ```{bash}
 rush run 'head(df, 100)' penguins.csv | rush run 'df |> dplyr::select(species, bill_length_mm, body_mass_g)' -

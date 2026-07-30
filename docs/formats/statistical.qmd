@@ -5,7 +5,7 @@ engine: knitr
 
 Files ending in `.sav`, `.zsav`, `.por` (SPSS), `.dta` (Stata), `.sas7bdat`, or
 `.xpt` (SAS) are read with [haven](https://haven.tidyverse.org/). Labelled
-columns are kept as-is — apply `haven::as_factor()` in your expression if you
+columns are kept as-is; apply `haven::as_factor()` in your expression if you
 want to convert them to factors.
 
 ## SPSS

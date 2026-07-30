@@ -51,7 +51,7 @@ rush run 'df |> dplyr::filter(user == "alice")' events.jsonl
 
 ## Writing JSONL
 
-Streaming one JSON object per line — great for log pipelines:
+Streaming one JSON object per line, great for log pipelines:
 
 ```{bash}
 rush run -O jsonl 'head(df, 3)' penguins.csv
@@ -76,7 +76,7 @@ printf '{"id":1,"info":{"name":"Widget","dims":{"w":10,"h":5,"d":3}}}\n{"id":2,"
 rush run 'df' products.jsonl
 ```
 
-When outputting to JSON, nesting is preserved as-is — no flattening occurs:
+When outputting to JSON, nesting is preserved as-is (no flattening occurs):
 
 ```{bash}
 rush run -O json 'df' logs.jsonl

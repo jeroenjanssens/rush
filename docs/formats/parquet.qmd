@@ -5,7 +5,7 @@ title: "Parquet"
 {{< include ../_setup.qmd >}}
 
 Files ending in `.parquet` or `.pq` are read with
-[nanoparquet](https://nanoparquet.r-lib.org/) — no flags needed. Point
+[nanoparquet](https://nanoparquet.r-lib.org/), no flags needed. Point
 `--output` (`-o`) at a `.parquet` file to write one.
 
 ## Reading

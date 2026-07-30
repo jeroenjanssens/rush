@@ -24,7 +24,7 @@ rush sql "SELECT species, bill_length_mm, body_mass_g FROM penguins WHERE body_m
 
 ## Aggregations
 
-DuckDB's full SQL is available — aggregations, window functions, CTEs:
+DuckDB's full SQL is available, including aggregations, window functions, and CTEs:
 
 ```{bash}
 rush sql "SELECT species,

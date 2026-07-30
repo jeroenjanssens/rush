@@ -6,7 +6,7 @@ title: "Scripts"
 
 ## Saving and reusing scripts
 
-The script that `--dry-run` prints is not a throwaway — it is a complete,
+The script that `--dry-run` prints is not a throwaway. It is a complete,
 self-contained `ir` script. Redirect it to a file and you have a reproducible
 artifact you can version, share, or run again later:
 
@@ -16,7 +16,7 @@ head -3 analysis.R
 ```
 
 Run it with `ir run`. The `#|` frontmatter declares the script's dependencies,
-so `ir` installs any missing packages and executes it — the saved script carries
+so `ir` installs any missing packages and executes it. The saved script carries
 its own dependencies and needs nothing but `ir` on the target machine:
 
 ```bash
@@ -44,8 +44,8 @@ script that actually runs is never reformatted.
 
 By default `rush` runs each script with `ir`, which resolves the packages
 declared in the frontmatter on the fly. If you would rather run against the
-packages already installed in your library — for speed, to work offline, or in
-an environment where dependencies are pinned — pass `--no-ir` (`-I`) and `rush`
+packages already installed in your library (for speed, to work offline, or in
+an environment where dependencies are pinned), pass `--no-ir` (`-I`) and `rush`
 runs the script with plain `Rscript` instead:
 
 ```{bash}

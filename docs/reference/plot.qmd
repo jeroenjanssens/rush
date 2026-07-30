@@ -80,7 +80,7 @@ rush plot -x bill_length_mm -y body_mass_g --alpha 0.6 -o plot-alpha.png penguin
 
 ### `--size`
 
-Map a column to point size — great for bubble charts:
+Map a column to point size, great for bubble charts:
 
 ```{bash}
 rush plot -x bill_length_mm -y body_mass_g --size flipper_length_mm -c species -o plot-size.png penguins.csv
