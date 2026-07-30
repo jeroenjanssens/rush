@@ -253,6 +253,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#input-format--f" id="toc-input-format--f" class="nav-link" data-scroll-target="#input-format--f"><code>--input-format</code> (<code>-F</code>)</a></li>
   <li><a href="#output-format--o" id="toc-output-format--o" class="nav-link" data-scroll-target="#output-format--o"><code>--output-format</code> (<code>-O</code>)</a></li>
   </ul></li>
+  <li><a href="#header-control" id="toc-header-control" class="nav-link" data-scroll-target="#header-control">Header control</a>
+  <ul class="collapse">
+  <li><a href="#no-header--h" id="toc-no-header--h" class="nav-link" data-scroll-target="#no-header--h"><code>--no-header</code> (<code>-H</code>)</a></li>
+  <li><a href="#no-input-header" id="toc-no-input-header" class="nav-link" data-scroll-target="#no-input-header"><code>--no-input-header</code></a></li>
+  <li><a href="#no-output-header" id="toc-no-output-header" class="nav-link" data-scroll-target="#no-output-header"><code>--no-output-header</code></a></li>
+  <li><a href="#names" id="toc-names" class="nav-link" data-scroll-target="#names"><code>--names</code></a></li>
+  </ul></li>
   <li><a href="#limiting-output-with---head" id="toc-limiting-output-with---head" class="nav-link" data-scroll-target="#limiting-output-with---head">Limiting output with <code>--head</code></a></li>
   </ul>
 <div class="toc-actions"><ul><li><a href="https://github.com/jeroenjanssens/rush/edit/main/formats/delimited.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/jeroenjanssens/rush/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
@@ -279,7 +286,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>CSV is the default format. Use <code>--delimiter</code> (<code>-d</code>) for other separators and <code>--no-header</code> (<code>-H</code>) for files without a header row. For finer control, use <code>--input-delimiter</code> and <code>--output-delimiter</code> (<code>-D</code>) to set them independently, or <code>-F</code>/<code>-O</code> to force a specific format regardless of extension.</p>
+<p>CSV is the default format. Use <code>--delimiter</code> (<code>-d</code>) for other separators and <code>--no-header</code> (<code>-H</code>) for files without a header row. For finer control, use <code>--input-delimiter</code> and <code>--output-delimiter</code> (<code>-D</code>) to set them independently, <code>--no-input-header</code> and <code>--no-output-header</code> to control headers per side, or <code>-F</code>/<code>-O</code> to force a specific format regardless of extension.</p>
 <section id="reading-csv" class="level2">
 <h2 class="anchored" data-anchor-id="reading-csv">Reading CSV</h2>
 <div class="cell">
@@ -407,33 +414,67 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </section>
 </section>
+<section id="header-control" class="level2">
+<h2 class="anchored" data-anchor-id="header-control">Header control</h2>
+<section id="no-header--h" class="level3">
+<h3 class="anchored" data-anchor-id="no-header--h"><code>--no-header</code> (<code>-H</code>)</h3>
+<p>Suppress the header on both input (no column names in the file) and output:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="at">-e</span> <span class="st">"1,Alice\n2,Bob\n3,Carol"</span> <span class="kw">|</span> <span class="ex">rush</span> run <span class="at">-H</span> <span class="st">'df'</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="no-input-header" class="level3">
+<h3 class="anchored" data-anchor-id="no-input-header"><code>--no-input-header</code></h3>
+<p>Read a file without a header row, but still include a header in the output:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="at">-e</span> <span class="st">"1,Alice\n2,Bob\n3,Carol"</span> <span class="kw">|</span> <span class="ex">rush</span> run <span class="at">--no-input-header</span> <span class="st">'df'</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="no-output-header" class="level3">
+<h3 class="anchored" data-anchor-id="no-output-header"><code>--no-output-header</code></h3>
+<p>Read normally but suppress the header in the output:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> run <span class="at">--no-output-header</span> <span class="st">'head(df, 3)'</span> penguins.csv <span class="kw">|</span> <span class="fu">cat</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Adelie,Torgersen,39.1,18.7,181,3750,male,2007</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Adelie,Torgersen,39.5,17.4,186,3800,female,2007</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Adelie,Torgersen,40.3,18,195,3250,female,2007</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="names" class="level3">
+<h3 class="anchored" data-anchor-id="names"><code>--names</code></h3>
+<p>Provide explicit column names (comma-separated). Implies <code>--no-input-header</code>:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="at">-e</span> <span class="st">"1,Alice\n2,Bob\n3,Carol"</span> <span class="kw">|</span> <span class="ex">rush</span> run <span class="at">--names</span> <span class="st">"id,name"</span> <span class="st">'df'</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+</section>
 <section id="limiting-output-with---head" class="level2">
 <h2 class="anchored" data-anchor-id="limiting-output-with---head">Limiting output with <code>--head</code></h2>
 <p>Limit output to the first N rows:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> run <span class="at">--head</span> 5 <span class="st">'df'</span> penguins.csv</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; species,island,bill_length_mm,bill_depth_mm,flipper_length_mm,body_mass_g,sex,year</span></span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Adelie,Torgersen,39.1,18.7,181,3750,male,2007</span></span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Adelie,Torgersen,39.5,17.4,186,3800,female,2007</span></span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Adelie,Torgersen,40.3,18,195,3250,female,2007</span></span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Adelie,Torgersen,36.7,19.3,193,3450,female,2007</span></span>
-<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Adelie,Torgersen,39.3,20.6,190,3650,male,2007</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> run <span class="at">--head</span> 5 <span class="st">'df'</span> penguins.csv</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; species,island,bill_length_mm,bill_depth_mm,flipper_length_mm,body_mass_g,sex,year</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Adelie,Torgersen,39.1,18.7,181,3750,male,2007</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Adelie,Torgersen,39.5,17.4,186,3800,female,2007</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Adelie,Torgersen,40.3,18,195,3250,female,2007</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Adelie,Torgersen,36.7,19.3,193,3450,female,2007</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Adelie,Torgersen,39.3,20.6,190,3650,male,2007</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Works with any output format:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> run <span class="at">--head</span> 3 <span class="at">-O</span> tsv <span class="st">'df'</span> penguins.csv</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; species  island  bill_length_mm  bill_depth_mm   flipper_length_mm   body_mass_g sex year</span></span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Adelie   Torgersen   39.1    18.7    181 3750    male    2007</span></span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Adelie   Torgersen   39.5    17.4    186 3800    female  2007</span></span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Adelie   Torgersen   40.3    18  195 3250    female  2007</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> run <span class="at">--head</span> 3 <span class="at">-O</span> tsv <span class="st">'df'</span> penguins.csv</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; species  island  bill_length_mm  bill_depth_mm   flipper_length_mm   body_mass_g sex year</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Adelie   Torgersen   39.1    18.7    181 3750    male    2007</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Adelie   Torgersen   39.5    17.4    186 3800    female  2007</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Adelie   Torgersen   40.3    18  195 3250    female  2007</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Combined with SQL:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> sql <span class="at">--head</span> 3 <span class="st">"SELECT * FROM penguins ORDER BY body_mass_g DESC"</span> penguins.csv</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; species,island,bill_length_mm,bill_depth_mm,flipper_length_mm,body_mass_g,sex,year</span></span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Gentoo,Biscoe,49.2,15.2,221,6300,male,2007</span></span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Gentoo,Biscoe,59.6,17,230,6050,male,2007</span></span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Gentoo,Biscoe,48.8,16.2,222,6000,male,2009</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rush</span> sql <span class="at">--head</span> 3 <span class="st">"SELECT * FROM penguins ORDER BY body_mass_g DESC"</span> penguins.csv</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; species,island,bill_length_mm,bill_depth_mm,flipper_length_mm,body_mass_g,sex,year</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Gentoo,Biscoe,49.2,15.2,221,6300,male,2007</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Gentoo,Biscoe,59.6,17,230,6050,male,2007</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Gentoo,Biscoe,48.8,16.2,222,6000,male,2009</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 
 
