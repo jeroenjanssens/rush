@@ -88,7 +88,13 @@ test_that("--names provides column names and implies no input header", {
 
 test_that("--names with --no-output-header suppresses output header", {
   script <- dry_run(
-    "run", "-n", "--names", "x,y", "--no-output-header", "df", "data.csv"
+    "run",
+    "-n",
+    "--names",
+    "x,y",
+    "--no-output-header",
+    "df",
+    "data.csv"
   )
   expect_true(any(grepl('col_names = c\\("x", "y"\\)', script)))
   expect_true(any(grepl("output_header = FALSE", script)))

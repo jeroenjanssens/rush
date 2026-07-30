@@ -28,7 +28,6 @@ test_that("integer vector prints one value per line", {
 })
 
 test_that("character vector prints one value per line", {
-
   skip_on_ci()
   result <- rush_run_exec("LETTERS[1:4]")
   expect_equal(stdout_lines(result), c("A", "B", "C", "D"))
@@ -167,7 +166,11 @@ test_that("read CSV: correct row count", {
 test_that("read CSV: column names are cleaned", {
   skip_on_ci()
   dir <- withr::local_tempdir()
-  df <- data.frame(`First Name` = "Alice", `Last Name` = "Smith", check.names = FALSE)
+  df <- data.frame(
+    `First Name` = "Alice",
+    `Last Name` = "Smith",
+    check.names = FALSE
+  )
   f <- make_csv(df, dir)
   result <- rush_run_exec("names(df)", file = f)
   lines <- stdout_lines(result)
@@ -205,7 +208,11 @@ test_that("read with --input-delimiter override", {
   dir <- withr::local_tempdir()
   path <- file.path(dir, "data.csv")
   writeLines(c("a\tb", "1\t2", "3\t4"), path)
-  result <- rush_run_exec("nrow(df)", file = path, args = list(input_delimiter = "\t"))
+  result <- rush_run_exec(
+    "nrow(df)",
+    file = path,
+    args = list(input_delimiter = "\t")
+  )
   expect_equal(stdout_lines(result), "2")
 })
 
@@ -214,7 +221,11 @@ test_that("read with -H (no header): columns named x1, x2", {
   dir <- withr::local_tempdir()
   path <- file.path(dir, "data.csv")
   writeLines(c("1,2", "3,4", "5,6"), path)
-  result <- rush_run_exec("names(df)", file = path, args = list(no_header = TRUE))
+  result <- rush_run_exec(
+    "names(df)",
+    file = path,
+    args = list(no_header = TRUE)
+  )
   lines <- stdout_lines(result)
   expect_true("x1" %in% lines)
   expect_true("x2" %in% lines)
@@ -225,16 +236,28 @@ test_that("read with -H: first row is data not header", {
   dir <- withr::local_tempdir()
   path <- file.path(dir, "data.csv")
   writeLines(c("10,20", "30,40"), path)
-  result <- rush_run_exec("df$x1[1]", file = path, args = list(no_header = TRUE))
+  result <- rush_run_exec(
+    "df$x1[1]",
+    file = path,
+    args = list(no_header = TRUE)
+  )
   expect_equal(stdout_lines(result), "10")
 })
 
 test_that("read with -C preserves original names", {
   skip_on_ci()
   dir <- withr::local_tempdir()
-  df <- data.frame(`First Name` = "Alice", `Score (%)` = 95, check.names = FALSE)
+  df <- data.frame(
+    `First Name` = "Alice",
+    `Score (%)` = 95,
+    check.names = FALSE
+  )
   f <- make_csv(df, dir)
-  result <- rush_run_exec("names(df)", file = f, args = list(no_clean_names = TRUE))
+  result <- rush_run_exec(
+    "names(df)",
+    file = f,
+    args = list(no_clean_names = TRUE)
+  )
   lines <- stdout_lines(result)
   expect_true("First Name" %in% lines)
 })
@@ -370,7 +393,11 @@ test_that("read RDS: non-data-frame object", {
   skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_rds(1:10, dir)
-  result <- rush_run_exec("sum(df)", file = f, args = list(no_clean_names = TRUE))
+  result <- rush_run_exec(
+    "sum(df)",
+    file = f,
+    args = list(no_clean_names = TRUE)
+  )
   expect_equal(stdout_lines(result), "55")
 })
 
@@ -395,7 +422,11 @@ test_that("read Excel with --input-sheet by name", {
   dir <- withr::local_tempdir()
   sheets <- list(Sales = data.frame(a = 1:2), Costs = data.frame(b = 3:4))
   f <- make_xlsx(sheets, dir)
-  result <- rush_run_exec("names(df)", file = f, args = list(input_sheet = "Costs"))
+  result <- rush_run_exec(
+    "names(df)",
+    file = f,
+    args = list(input_sheet = "Costs")
+  )
   expect_equal(stdout_lines(result), "b")
 })
 
@@ -478,7 +509,11 @@ test_that("write with -D semicolon delimiter", {
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.csv")
-  result <- rush_run_exec("df", file = f, args = list(output = out, output_delimiter = ";"))
+  result <- rush_run_exec(
+    "df",
+    file = f,
+    args = list(output = out, output_delimiter = ";")
+  )
   expect_equal(result$status, 0)
   lines <- readLines(out)
   expect_true(grepl(";", lines[1]))
@@ -707,9 +742,15 @@ test_that("XML custom --output-root and --output-record", {
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.xml")
-  result <- rush_run_exec("df", file = f, args = list(
-    output = out, output_root = "plants", output_record = "observation"
-  ))
+  result <- rush_run_exec(
+    "df",
+    file = f,
+    args = list(
+      output = out,
+      output_root = "plants",
+      output_record = "observation"
+    )
+  )
   doc <- xml2::read_xml(out)
   expect_equal(xml2::xml_name(doc), "plants")
   expect_equal(xml2::xml_name(xml2::xml_children(doc)[[1]]), "observation")
@@ -720,9 +761,14 @@ test_that("XML custom root only", {
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.xml")
-  result <- rush_run_exec("df", file = f, args = list(
-    output = out, output_root = "items"
-  ))
+  result <- rush_run_exec(
+    "df",
+    file = f,
+    args = list(
+      output = out,
+      output_root = "items"
+    )
+  )
   doc <- xml2::read_xml(out)
   expect_equal(xml2::xml_name(doc), "items")
   expect_equal(xml2::xml_name(xml2::xml_children(doc)[[1]]), "record")
@@ -733,9 +779,14 @@ test_that("XML custom record only", {
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.xml")
-  result <- rush_run_exec("df", file = f, args = list(
-    output = out, output_record = "entry"
-  ))
+  result <- rush_run_exec(
+    "df",
+    file = f,
+    args = list(
+      output = out,
+      output_record = "entry"
+    )
+  )
   doc <- xml2::read_xml(out)
   expect_equal(xml2::xml_name(doc), "root")
   expect_equal(xml2::xml_name(xml2::xml_children(doc)[[1]]), "entry")
@@ -758,9 +809,14 @@ test_that("TOML custom --output-record", {
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.toml")
-  result <- rush_run_exec("df", file = f, args = list(
-    output = out, output_record = "item"
-  ))
+  result <- rush_run_exec(
+    "df",
+    file = f,
+    args = list(
+      output = out,
+      output_record = "item"
+    )
+  )
   content <- readLines(out)
   expect_true(any(grepl("^\\[\\[item\\]\\]$", content)))
   expect_false(any(grepl("^\\[\\[record\\]\\]$", content)))
@@ -771,9 +827,14 @@ test_that("TOML custom --output-record 'measurement'", {
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.toml")
-  result <- rush_run_exec("df", file = f, args = list(
-    output = out, output_record = "measurement"
-  ))
+  result <- rush_run_exec(
+    "df",
+    file = f,
+    args = list(
+      output = out,
+      output_record = "measurement"
+    )
+  )
   content <- readLines(out)
   expect_true(any(grepl("^\\[\\[measurement\\]\\]$", content)))
 })
@@ -798,7 +859,11 @@ test_that("JSON --output-indent 4: pretty-printed", {
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.json")
-  result <- rush_run_exec("df", file = f, args = list(output = out, output_indent = 4))
+  result <- rush_run_exec(
+    "df",
+    file = f,
+    args = list(output = out, output_indent = 4)
+  )
   content <- readLines(out)
   expect_true(length(content) > 1)
   indented <- content[grepl("^  ", content)]
@@ -810,7 +875,11 @@ test_that("JSON --output-indent 0: compact single line", {
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.json")
-  result <- rush_run_exec("df", file = f, args = list(output = out, output_indent = 0))
+  result <- rush_run_exec(
+    "df",
+    file = f,
+    args = list(output = out, output_indent = 0)
+  )
   content <- readLines(out)
   expect_equal(length(content), 1)
 })
@@ -833,7 +902,11 @@ test_that("YAML --output-indent 4", {
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.yaml")
-  result <- rush_run_exec("df", file = f, args = list(output = out, output_indent = 4))
+  result <- rush_run_exec(
+    "df",
+    file = f,
+    args = list(output = out, output_indent = 4)
+  )
   content <- readLines(out)
   four_indented <- content[grepl("^    \\w", content)]
   expect_true(length(four_indented) > 0)
@@ -856,7 +929,11 @@ test_that("Excel --output-sheet 'Results'", {
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.xlsx")
-  result <- rush_run_exec("df", file = f, args = list(output = out, output_sheet = "Results"))
+  result <- rush_run_exec(
+    "df",
+    file = f,
+    args = list(output = out, output_sheet = "Results")
+  )
   sheets <- readxl::excel_sheets(out)
   expect_equal(sheets, "Results")
 })
@@ -866,7 +943,11 @@ test_that("Excel --output-sheet with spaces", {
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.xlsx")
-  result <- rush_run_exec("df", file = f, args = list(output = out, output_sheet = "My Data"))
+  result <- rush_run_exec(
+    "df",
+    file = f,
+    args = list(output = out, output_sheet = "My Data")
+  )
   sheets <- readxl::excel_sheets(out)
   expect_equal(sheets, "My Data")
 })
@@ -1015,7 +1096,8 @@ test_that("stdin JSON with -F json", {
   df <- test_df()
   json_data <- jsonlite::toJSON(df, dataframe = "rows", auto_unbox = TRUE)
   result <- rush_run_exec(
-    "nrow(df)", file = "-",
+    "nrow(df)",
+    file = "-",
     args = list(input_format = "json"),
     stdin_data = as.character(json_data)
   )
@@ -1028,7 +1110,8 @@ test_that("stdin YAML with -F yaml", {
   rows <- lapply(seq_len(nrow(df)), function(i) as.list(df[i, , drop = FALSE]))
   yaml_data <- strsplit(yaml::as.yaml(rows), "\n")[[1]]
   result <- rush_run_exec(
-    "nrow(df)", file = "-",
+    "nrow(df)",
+    file = "-",
     args = list(input_format = "yaml"),
     stdin_data = yaml_data
   )
@@ -1041,7 +1124,8 @@ test_that("stdin TOML with -F toml", {
   f <- make_toml(test_df(), dir)
   toml_data <- readLines(f)
   result <- rush_run_exec(
-    "nrow(df)", file = "-",
+    "nrow(df)",
+    file = "-",
     args = list(input_format = "toml"),
     stdin_data = toml_data
   )
@@ -1054,7 +1138,8 @@ test_that("stdin XML with -F xml", {
   f <- make_xml(test_df(), dir)
   xml_data <- readLines(f)
   result <- rush_run_exec(
-    "nrow(df)", file = "-",
+    "nrow(df)",
+    file = "-",
     args = list(input_format = "xml"),
     stdin_data = xml_data
   )
@@ -1065,7 +1150,8 @@ test_that("stdin TSV with -F tsv", {
   skip_on_ci()
   tsv_data <- c("a\tb", "1\t2", "3\t4")
   result <- rush_run_exec(
-    "nrow(df)", file = "-",
+    "nrow(df)",
+    file = "-",
     args = list(input_format = "tsv"),
     stdin_data = tsv_data
   )
@@ -1076,7 +1162,8 @@ test_that("stdin with -H (no header)", {
   skip_on_ci()
   csv_data <- c("1,2", "3,4")
   result <- rush_run_exec(
-    "names(df)", file = "-",
+    "names(df)",
+    file = "-",
     args = list(no_header = TRUE),
     stdin_data = csv_data
   )
@@ -1090,8 +1177,16 @@ test_that("CSV stdout -> CSV stdin round-trip", {
   skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
-  r1 <- rush_run_exec("head(df, 2)", file = f, args = list(output_format = "csv"))
-  r2 <- rush_run_exec("nrow(df)", file = "-", stdin_data = strsplit(r1$stdout, "\n")[[1]])
+  r1 <- rush_run_exec(
+    "head(df, 2)",
+    file = f,
+    args = list(output_format = "csv")
+  )
+  r2 <- rush_run_exec(
+    "nrow(df)",
+    file = "-",
+    stdin_data = strsplit(r1$stdout, "\n")[[1]]
+  )
   expect_equal(stdout_lines(r2), "2")
 })
 
@@ -1099,9 +1194,14 @@ test_that("JSON stdout -> JSON stdin round-trip", {
   skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
-  r1 <- rush_run_exec("head(df, 2)", file = f, args = list(output_format = "json"))
+  r1 <- rush_run_exec(
+    "head(df, 2)",
+    file = f,
+    args = list(output_format = "json")
+  )
   r2 <- rush_run_exec(
-    "nrow(df)", file = "-",
+    "nrow(df)",
+    file = "-",
     args = list(input_format = "json"),
     stdin_data = strsplit(r1$stdout, "\n")[[1]]
   )
@@ -1112,9 +1212,14 @@ test_that("YAML stdout -> YAML stdin round-trip", {
   skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
-  r1 <- rush_run_exec("head(df, 2)", file = f, args = list(output_format = "yaml"))
+  r1 <- rush_run_exec(
+    "head(df, 2)",
+    file = f,
+    args = list(output_format = "yaml")
+  )
   r2 <- rush_run_exec(
-    "nrow(df)", file = "-",
+    "nrow(df)",
+    file = "-",
     args = list(input_format = "yaml"),
     stdin_data = strsplit(r1$stdout, "\n")[[1]]
   )
@@ -1125,9 +1230,14 @@ test_that("TOML stdout -> TOML stdin round-trip", {
   skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
-  r1 <- rush_run_exec("head(df, 2)", file = f, args = list(output_format = "toml"))
+  r1 <- rush_run_exec(
+    "head(df, 2)",
+    file = f,
+    args = list(output_format = "toml")
+  )
   r2 <- rush_run_exec(
-    "nrow(df)", file = "-",
+    "nrow(df)",
+    file = "-",
     args = list(input_format = "toml"),
     stdin_data = strsplit(r1$stdout, "\n")[[1]]
   )
@@ -1138,9 +1248,14 @@ test_that("XML stdout -> XML stdin round-trip", {
   skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
-  r1 <- rush_run_exec("head(df, 2)", file = f, args = list(output_format = "xml"))
+  r1 <- rush_run_exec(
+    "head(df, 2)",
+    file = f,
+    args = list(output_format = "xml")
+  )
   r2 <- rush_run_exec(
-    "nrow(df)", file = "-",
+    "nrow(df)",
+    file = "-",
     args = list(input_format = "xml"),
     stdin_data = strsplit(r1$stdout, "\n")[[1]]
   )
@@ -1151,9 +1266,14 @@ test_that("JSONL stdout -> JSONL stdin round-trip", {
   skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
-  r1 <- rush_run_exec("head(df, 2)", file = f, args = list(output_format = "jsonl"))
+  r1 <- rush_run_exec(
+    "head(df, 2)",
+    file = f,
+    args = list(output_format = "jsonl")
+  )
   r2 <- rush_run_exec(
-    "nrow(df)", file = "-",
+    "nrow(df)",
+    file = "-",
     args = list(input_format = "jsonl"),
     stdin_data = strsplit(r1$stdout, "\n")[[1]]
   )
@@ -1166,7 +1286,8 @@ test_that("JSON pipe preserves column names", {
   f <- make_csv(test_df(), dir)
   r1 <- rush_run_exec("df", file = f, args = list(output_format = "json"))
   r2 <- rush_run_exec(
-    "names(df)", file = "-",
+    "names(df)",
+    file = "-",
     args = list(input_format = "json"),
     stdin_data = strsplit(r1$stdout, "\n")[[1]]
   )
@@ -1701,7 +1822,10 @@ test_that("digit-prefix file: dfs$x2024", {
 test_that("DuckDB input: table names via dfs", {
   skip_on_ci()
   dir <- withr::local_tempdir()
-  tables <- list(orders = data.frame(id = 1:3), items = data.frame(sku = c("a", "b")))
+  tables <- list(
+    orders = data.frame(id = 1:3),
+    items = data.frame(sku = c("a", "b"))
+  )
   f <- make_duckdb(tables, dir)
   result <- rush_run_exec("sort(names(dfs$data))", file = f)
   lines <- stdout_lines(result)
@@ -1906,9 +2030,14 @@ test_that("convert with --output-root and --output-record (XML)", {
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.xml")
-  result <- rush_convert_exec(f, args = list(
-    output = out, output_root = "people", output_record = "person"
-  ))
+  result <- rush_convert_exec(
+    f,
+    args = list(
+      output = out,
+      output_root = "people",
+      output_record = "person"
+    )
+  )
   doc <- xml2::read_xml(out)
   expect_equal(xml2::xml_name(doc), "people")
   expect_equal(xml2::xml_name(xml2::xml_children(doc)[[1]]), "person")
@@ -1919,7 +2048,10 @@ test_that("convert with --output-record (TOML)", {
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.toml")
-  result <- rush_convert_exec(f, args = list(output = out, output_record = "entry"))
+  result <- rush_convert_exec(
+    f,
+    args = list(output = out, output_record = "entry")
+  )
   content <- readLines(out)
   expect_true(any(grepl("^\\[\\[entry\\]\\]$", content)))
 })
@@ -1940,7 +2072,10 @@ test_that("convert with --output-sheet (Excel)", {
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.xlsx")
-  result <- rush_convert_exec(f, args = list(output = out, output_sheet = "MySheet"))
+  result <- rush_convert_exec(
+    f,
+    args = list(output = out, output_sheet = "MySheet")
+  )
   sheets <- readxl::excel_sheets(out)
   expect_equal(sheets, "MySheet")
 })
@@ -1951,7 +2086,10 @@ test_that("convert with --input-sheet (Excel -> CSV)", {
   sheets <- list(Sales = data.frame(a = 1:2), Costs = data.frame(b = 3:4))
   f <- make_xlsx(sheets, dir)
   out <- file.path(dir, "out.csv")
-  result <- rush_convert_exec(f, args = list(output = out, input_sheet = "Costs"))
+  result <- rush_convert_exec(
+    f,
+    args = list(output = out, input_sheet = "Costs")
+  )
   df <- readr::read_csv(out, show_col_types = FALSE)
   expect_equal(names(df), "b")
 })
@@ -1960,9 +2098,15 @@ test_that("convert with -F override: .txt treated as JSON", {
   skip_on_ci()
   dir <- withr::local_tempdir()
   path <- file.path(dir, "data.txt")
-  writeLines(jsonlite::toJSON(test_df(), dataframe = "rows", auto_unbox = TRUE), path)
+  writeLines(
+    jsonlite::toJSON(test_df(), dataframe = "rows", auto_unbox = TRUE),
+    path
+  )
   out <- file.path(dir, "out.csv")
-  result <- rush_convert_exec(path, args = list(output = out, input_format = "json"))
+  result <- rush_convert_exec(
+    path,
+    args = list(output = out, input_format = "json")
+  )
   df <- readr::read_csv(out, show_col_types = FALSE)
   expect_equal(df$name, c("Alice", "Bob", "Carol"))
 })
@@ -1972,7 +2116,10 @@ test_that("convert with -O override: output to .txt as YAML", {
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
   out <- file.path(dir, "out.txt")
-  result <- rush_convert_exec(f, args = list(output = out, output_format = "yaml"))
+  result <- rush_convert_exec(
+    f,
+    args = list(output = out, output_format = "yaml")
+  )
   parsed <- yaml::read_yaml(out)
   expect_equal(length(parsed), 3)
 })
@@ -2150,7 +2297,10 @@ test_that("plot line geom to PNG", {
   dir <- withr::local_tempdir()
   f <- make_csv(data.frame(x = 1:10, y = cumsum(rnorm(10))), dir, "data.csv")
   out <- file.path(dir, "line.png")
-  result <- rush_plot_exec(f, args = list(x = "x", y = "y", geom = "line", output = out))
+  result <- rush_plot_exec(
+    f,
+    args = list(x = "x", y = "y", geom = "line", output = out)
+  )
   expect_equal(result$status, 0)
   expect_true(file.exists(out))
 })
@@ -2160,7 +2310,10 @@ test_that("plot bar geom to PNG", {
   dir <- withr::local_tempdir()
   f <- make_csv(data.frame(cat = c("A", "B", "C", "A", "B")), dir, "data.csv")
   out <- file.path(dir, "bar.png")
-  result <- rush_plot_exec(f, args = list(x = "cat", geom = "bar", output = out))
+  result <- rush_plot_exec(
+    f,
+    args = list(x = "cat", geom = "bar", output = out)
+  )
   expect_equal(result$status, 0)
   expect_true(file.exists(out))
 })
@@ -2170,10 +2323,14 @@ test_that("plot boxplot geom to PNG", {
   dir <- withr::local_tempdir()
   f <- make_csv(
     data.frame(group = rep(c("A", "B"), each = 10), val = rnorm(20)),
-    dir, "data.csv"
+    dir,
+    "data.csv"
   )
   out <- file.path(dir, "box.png")
-  result <- rush_plot_exec(f, args = list(x = "group", y = "val", geom = "boxplot", output = out))
+  result <- rush_plot_exec(
+    f,
+    args = list(x = "group", y = "val", geom = "boxplot", output = out)
+  )
   expect_equal(result$status, 0)
   expect_true(file.exists(out))
 })
@@ -2183,7 +2340,10 @@ test_that("plot density geom to PNG", {
   dir <- withr::local_tempdir()
   f <- make_csv(data.frame(x = rnorm(50)), dir, "data.csv")
   out <- file.path(dir, "dens.png")
-  result <- rush_plot_exec(f, args = list(x = "x", geom = "density", output = out))
+  result <- rush_plot_exec(
+    f,
+    args = list(x = "x", geom = "density", output = out)
+  )
   expect_equal(result$status, 0)
   expect_true(file.exists(out))
 })
@@ -2193,12 +2353,19 @@ test_that("plot violin geom to PNG", {
   dir <- withr::local_tempdir()
   f <- make_csv(
     data.frame(group = rep(c("A", "B"), each = 20), val = rnorm(40)),
-    dir, "data.csv"
+    dir,
+    "data.csv"
   )
   out <- file.path(dir, "violin.png")
-  result <- rush_plot_exec(f, args = list(
-    x = "group", y = "val", geom = "violin", output = out
-  ))
+  result <- rush_plot_exec(
+    f,
+    args = list(
+      x = "group",
+      y = "val",
+      geom = "violin",
+      output = out
+    )
+  )
   expect_equal(result$status, 0)
   expect_true(file.exists(out))
 })
@@ -2208,10 +2375,14 @@ test_that("plot color aesthetic", {
   dir <- withr::local_tempdir()
   f <- make_csv(
     data.frame(x = 1:10, y = 1:10, g = rep(c("a", "b"), 5)),
-    dir, "data.csv"
+    dir,
+    "data.csv"
   )
   out <- file.path(dir, "color.png")
-  result <- rush_plot_exec(f, args = list(x = "x", y = "y", color = "g", output = out))
+  result <- rush_plot_exec(
+    f,
+    args = list(x = "x", y = "y", color = "g", output = out)
+  )
   expect_equal(result$status, 0)
   expect_true(file.exists(out))
 })
@@ -2221,10 +2392,14 @@ test_that("plot fill aesthetic", {
   dir <- withr::local_tempdir()
   f <- make_csv(
     data.frame(cat = c("A", "B", "C", "A"), grp = c("x", "x", "y", "y")),
-    dir, "data.csv"
+    dir,
+    "data.csv"
   )
   out <- file.path(dir, "fill.png")
-  result <- rush_plot_exec(f, args = list(x = "cat", fill = "grp", geom = "bar", output = out))
+  result <- rush_plot_exec(
+    f,
+    args = list(x = "cat", fill = "grp", geom = "bar", output = out)
+  )
   expect_equal(result$status, 0)
   expect_true(file.exists(out))
 })
@@ -2234,7 +2409,10 @@ test_that("plot alpha aesthetic", {
   dir <- withr::local_tempdir()
   f <- make_csv(data.frame(x = 1:10, y = 1:10, a = runif(10)), dir, "data.csv")
   out <- file.path(dir, "alpha.png")
-  result <- rush_plot_exec(f, args = list(x = "x", y = "y", alpha = "a", output = out))
+  result <- rush_plot_exec(
+    f,
+    args = list(x = "x", y = "y", alpha = "a", output = out)
+  )
   expect_equal(result$status, 0)
   expect_true(file.exists(out))
 })
@@ -2244,7 +2422,10 @@ test_that("plot size aesthetic", {
   dir <- withr::local_tempdir()
   f <- make_csv(data.frame(x = 1:10, y = 1:10, s = 1:10), dir, "data.csv")
   out <- file.path(dir, "size.png")
-  result <- rush_plot_exec(f, args = list(x = "x", y = "y", size = "s", output = out))
+  result <- rush_plot_exec(
+    f,
+    args = list(x = "x", y = "y", size = "s", output = out)
+  )
   expect_equal(result$status, 0)
   expect_true(file.exists(out))
 })
@@ -2254,10 +2435,14 @@ test_that("plot shape aesthetic", {
   dir <- withr::local_tempdir()
   f <- make_csv(
     data.frame(x = 1:6, y = 1:6, sh = rep(c("a", "b"), 3)),
-    dir, "data.csv"
+    dir,
+    "data.csv"
   )
   out <- file.path(dir, "shape.png")
-  result <- rush_plot_exec(f, args = list(x = "x", y = "y", shape = "sh", output = out))
+  result <- rush_plot_exec(
+    f,
+    args = list(x = "x", y = "y", shape = "sh", output = out)
+  )
   expect_equal(result$status, 0)
   expect_true(file.exists(out))
 })
@@ -2267,12 +2452,20 @@ test_that("plot group aesthetic with line", {
   dir <- withr::local_tempdir()
   f <- make_csv(
     data.frame(x = rep(1:5, 2), y = rnorm(10), g = rep(c("a", "b"), each = 5)),
-    dir, "data.csv"
+    dir,
+    "data.csv"
   )
   out <- file.path(dir, "group.png")
-  result <- rush_plot_exec(f, args = list(
-    x = "x", y = "y", group = "g", geom = "line", output = out
-  ))
+  result <- rush_plot_exec(
+    f,
+    args = list(
+      x = "x",
+      y = "y",
+      group = "g",
+      geom = "line",
+      output = out
+    )
+  )
   expect_equal(result$status, 0)
   expect_true(file.exists(out))
 })
@@ -2282,12 +2475,19 @@ test_that("plot facet_wrap", {
   dir <- withr::local_tempdir()
   f <- make_csv(
     data.frame(x = 1:12, y = rnorm(12), g = rep(c("A", "B", "C"), 4)),
-    dir, "data.csv"
+    dir,
+    "data.csv"
   )
   out <- file.path(dir, "fw.png")
-  result <- rush_plot_exec(f, args = list(
-    x = "x", y = "y", facets = "~ g", output = out
-  ))
+  result <- rush_plot_exec(
+    f,
+    args = list(
+      x = "x",
+      y = "y",
+      facets = "~ g",
+      output = out
+    )
+  )
   expect_equal(result$status, 0)
   expect_true(file.exists(out))
 })
@@ -2297,15 +2497,24 @@ test_that("plot facet_grid", {
   dir <- withr::local_tempdir()
   f <- make_csv(
     data.frame(
-      x = 1:12, y = rnorm(12),
-      r = rep(c("R1", "R2"), 6), c = rep(c("C1", "C2", "C3"), 4)
+      x = 1:12,
+      y = rnorm(12),
+      r = rep(c("R1", "R2"), 6),
+      c = rep(c("C1", "C2", "C3"), 4)
     ),
-    dir, "data.csv"
+    dir,
+    "data.csv"
   )
   out <- file.path(dir, "fg.png")
-  result <- rush_plot_exec(f, args = list(
-    x = "x", y = "y", facets = "r ~ c", output = out
-  ))
+  result <- rush_plot_exec(
+    f,
+    args = list(
+      x = "x",
+      y = "y",
+      facets = "r ~ c",
+      output = out
+    )
+  )
   expect_equal(result$status, 0)
   expect_true(file.exists(out))
 })
@@ -2314,13 +2523,26 @@ test_that("plot facet_grid with margins", {
   skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(
-    data.frame(x = 1:8, y = rnorm(8), g1 = rep(c("A", "B"), 4), g2 = rep(c("X", "Y"), each = 4)),
-    dir, "data.csv"
+    data.frame(
+      x = 1:8,
+      y = rnorm(8),
+      g1 = rep(c("A", "B"), 4),
+      g2 = rep(c("X", "Y"), each = 4)
+    ),
+    dir,
+    "data.csv"
   )
   out <- file.path(dir, "margins.png")
-  result <- rush_plot_exec(f, args = list(
-    x = "x", y = "y", facets = "g1 ~ g2", margins = TRUE, output = out
-  ))
+  result <- rush_plot_exec(
+    f,
+    args = list(
+      x = "x",
+      y = "y",
+      facets = "g1 ~ g2",
+      margins = TRUE,
+      output = out
+    )
+  )
   expect_equal(result$status, 0)
   expect_true(file.exists(out))
 })
@@ -2330,7 +2552,10 @@ test_that("plot log x", {
   dir <- withr::local_tempdir()
   f <- make_csv(data.frame(x = c(1, 10, 100), y = c(1, 2, 3)), dir, "data.csv")
   out <- file.path(dir, "logx.png")
-  result <- rush_plot_exec(f, args = list(x = "x", y = "y", log = "x", output = out))
+  result <- rush_plot_exec(
+    f,
+    args = list(x = "x", y = "y", log = "x", output = out)
+  )
   expect_equal(result$status, 0)
   expect_true(file.exists(out))
 })
@@ -2340,7 +2565,10 @@ test_that("plot log y", {
   dir <- withr::local_tempdir()
   f <- make_csv(data.frame(x = 1:3, y = c(1, 10, 100)), dir, "data.csv")
   out <- file.path(dir, "logy.png")
-  result <- rush_plot_exec(f, args = list(x = "x", y = "y", log = "y", output = out))
+  result <- rush_plot_exec(
+    f,
+    args = list(x = "x", y = "y", log = "y", output = out)
+  )
   expect_equal(result$status, 0)
   expect_true(file.exists(out))
 })
@@ -2348,9 +2576,16 @@ test_that("plot log y", {
 test_that("plot log xy", {
   skip_on_ci()
   dir <- withr::local_tempdir()
-  f <- make_csv(data.frame(x = c(1, 10, 100), y = c(1, 10, 100)), dir, "data.csv")
+  f <- make_csv(
+    data.frame(x = c(1, 10, 100), y = c(1, 10, 100)),
+    dir,
+    "data.csv"
+  )
   out <- file.path(dir, "logxy.png")
-  result <- rush_plot_exec(f, args = list(x = "x", y = "y", log = "xy", output = out))
+  result <- rush_plot_exec(
+    f,
+    args = list(x = "x", y = "y", log = "xy", output = out)
+  )
   expect_equal(result$status, 0)
   expect_true(file.exists(out))
 })
@@ -2360,9 +2595,15 @@ test_that("plot title", {
   dir <- withr::local_tempdir()
   f <- make_csv(data.frame(x = 1:5, y = 1:5), dir, "data.csv")
   out <- file.path(dir, "title.png")
-  result <- rush_plot_exec(f, args = list(
-    x = "x", y = "y", title = "My Plot", output = out
-  ))
+  result <- rush_plot_exec(
+    f,
+    args = list(
+      x = "x",
+      y = "y",
+      title = "My Plot",
+      output = out
+    )
+  )
   expect_equal(result$status, 0)
   expect_true(file.exists(out))
 })
@@ -2372,9 +2613,16 @@ test_that("plot xlab and ylab", {
   dir <- withr::local_tempdir()
   f <- make_csv(data.frame(x = 1:5, y = 1:5), dir, "data.csv")
   out <- file.path(dir, "labels.png")
-  result <- rush_plot_exec(f, args = list(
-    x = "x", y = "y", xlab = "Weight", ylab = "Mileage", output = out
-  ))
+  result <- rush_plot_exec(
+    f,
+    args = list(
+      x = "x",
+      y = "y",
+      xlab = "Weight",
+      ylab = "Mileage",
+      output = out
+    )
+  )
   expect_equal(result$status, 0)
   expect_true(file.exists(out))
 })
@@ -2384,9 +2632,17 @@ test_that("plot title + xlab + ylab combined", {
   dir <- withr::local_tempdir()
   f <- make_csv(data.frame(x = 1:5, y = 1:5), dir, "data.csv")
   out <- file.path(dir, "all_labs.png")
-  result <- rush_plot_exec(f, args = list(
-    x = "x", y = "y", title = "T", xlab = "X", ylab = "Y", output = out
-  ))
+  result <- rush_plot_exec(
+    f,
+    args = list(
+      x = "x",
+      y = "y",
+      title = "T",
+      xlab = "X",
+      ylab = "Y",
+      output = out
+    )
+  )
   expect_equal(result$status, 0)
   expect_true(file.exists(out))
 })
@@ -2396,9 +2652,16 @@ test_that("plot width and height", {
   dir <- withr::local_tempdir()
   f <- make_csv(data.frame(x = 1:5, y = 1:5), dir, "data.csv")
   out <- file.path(dir, "wh.png")
-  result <- rush_plot_exec(f, args = list(
-    x = "x", y = "y", width = 10, height = 8, output = out
-  ))
+  result <- rush_plot_exec(
+    f,
+    args = list(
+      x = "x",
+      y = "y",
+      width = 10,
+      height = 8,
+      output = out
+    )
+  )
   expect_equal(result$status, 0)
   expect_true(file.exists(out))
   expect_gt(file.size(out), 1000)
@@ -2409,9 +2672,17 @@ test_that("plot units cm", {
   dir <- withr::local_tempdir()
   f <- make_csv(data.frame(x = 1:5, y = 1:5), dir, "data.csv")
   out <- file.path(dir, "cm.png")
-  result <- rush_plot_exec(f, args = list(
-    x = "x", y = "y", width = 15, height = 10, units = "cm", output = out
-  ))
+  result <- rush_plot_exec(
+    f,
+    args = list(
+      x = "x",
+      y = "y",
+      width = 15,
+      height = 10,
+      units = "cm",
+      output = out
+    )
+  )
   expect_equal(result$status, 0)
   expect_true(file.exists(out))
 })
@@ -2432,9 +2703,15 @@ test_that("plot --pre transforms data", {
   dir <- withr::local_tempdir()
   f <- make_csv(data.frame(x = 1:20, y = 1:20), dir, "data.csv")
   out <- file.path(dir, "pre.png")
-  result <- rush_plot_exec(f, args = list(
-    x = "x", y = "y", pre = "df <- head(df, 5)", output = out
-  ))
+  result <- rush_plot_exec(
+    f,
+    args = list(
+      x = "x",
+      y = "y",
+      pre = "df <- head(df, 5)",
+      output = out
+    )
+  )
   expect_equal(result$status, 0)
   expect_true(file.exists(out))
 })
@@ -2444,9 +2721,15 @@ test_that("plot --post adds layer", {
   dir <- withr::local_tempdir()
   f <- make_csv(data.frame(x = 1:5, y = 1:5), dir, "data.csv")
   out <- file.path(dir, "post.png")
-  result <- rush_plot_exec(f, args = list(
-    x = "x", y = "y", post = "p + ggplot2::theme_minimal()", output = out
-  ))
+  result <- rush_plot_exec(
+    f,
+    args = list(
+      x = "x",
+      y = "y",
+      post = "p + ggplot2::theme_minimal()",
+      output = out
+    )
+  )
   expect_equal(result$status, 0)
   expect_true(file.exists(out))
 })
@@ -2513,9 +2796,15 @@ test_that("plot from JSON input", {
   dir <- withr::local_tempdir()
   f <- make_json(data.frame(x = 1:5, y = 1:5), dir)
   out <- file.path(dir, "json.png")
-  result <- rush_plot_exec(f, args = list(
-    x = "x", y = "y", input_format = "json", output = out
-  ))
+  result <- rush_plot_exec(
+    f,
+    args = list(
+      x = "x",
+      y = "y",
+      input_format = "json",
+      output = out
+    )
+  )
   expect_equal(result$status, 0)
   expect_true(file.exists(out))
 })
@@ -2535,9 +2824,15 @@ test_that("plot with -l library", {
   dir <- withr::local_tempdir()
   f <- make_csv(data.frame(x = 1:5, y = 1:5), dir, "data.csv")
   out <- file.path(dir, "lib.png")
-  result <- rush_plot_exec(f, args = list(
-    x = "x", y = "y", library = "ggplot2", output = out
-  ))
+  result <- rush_plot_exec(
+    f,
+    args = list(
+      x = "x",
+      y = "y",
+      library = "ggplot2",
+      output = out
+    )
+  )
   expect_equal(result$status, 0)
   expect_true(file.exists(out))
 })
@@ -2547,9 +2842,15 @@ test_that("plot with -t tidyverse", {
   dir <- withr::local_tempdir()
   f <- make_csv(data.frame(x = 1:5, y = 1:5), dir, "data.csv")
   out <- file.path(dir, "tv.png")
-  result <- rush_plot_exec(f, args = list(
-    x = "x", y = "y", tidyverse = TRUE, output = out
-  ))
+  result <- rush_plot_exec(
+    f,
+    args = list(
+      x = "x",
+      y = "y",
+      tidyverse = TRUE,
+      output = out
+    )
+  )
   expect_equal(result$status, 0)
   expect_true(file.exists(out))
 })
@@ -2574,9 +2875,15 @@ test_that("plot from Excel with --input-sheet", {
   )
   f <- make_xlsx(sheets, dir)
   out <- file.path(dir, "sheet.png")
-  result <- rush_plot_exec(f, args = list(
-    x = "x", y = "y", input_sheet = "Sheet2", output = out
-  ))
+  result <- rush_plot_exec(
+    f,
+    args = list(
+      x = "x",
+      y = "y",
+      input_sheet = "Sheet2",
+      output = out
+    )
+  )
   expect_equal(result$status, 0)
   expect_true(file.exists(out))
 })
@@ -2607,7 +2914,11 @@ test_that("single-column data frame -> CSV", {
 test_that("NA values in CSV -> JSON -> CSV round-trip", {
   skip_on_ci()
   dir <- withr::local_tempdir()
-  df_na <- data.frame(a = c(1, NA, 3), b = c("x", NA, "z"), stringsAsFactors = FALSE)
+  df_na <- data.frame(
+    a = c(1, NA, 3),
+    b = c("x", NA, "z"),
+    stringsAsFactors = FALSE
+  )
   f <- make_csv(df_na, dir)
   mid <- file.path(dir, "mid.json")
   out <- file.path(dir, "out.csv")
@@ -2621,10 +2932,18 @@ test_that("NA values in CSV -> JSON -> CSV round-trip", {
 test_that("columns with dots in TOML output are quoted", {
   skip_on_ci()
   dir <- withr::local_tempdir()
-  df_dots <- data.frame(`Sepal.Length` = 5.1, `Petal.Width` = 0.2, check.names = FALSE)
+  df_dots <- data.frame(
+    `Sepal.Length` = 5.1,
+    `Petal.Width` = 0.2,
+    check.names = FALSE
+  )
   f <- make_csv(df_dots, dir)
   out <- file.path(dir, "out.toml")
-  rush_run_exec("df", file = f, args = list(output = out, no_clean_names = TRUE))
+  rush_run_exec(
+    "df",
+    file = f,
+    args = list(output = out, no_clean_names = TRUE)
+  )
   content <- paste(readLines(out), collapse = "\n")
   expect_true(grepl('"Sepal.Length"', content))
   expect_true(grepl('"Petal.Width"', content))
@@ -2686,7 +3005,10 @@ test_that("many rows (500) survive Parquet round-trip", {
 test_that("unicode characters survive CSV -> JSON -> CSV", {
   skip_on_ci()
   dir <- withr::local_tempdir()
-  df_uni <- data.frame(name = c("café", "über", "ñoño"), stringsAsFactors = FALSE)
+  df_uni <- data.frame(
+    name = c("café", "über", "ñoño"),
+    stringsAsFactors = FALSE
+  )
   f <- make_csv(df_uni, dir)
   mid <- file.path(dir, "mid.json")
   out <- file.path(dir, "out.csv")
@@ -2703,7 +3025,11 @@ test_that("parquet without -o gives error or no output", {
   skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(test_df(), dir)
-  result <- rush_run_exec("df", file = f, args = list(output_format = "parquet"))
+  result <- rush_run_exec(
+    "df",
+    file = f,
+    args = list(output_format = "parquet")
+  )
   expect_true(result$status != 0 || nchar(result$stdout) == 0)
 })
 
@@ -2724,7 +3050,11 @@ test_that("invalid expression gives non-zero exit", {
 test_that("missing input file gives error or no meaningful output", {
   skip_on_ci()
   result <- rush_run_exec("nrow(df)", file = "/nonexistent/file.csv")
-  expect_true(result$status != 0 || nchar(trimws(result$stdout)) == 0 || grepl("Error", result$stderr))
+  expect_true(
+    result$status != 0 ||
+      nchar(trimws(result$stdout)) == 0 ||
+      grepl("Error", result$stderr)
+  )
 })
 
 # Section 30: --no-ir flag ------------------------------------------------------
@@ -2732,11 +3062,20 @@ test_that("missing input file gives error or no meaningful output", {
 test_that("--no-ir still produces correct output", {
   skip_on_ci()
   script <- withr::local_tempfile(fileext = ".R")
-  writeLines(c(
-    "library(rush)",
-    'rush("run", "--no-ir", "1 + 1")'
-  ), script)
-  result <- processx::run("Rscript", script, stdout = "|", stderr = "|", error_on_status = FALSE)
+  writeLines(
+    c(
+      "library(rush)",
+      'rush("run", "--no-ir", "1 + 1")'
+    ),
+    script
+  )
+  result <- processx::run(
+    "Rscript",
+    script,
+    stdout = "|",
+    stderr = "|",
+    error_on_status = FALSE
+  )
   expect_equal(result$status, 0)
   expect_equal(trimws(result$stdout), "2")
 })

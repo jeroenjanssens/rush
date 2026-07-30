@@ -412,8 +412,11 @@ compact_read_call <- function(path, flags) {
   if (!identical(flags$input_format %||% "auto", "auto")) {
     args$format <- flags$input_format
   }
-  if (kind == "delim" && !is.null(flags$resolved_input_delimiter) &&
-    flags$resolved_input_delimiter != ",") {
+  if (
+    kind == "delim" &&
+      !is.null(flags$resolved_input_delimiter) &&
+      flags$resolved_input_delimiter != ","
+  ) {
     args$delimiter <- flags$resolved_input_delimiter
   }
   if (!is.null(flags$names)) {
@@ -480,7 +483,9 @@ build_plot_body_compact <- function(con, flags) {
   emit_compact_libraries(con, flags, default = "ggplot2")
 
   plot_files <- flags$file %||% "-"
-  if (length(plot_files) == 0) plot_files <- "-"
+  if (length(plot_files) == 0) {
+    plot_files <- "-"
+  }
   emit_compact_reads(con, plot_files, flags)
 
   first_kind <- file_kind(plot_files[[1]], flags$input_format %||% "auto")

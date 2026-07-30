@@ -2,115 +2,286 @@ skip_if_no_ir <- function() {
   skip_if_not(nzchar(Sys.which("ir")), "ir not available")
 }
 
-rush_run_exec <- function(expr = NULL, file = character(), args = list(), stdin_data = NULL) {
+rush_run_exec <- function(
+  expr = NULL,
+  file = character(),
+  args = list(),
+  stdin_data = NULL
+) {
   a <- c("run")
-  if (!is.null(args[["output_format"]])) a <- c(a, "-O", args[["output_format"]])
-  if (!is.null(args[["input_format"]])) a <- c(a, "-F", args[["input_format"]])
-  if (!is.null(args[["output"]])) a <- c(a, "-o", args[["output"]])
-  if (!is.null(args[["delimiter"]])) a <- c(a, "-d", args[["delimiter"]])
-  if (!is.null(args[["input_delimiter"]])) a <- c(a, "--input-delimiter", args[["input_delimiter"]])
-  if (!is.null(args[["output_delimiter"]])) a <- c(a, "-D", args[["output_delimiter"]])
-  if (isTRUE(args[["no_header"]])) a <- c(a, "-H")
-  if (isTRUE(args[["no_clean_names"]])) a <- c(a, "-C")
-  if (!is.null(args[["head"]])) a <- c(a, "--head", as.character(args[["head"]]))
-  if (!is.null(args[["seed"]])) a <- c(a, "--seed", as.character(args[["seed"]]))
-  if (!is.null(args[["library"]])) a <- c(a, "-l", args[["library"]])
-  if (isTRUE(args[["tidyverse"]])) a <- c(a, "-t")
-  if (!is.null(args[["output_root"]])) a <- c(a, "--output-root", args[["output_root"]])
-  if (!is.null(args[["output_record"]])) a <- c(a, "--output-record", args[["output_record"]])
-  if (!is.null(args[["output_indent"]])) a <- c(a, "--output-indent", as.character(args[["output_indent"]]))
-  if (!is.null(args[["output_sheet"]])) a <- c(a, "--output-sheet", args[["output_sheet"]])
-  if (!is.null(args[["input_sheet"]])) a <- c(a, "--input-sheet", as.character(args[["input_sheet"]]))
-  if (isTRUE(args[["no_ir"]])) a <- c(a, "--no-ir")
-  if (!is.null(expr)) a <- c(a, expr)
-  if (length(file) > 0) a <- c(a, "--", file)
+  if (!is.null(args[["output_format"]])) {
+    a <- c(a, "-O", args[["output_format"]])
+  }
+  if (!is.null(args[["input_format"]])) {
+    a <- c(a, "-F", args[["input_format"]])
+  }
+  if (!is.null(args[["output"]])) {
+    a <- c(a, "-o", args[["output"]])
+  }
+  if (!is.null(args[["delimiter"]])) {
+    a <- c(a, "-d", args[["delimiter"]])
+  }
+  if (!is.null(args[["input_delimiter"]])) {
+    a <- c(a, "--input-delimiter", args[["input_delimiter"]])
+  }
+  if (!is.null(args[["output_delimiter"]])) {
+    a <- c(a, "-D", args[["output_delimiter"]])
+  }
+  if (isTRUE(args[["no_header"]])) {
+    a <- c(a, "-H")
+  }
+  if (isTRUE(args[["no_clean_names"]])) {
+    a <- c(a, "-C")
+  }
+  if (!is.null(args[["head"]])) {
+    a <- c(a, "--head", as.character(args[["head"]]))
+  }
+  if (!is.null(args[["seed"]])) {
+    a <- c(a, "--seed", as.character(args[["seed"]]))
+  }
+  if (!is.null(args[["library"]])) {
+    a <- c(a, "-l", args[["library"]])
+  }
+  if (isTRUE(args[["tidyverse"]])) {
+    a <- c(a, "-t")
+  }
+  if (!is.null(args[["output_root"]])) {
+    a <- c(a, "--output-root", args[["output_root"]])
+  }
+  if (!is.null(args[["output_record"]])) {
+    a <- c(a, "--output-record", args[["output_record"]])
+  }
+  if (!is.null(args[["output_indent"]])) {
+    a <- c(a, "--output-indent", as.character(args[["output_indent"]]))
+  }
+  if (!is.null(args[["output_sheet"]])) {
+    a <- c(a, "--output-sheet", args[["output_sheet"]])
+  }
+  if (!is.null(args[["input_sheet"]])) {
+    a <- c(a, "--input-sheet", as.character(args[["input_sheet"]]))
+  }
+  if (isTRUE(args[["no_ir"]])) {
+    a <- c(a, "--no-ir")
+  }
+  if (!is.null(expr)) {
+    a <- c(a, expr)
+  }
+  if (length(file) > 0) {
+    a <- c(a, "--", file)
+  }
 
   rush_raw(a, stdin_data = stdin_data)
 }
 
 rush_convert_exec <- function(file, args = list(), stdin_data = NULL) {
   a <- c("convert")
-  if (!is.null(args[["output_format"]])) a <- c(a, "-O", args[["output_format"]])
-  if (!is.null(args[["input_format"]])) a <- c(a, "-F", args[["input_format"]])
-  if (!is.null(args[["output"]])) a <- c(a, "-o", args[["output"]])
-  if (!is.null(args[["delimiter"]])) a <- c(a, "-d", args[["delimiter"]])
-  if (!is.null(args[["input_delimiter"]])) a <- c(a, "--input-delimiter", args[["input_delimiter"]])
-  if (!is.null(args[["output_delimiter"]])) a <- c(a, "-D", args[["output_delimiter"]])
-  if (isTRUE(args[["no_header"]])) a <- c(a, "-H")
-  if (isTRUE(args[["no_clean_names"]])) a <- c(a, "-C")
-  if (!is.null(args[["head"]])) a <- c(a, "--head", as.character(args[["head"]]))
-  if (!is.null(args[["output_root"]])) a <- c(a, "--output-root", args[["output_root"]])
-  if (!is.null(args[["output_record"]])) a <- c(a, "--output-record", args[["output_record"]])
-  if (!is.null(args[["output_indent"]])) a <- c(a, "--output-indent", as.character(args[["output_indent"]]))
-  if (!is.null(args[["output_sheet"]])) a <- c(a, "--output-sheet", args[["output_sheet"]])
-  if (!is.null(args[["input_sheet"]])) a <- c(a, "--input-sheet", as.character(args[["input_sheet"]]))
+  if (!is.null(args[["output_format"]])) {
+    a <- c(a, "-O", args[["output_format"]])
+  }
+  if (!is.null(args[["input_format"]])) {
+    a <- c(a, "-F", args[["input_format"]])
+  }
+  if (!is.null(args[["output"]])) {
+    a <- c(a, "-o", args[["output"]])
+  }
+  if (!is.null(args[["delimiter"]])) {
+    a <- c(a, "-d", args[["delimiter"]])
+  }
+  if (!is.null(args[["input_delimiter"]])) {
+    a <- c(a, "--input-delimiter", args[["input_delimiter"]])
+  }
+  if (!is.null(args[["output_delimiter"]])) {
+    a <- c(a, "-D", args[["output_delimiter"]])
+  }
+  if (isTRUE(args[["no_header"]])) {
+    a <- c(a, "-H")
+  }
+  if (isTRUE(args[["no_clean_names"]])) {
+    a <- c(a, "-C")
+  }
+  if (!is.null(args[["head"]])) {
+    a <- c(a, "--head", as.character(args[["head"]]))
+  }
+  if (!is.null(args[["output_root"]])) {
+    a <- c(a, "--output-root", args[["output_root"]])
+  }
+  if (!is.null(args[["output_record"]])) {
+    a <- c(a, "--output-record", args[["output_record"]])
+  }
+  if (!is.null(args[["output_indent"]])) {
+    a <- c(a, "--output-indent", as.character(args[["output_indent"]]))
+  }
+  if (!is.null(args[["output_sheet"]])) {
+    a <- c(a, "--output-sheet", args[["output_sheet"]])
+  }
+  if (!is.null(args[["input_sheet"]])) {
+    a <- c(a, "--input-sheet", as.character(args[["input_sheet"]]))
+  }
   a <- c(a, file)
 
   rush_raw(a, stdin_data = stdin_data)
 }
 
-rush_plot_exec <- function(file = character(), args = list(), stdin_data = NULL) {
+rush_plot_exec <- function(
+  file = character(),
+  args = list(),
+  stdin_data = NULL
+) {
   a <- c("plot")
-  if (!is.null(args[["x"]])) a <- c(a, "-x", args[["x"]])
-  if (!is.null(args[["y"]])) a <- c(a, "-y", args[["y"]])
-  if (!is.null(args[["z"]])) a <- c(a, "-z", args[["z"]])
-  if (!is.null(args[["color"]])) a <- c(a, "-c", args[["color"]])
-  if (!is.null(args[["fill"]])) a <- c(a, "-f", args[["fill"]])
-  if (!is.null(args[["alpha"]])) a <- c(a, "--alpha", args[["alpha"]])
-  if (!is.null(args[["size"]])) a <- c(a, "--size", args[["size"]])
-  if (!is.null(args[["shape"]])) a <- c(a, "--shape", args[["shape"]])
-  if (!is.null(args[["group"]])) a <- c(a, "--group", args[["group"]])
-  if (!is.null(args[["aes"]])) a <- c(a, "--aes", args[["aes"]])
-  if (!is.null(args[["geom"]])) a <- c(a, "-g", args[["geom"]])
-  if (!is.null(args[["facets"]])) a <- c(a, "--facets", args[["facets"]])
-  if (!is.null(args[["log"]])) a <- c(a, "--log", args[["log"]])
-  if (!is.null(args[["title"]])) a <- c(a, "--title", args[["title"]])
-  if (!is.null(args[["xlab"]])) a <- c(a, "--xlab", args[["xlab"]])
-  if (!is.null(args[["ylab"]])) a <- c(a, "--ylab", args[["ylab"]])
-  if (isTRUE(args[["margins"]])) a <- c(a, "--margins")
-  if (!is.null(args[["pre"]])) a <- c(a, "--pre", args[["pre"]])
-  if (!is.null(args[["post"]])) a <- c(a, "--post", args[["post"]])
-  if (!is.null(args[["output"]])) a <- c(a, "-o", args[["output"]])
-  if (!is.null(args[["width"]])) a <- c(a, "-w", as.character(args[["width"]]))
-  if (!is.null(args[["height"]])) a <- c(a, "--height", as.character(args[["height"]]))
-  if (!is.null(args[["units"]])) a <- c(a, "--units", args[["units"]])
-  if (!is.null(args[["dpi"]])) a <- c(a, "--dpi", as.character(args[["dpi"]]))
-  if (!is.null(args[["input_format"]])) a <- c(a, "-F", args[["input_format"]])
-  if (!is.null(args[["delimiter"]])) a <- c(a, "-d", args[["delimiter"]])
-  if (!is.null(args[["input_delimiter"]])) a <- c(a, "--input-delimiter", args[["input_delimiter"]])
-  if (isTRUE(args[["no_header"]])) a <- c(a, "-H")
-  if (isTRUE(args[["no_clean_names"]])) a <- c(a, "-C")
-  if (!is.null(args[["library"]])) a <- c(a, "-l", args[["library"]])
-  if (isTRUE(args[["tidyverse"]])) a <- c(a, "-t")
-  if (!is.null(args[["seed"]])) a <- c(a, "--seed", as.character(args[["seed"]]))
-  if (!is.null(args[["input_sheet"]])) a <- c(a, "--input-sheet", as.character(args[["input_sheet"]]))
-  if (length(file) > 0) a <- c(a, "--", file)
+  if (!is.null(args[["x"]])) {
+    a <- c(a, "-x", args[["x"]])
+  }
+  if (!is.null(args[["y"]])) {
+    a <- c(a, "-y", args[["y"]])
+  }
+  if (!is.null(args[["z"]])) {
+    a <- c(a, "-z", args[["z"]])
+  }
+  if (!is.null(args[["color"]])) {
+    a <- c(a, "-c", args[["color"]])
+  }
+  if (!is.null(args[["fill"]])) {
+    a <- c(a, "-f", args[["fill"]])
+  }
+  if (!is.null(args[["alpha"]])) {
+    a <- c(a, "--alpha", args[["alpha"]])
+  }
+  if (!is.null(args[["size"]])) {
+    a <- c(a, "--size", args[["size"]])
+  }
+  if (!is.null(args[["shape"]])) {
+    a <- c(a, "--shape", args[["shape"]])
+  }
+  if (!is.null(args[["group"]])) {
+    a <- c(a, "--group", args[["group"]])
+  }
+  if (!is.null(args[["aes"]])) {
+    a <- c(a, "--aes", args[["aes"]])
+  }
+  if (!is.null(args[["geom"]])) {
+    a <- c(a, "-g", args[["geom"]])
+  }
+  if (!is.null(args[["facets"]])) {
+    a <- c(a, "--facets", args[["facets"]])
+  }
+  if (!is.null(args[["log"]])) {
+    a <- c(a, "--log", args[["log"]])
+  }
+  if (!is.null(args[["title"]])) {
+    a <- c(a, "--title", args[["title"]])
+  }
+  if (!is.null(args[["xlab"]])) {
+    a <- c(a, "--xlab", args[["xlab"]])
+  }
+  if (!is.null(args[["ylab"]])) {
+    a <- c(a, "--ylab", args[["ylab"]])
+  }
+  if (isTRUE(args[["margins"]])) {
+    a <- c(a, "--margins")
+  }
+  if (!is.null(args[["pre"]])) {
+    a <- c(a, "--pre", args[["pre"]])
+  }
+  if (!is.null(args[["post"]])) {
+    a <- c(a, "--post", args[["post"]])
+  }
+  if (!is.null(args[["output"]])) {
+    a <- c(a, "-o", args[["output"]])
+  }
+  if (!is.null(args[["width"]])) {
+    a <- c(a, "-w", as.character(args[["width"]]))
+  }
+  if (!is.null(args[["height"]])) {
+    a <- c(a, "--height", as.character(args[["height"]]))
+  }
+  if (!is.null(args[["units"]])) {
+    a <- c(a, "--units", args[["units"]])
+  }
+  if (!is.null(args[["dpi"]])) {
+    a <- c(a, "--dpi", as.character(args[["dpi"]]))
+  }
+  if (!is.null(args[["input_format"]])) {
+    a <- c(a, "-F", args[["input_format"]])
+  }
+  if (!is.null(args[["delimiter"]])) {
+    a <- c(a, "-d", args[["delimiter"]])
+  }
+  if (!is.null(args[["input_delimiter"]])) {
+    a <- c(a, "--input-delimiter", args[["input_delimiter"]])
+  }
+  if (isTRUE(args[["no_header"]])) {
+    a <- c(a, "-H")
+  }
+  if (isTRUE(args[["no_clean_names"]])) {
+    a <- c(a, "-C")
+  }
+  if (!is.null(args[["library"]])) {
+    a <- c(a, "-l", args[["library"]])
+  }
+  if (isTRUE(args[["tidyverse"]])) {
+    a <- c(a, "-t")
+  }
+  if (!is.null(args[["seed"]])) {
+    a <- c(a, "--seed", as.character(args[["seed"]]))
+  }
+  if (!is.null(args[["input_sheet"]])) {
+    a <- c(a, "--input-sheet", as.character(args[["input_sheet"]]))
+  }
+  if (length(file) > 0) {
+    a <- c(a, "--", file)
+  }
 
   rush_raw(a, stdin_data = stdin_data)
 }
 
-rush_sql_exec <- function(query, file = character(), args = list(), stdin_data = NULL) {
+rush_sql_exec <- function(
+  query,
+  file = character(),
+  args = list(),
+  stdin_data = NULL
+) {
   a <- c("sql")
-  if (!is.null(args[["output_format"]])) a <- c(a, "-O", args[["output_format"]])
-  if (!is.null(args[["output"]])) a <- c(a, "-o", args[["output"]])
-  if (!is.null(args[["delimiter"]])) a <- c(a, "-d", args[["delimiter"]])
-  if (!is.null(args[["output_delimiter"]])) a <- c(a, "-D", args[["output_delimiter"]])
-  if (!is.null(args[["head"]])) a <- c(a, "--head", as.character(args[["head"]]))
-  if (!is.null(args[["library"]])) a <- c(a, "-l", args[["library"]])
-  if (isTRUE(args[["tidyverse"]])) a <- c(a, "-t")
-  if (!is.null(args[["seed"]])) a <- c(a, "--seed", as.character(args[["seed"]]))
+  if (!is.null(args[["output_format"]])) {
+    a <- c(a, "-O", args[["output_format"]])
+  }
+  if (!is.null(args[["output"]])) {
+    a <- c(a, "-o", args[["output"]])
+  }
+  if (!is.null(args[["delimiter"]])) {
+    a <- c(a, "-d", args[["delimiter"]])
+  }
+  if (!is.null(args[["output_delimiter"]])) {
+    a <- c(a, "-D", args[["output_delimiter"]])
+  }
+  if (!is.null(args[["head"]])) {
+    a <- c(a, "--head", as.character(args[["head"]]))
+  }
+  if (!is.null(args[["library"]])) {
+    a <- c(a, "-l", args[["library"]])
+  }
+  if (isTRUE(args[["tidyverse"]])) {
+    a <- c(a, "-t")
+  }
+  if (!is.null(args[["seed"]])) {
+    a <- c(a, "--seed", as.character(args[["seed"]]))
+  }
   a <- c(a, query)
-  if (length(file) > 0) a <- c(a, "--", file)
+  if (length(file) > 0) {
+    a <- c(a, "--", file)
+  }
 
   rush_raw(a, stdin_data = stdin_data)
 }
 
 rush_raw <- function(argv, stdin_data = NULL) {
   script <- withr::local_tempfile(fileext = ".R")
-  writeLines(c(
-    "library(rush)",
-    paste0("rush(", paste(deparse(argv), collapse = ""), ")")
-  ), script)
+  writeLines(
+    c(
+      "library(rush)",
+      paste0("rush(", paste(deparse(argv), collapse = ""), ")")
+    ),
+    script
+  )
 
   stdin_file <- if (!is.null(stdin_data)) {
     f <- withr::local_tempfile()
@@ -186,7 +357,13 @@ make_toml <- function(df, dir, name = "data.toml", record = "record") {
   path
 }
 
-make_xml <- function(df, dir, name = "data.xml", root = "root", record = "record") {
+make_xml <- function(
+  df,
+  dir,
+  name = "data.xml",
+  root = "root",
+  record = "record"
+) {
   path <- file.path(dir, name)
   root_node <- xml2::xml_new_root(root)
   for (i in seq_len(nrow(df))) {
@@ -219,7 +396,9 @@ make_xlsx <- function(df_or_list, dir, name = "data.xlsx") {
 
 make_duckdb <- function(tables, dir, name = "data.duckdb") {
   path <- file.path(dir, name)
-  if (file.exists(path)) unlink(path)
+  if (file.exists(path)) {
+    unlink(path)
+  }
   con <- DBI::dbConnect(duckdb::duckdb(shared_home = FALSE), dbdir = path)
   on.exit(DBI::dbDisconnect(con, shutdown = TRUE))
   for (tname in names(tables)) {
@@ -230,7 +409,9 @@ make_duckdb <- function(tables, dir, name = "data.duckdb") {
 
 make_sqlite <- function(tables, dir, name = "data.sqlite") {
   path <- file.path(dir, name)
-  if (file.exists(path)) unlink(path)
+  if (file.exists(path)) {
+    unlink(path)
+  }
   con <- DBI::dbConnect(RSQLite::SQLite(), path)
   on.exit(DBI::dbDisconnect(con))
   for (tname in names(tables)) {

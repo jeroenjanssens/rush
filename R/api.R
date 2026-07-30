@@ -87,7 +87,8 @@ read <- function(
 ) {
   kind <- file_kind(path, format)
 
-  result <- switch(kind,
+  result <- switch(
+    kind,
     stdin = readr::read_delim(
       file("stdin", "rb", raw = TRUE),
       delim = delimiter,
@@ -223,7 +224,9 @@ write <- function(result) {
   }
 
   write_result <- function(result, output) {
-    if (!is.null(cfg$head)) result <- utils::head(result, cfg$head)
+    if (!is.null(cfg$head)) {
+      result <- utils::head(result, cfg$head)
+    }
     if (has_tty && is.null(output) && identical(cfg$output_format, "delim")) {
       options(
         tibble.width = if (is.null(cfg$width)) {
@@ -234,12 +237,17 @@ write <- function(result) {
       )
       print(tibble::as_tibble(result), n = cfg$height)
     } else if (identical(cfg$output_format, "parquet")) {
-      if (is.null(output)) stop("Parquet format requires --output (-o) file path")
+      if (is.null(output)) {
+        stop("Parquet format requires --output (-o) file path")
+      }
       nanoparquet::write_parquet(result, output)
     } else if (identical(cfg$output_format, "json")) {
       pretty <- cfg$output_indent > 0L
       json <- jsonlite::toJSON(
-        result, dataframe = "rows", pretty = pretty, auto_unbox = TRUE
+        result,
+        dataframe = "rows",
+        pretty = pretty,
+        auto_unbox = TRUE
       )
       if (is.null(output)) cat(json, "\n") else writeLines(json, output)
     } else if (identical(cfg$output_format, "jsonl")) {
@@ -247,7 +255,9 @@ write <- function(result) {
       jsonlite::stream_out(result, con_out, verbose = FALSE)
       if (!is.null(output)) close(con_out)
     } else if (identical(cfg$output_format, "arrow")) {
-      if (is.null(output)) stop("Arrow format requires --output (-o) file path")
+      if (is.null(output)) {
+        stop("Arrow format requires --output (-o) file path")
+      }
       arrow::write_ipc_file(result, output)
     } else if (identical(cfg$output_format, "xlsx")) {
       xlsx_data <- if (!is.null(cfg$output_sheet)) {
@@ -335,7 +345,12 @@ write <- function(result) {
       }
     } else {
       con <- if (is.null(output)) stdout_binary() else output
-      readr::write_delim(result, con, delim = cfg$delimiter %||% ",", col_names = cfg$output_header %||% TRUE)
+      readr::write_delim(
+        result,
+        con,
+        delim = cfg$delimiter %||% ",",
+        col_names = cfg$output_header %||% TRUE
+      )
     }
   }
 
@@ -344,12 +359,19 @@ write <- function(result) {
     out <- output
     w <- cfg$width
     h <- cfg$height
-    if (is.null(out)) out <- if (has_tty) "ansi" else "png"
+    if (is.null(out)) {
+      out <- if (has_tty) "ansi" else "png"
+    }
 
     if (out %in% c("ansi", "ascii")) {
-      if (is.null(w)) w <- cli::console_width()
+      if (is.null(w)) {
+        w <- cli::console_width()
+      }
       devoutansi::ansi(
-        width = w, height = h, plain_ascii = TRUE, char_lookup_table = 2
+        width = w,
+        height = h,
+        plain_ascii = TRUE,
+        char_lookup_table = 2
       )
       print(result)
       invisible(grDevices::dev.off())
@@ -363,12 +385,20 @@ write <- function(result) {
         device <- NULL
         cat_output <- FALSE
       }
-      if (is.null(w)) w <- 6
-      if (is.null(h)) h <- 4
+      if (is.null(w)) {
+        w <- 6
+      }
+      if (is.null(h)) {
+        h <- 4
+      }
       ggplot2::ggsave(
-        output_filename, result,
+        output_filename,
+        result,
         device = device,
-        width = w, height = h, units = cfg$units, dpi = cfg$dpi
+        width = w,
+        height = h,
+        units = cfg$units,
+        dpi = cfg$dpi
       )
       if (cat_output) {
         contents <- readBin(output_filename, raw(), n = 1e8)
@@ -389,15 +419,24 @@ write <- function(result) {
         sprintf(paste0("%", spec), value)
       }
     }
-    expand_template <- function(tmpl, file_name, file_index, table_name, table_index) {
+    expand_template <- function(
+      tmpl,
+      file_name,
+      file_index,
+      table_name,
+      table_index
+    ) {
       while (grepl("%[(][^)]+[)]([^%]*[a-z])", tmpl)) {
         m <- regexec("%[(]([^)]+)[)]([^%]*[a-z])", tmpl)[[1]]
         full <- regmatches(tmpl, list(m))[[1]]
         field <- full[2]
         spec <- full[3]
-        value <- switch(field,
-          file_name = file_name, file_index = file_index,
-          table_name = table_name, table_index = table_index,
+        value <- switch(
+          field,
+          file_name = file_name,
+          file_index = file_index,
+          table_name = table_name,
+          table_index = table_index,
           ""
         )
         replacement <- expand_field(value, spec)
@@ -417,7 +456,11 @@ write <- function(result) {
         for (tname in names(item)) {
           table_index <- table_index + 1L
           path <- expand_template(
-            cfg$output_template, fname, file_index, tname, table_index
+            cfg$output_template,
+            fname,
+            file_index,
+            tname,
+            table_index
           )
           write_result(item[[tname]], path)
         }
