@@ -1,79 +1,79 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://jeroenjanssens.github.io/rush/formats/databases.html</loc>
-    <lastmod>2026-07-30T12:55:50.307Z</lastmod>
-  </url>
-  <url>
-    <loc>https://jeroenjanssens.github.io/rush/formats/statistical.html</loc>
-    <lastmod>2026-07-30T12:55:50.307Z</lastmod>
-  </url>
-  <url>
-    <loc>https://jeroenjanssens.github.io/rush/formats/json.html</loc>
-    <lastmod>2026-07-30T12:55:50.307Z</lastmod>
-  </url>
-  <url>
-    <loc>https://jeroenjanssens.github.io/rush/formats/arrow.html</loc>
-    <lastmod>2026-07-30T12:55:50.307Z</lastmod>
-  </url>
-  <url>
-    <loc>https://jeroenjanssens.github.io/rush/formats/excel.html</loc>
-    <lastmod>2026-07-30T12:55:50.307Z</lastmod>
-  </url>
-  <url>
-    <loc>https://jeroenjanssens.github.io/rush/reference/sql.html</loc>
-    <lastmod>2026-07-30T12:55:50.308Z</lastmod>
-  </url>
-  <url>
-    <loc>https://jeroenjanssens.github.io/rush/reference/convert.html</loc>
-    <lastmod>2026-07-30T12:55:50.307Z</lastmod>
+    <loc>https://jeroenjanssens.github.io/rush/formats.html</loc>
+    <lastmod>2026-10-28T18:55:23.114Z</lastmod>
   </url>
   <url>
     <loc>https://jeroenjanssens.github.io/rush/index.html</loc>
-    <lastmod>2026-07-30T12:55:50.307Z</lastmod>
+    <lastmod>2026-10-28T18:55:23.114Z</lastmod>
   </url>
   <url>
-    <loc>https://jeroenjanssens.github.io/rush/pipelines.html</loc>
-    <lastmod>2026-07-30T12:55:50.307Z</lastmod>
+    <loc>https://jeroenjanssens.github.io/rush/formats/json.html</loc>
+    <lastmod>2026-10-28T18:55:23.114Z</lastmod>
   </url>
   <url>
-    <loc>https://jeroenjanssens.github.io/rush/scripts.html</loc>
-    <lastmod>2026-07-30T12:55:50.308Z</lastmod>
+    <loc>https://jeroenjanssens.github.io/rush/formats/databases.html</loc>
+    <lastmod>2026-10-28T18:55:23.114Z</lastmod>
+  </url>
+  <url>
+    <loc>https://jeroenjanssens.github.io/rush/formats/arrow.html</loc>
+    <lastmod>2026-10-28T18:55:23.114Z</lastmod>
+  </url>
+  <url>
+    <loc>https://jeroenjanssens.github.io/rush/formats/excel.html</loc>
+    <lastmod>2026-10-28T18:55:23.114Z</lastmod>
   </url>
   <url>
     <loc>https://jeroenjanssens.github.io/rush/get-started.html</loc>
-    <lastmod>2026-07-30T12:55:50.307Z</lastmod>
+    <lastmod>2026-10-28T18:55:23.114Z</lastmod>
   </url>
   <url>
-    <loc>https://jeroenjanssens.github.io/rush/changelog.html</loc>
-    <lastmod>2026-07-30T12:55:50.307Z</lastmod>
+    <loc>https://jeroenjanssens.github.io/rush/reference/convert.html</loc>
+    <lastmod>2026-10-28T18:55:23.114Z</lastmod>
   </url>
   <url>
     <loc>https://jeroenjanssens.github.io/rush/reference/plot.html</loc>
-    <lastmod>2026-07-30T12:55:50.308Z</lastmod>
+    <lastmod>2026-10-28T18:55:23.115Z</lastmod>
+  </url>
+  <url>
+    <loc>https://jeroenjanssens.github.io/rush/scripts.html</loc>
+    <lastmod>2026-10-28T18:55:23.115Z</lastmod>
+  </url>
+  <url>
+    <loc>https://jeroenjanssens.github.io/rush/pipelines.html</loc>
+    <lastmod>2026-10-28T18:55:23.114Z</lastmod>
+  </url>
+  <url>
+    <loc>https://jeroenjanssens.github.io/rush/reference/sql.html</loc>
+    <lastmod>2026-10-28T18:55:23.115Z</lastmod>
   </url>
   <url>
     <loc>https://jeroenjanssens.github.io/rush/reference/run.html</loc>
-    <lastmod>2026-07-30T12:55:50.308Z</lastmod>
+    <lastmod>2026-10-28T18:55:23.115Z</lastmod>
   </url>
   <url>
-    <loc>https://jeroenjanssens.github.io/rush/formats.html</loc>
-    <lastmod>2026-07-30T12:55:50.307Z</lastmod>
-  </url>
-  <url>
-    <loc>https://jeroenjanssens.github.io/rush/formats/bioinformatics.html</loc>
-    <lastmod>2026-07-30T12:55:50.307Z</lastmod>
+    <loc>https://jeroenjanssens.github.io/rush/formats/statistical.html</loc>
+    <lastmod>2026-10-28T18:55:23.114Z</lastmod>
   </url>
   <url>
     <loc>https://jeroenjanssens.github.io/rush/formats/parquet.html</loc>
-    <lastmod>2026-07-30T12:55:50.307Z</lastmod>
+    <lastmod>2026-10-28T18:55:23.114Z</lastmod>
   </url>
   <url>
-    <loc>https://jeroenjanssens.github.io/rush/formats/structured.html</loc>
-    <lastmod>2026-07-30T12:55:50.307Z</lastmod>
+    <loc>https://jeroenjanssens.github.io/rush/formats/bioinformatics.html</loc>
+    <lastmod>2026-10-28T18:55:23.114Z</lastmod>
   </url>
   <url>
     <loc>https://jeroenjanssens.github.io/rush/formats/delimited.html</loc>
-    <lastmod>2026-07-30T12:55:50.307Z</lastmod>
+    <lastmod>2026-10-28T18:55:23.114Z</lastmod>
+  </url>
+  <url>
+    <loc>https://jeroenjanssens.github.io/rush/formats/structured.html</loc>
+    <lastmod>2026-10-28T18:55:23.114Z</lastmod>
+  </url>
+  <url>
+    <loc>https://jeroenjanssens.github.io/rush/changelog.html</loc>
+    <lastmod>2026-10-28T18:55:23.114Z</lastmod>
   </url>
 </urlset>
