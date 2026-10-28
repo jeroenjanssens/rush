@@ -95,7 +95,7 @@ dependencies:
 
 ## Learn more
 
-Full documentation is available at **<https://jeroenjanssens.github.io/rush>**.
+Full documentation is available at **<https://rush.jeroenjanssens.com>**.
 
 ## Code of Conduct
 

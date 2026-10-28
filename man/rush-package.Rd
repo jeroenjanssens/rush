@@ -11,7 +11,7 @@ Run R expressions and create plots directly from the shell. Each invocation asse
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://jeroenjanssens.github.io/rush/}
+  \item \url{https://rush.jeroenjanssens.com/}
   \item \url{https://github.com/jeroenjanssens/rush}
   \item Report bugs at \url{https://github.com/jeroenjanssens/rush/issues}
 }

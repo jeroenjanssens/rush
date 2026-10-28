@@ -58,5 +58,5 @@ Suggests:
 VignetteBuilder: knitr
 SystemRequirements: ir (https://r-lib.github.io/ir/)
 Config/testthat/edition: 3
-URL: https://jeroenjanssens.github.io/rush/, https://github.com/jeroenjanssens/rush
+URL: https://rush.jeroenjanssens.com/, https://github.com/jeroenjanssens/rush
 BugReports: https://github.com/jeroenjanssens/rush/issues
