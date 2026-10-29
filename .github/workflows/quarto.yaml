@@ -10,7 +10,7 @@ on:
 permissions: read-all
 
 jobs:
-  build-deploy:
+  build:
     runs-on: ubuntu-latest
     concurrency:
       group: quarto-${{ github.event_name != 'pull_request' || github.run_id }}
@@ -19,7 +19,7 @@ jobs:
       RSPM: https://packagemanager.posit.co/cran/__linux__/noble/latest
       PKG_CRAN_MIRROR: https://packagemanager.posit.co/cran/__linux__/noble/latest
     permissions:
-      contents: write
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
@@ -70,10 +70,26 @@ jobs:
       - name: Build website
         run: quarto render docs
 
-      - name: Deploy to GitHub Pages
+      - name: Upload website
         if: github.event_name != 'pull_request'
-        uses: JamesIves/github-pages-deploy-action@v4.5.0
+        uses: actions/upload-pages-artifact@v3
         with:
-          clean: false
-          branch: gh-pages
-          folder: docs/_site
+          path: docs/_site
+
+  deploy:
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
