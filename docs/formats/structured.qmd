@@ -1,6 +1,6 @@
 ---
+engine: markdown
 title: "Structured data (YAML, TOML, XML, RDS, FWF)"
-engine: knitr
 ---
 
 ## YAML
@@ -12,19 +12,19 @@ otherwise they are flattened.
 
 ### Reading
 
-```{bash}
+```{term}
 rush run -n 'head(df)' config.yaml
 ```
 
 ### Writing
 
-```{bash}
+```{term}
 rush run -n -O yaml -o output.yaml 'df' data.csv
 ```
 
 ### Converting (nesting preserved)
 
-```{bash}
+```{term}
 rush convert -n -o output.yaml data.json
 ```
 
@@ -35,13 +35,13 @@ Files ending in `.toml` are read with
 
 ### Reading
 
-```{bash}
+```{term}
 rush run -n 'head(df)' config.toml
 ```
 
 ### Writing
 
-```{bash}
+```{term}
 rush run -n -O toml -o output.toml 'df' data.csv
 ```
 
@@ -52,13 +52,13 @@ Data frames are serialized as rows, with configurable element names.
 
 ### Reading
 
-```{bash}
+```{term}
 rush run -n 'head(df)' data.xml
 ```
 
 ### Writing
 
-```{bash}
+```{term}
 rush run -n -O xml -o output.xml 'df' data.csv
 ```
 
@@ -66,7 +66,7 @@ rush run -n -O xml -o output.xml 'df' data.csv
 
 Customize the root and record element names (defaults: `root` and `record`):
 
-```{bash}
+```{term}
 rush run -n -O xml --output-root plants --output-record observation 'head(df)' data.csv
 ```
 
@@ -77,13 +77,13 @@ R's native serialisation format. Files ending in `.rds` are read with
 
 ### Reading
 
-```{bash}
+```{term}
 rush run -n 'head(df)' data.rds
 ```
 
 ### Writing
 
-```{bash}
+```{term}
 rush run -n -o output.rds 'df' data.csv
 ```
 
@@ -94,12 +94,12 @@ auto-detected. This format is read-only.
 
 ### Reading
 
-```{bash}
+```{term}
 rush run -n 'head(df)' data.fwf
 ```
 
 ### Using `-F fwf` for files without the `.fwf` extension
 
-```{bash}
+```{term}
 rush run -n -F fwf 'head(df)' legacy.txt
 ```

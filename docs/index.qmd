@@ -1,19 +1,73 @@
 ---
+engine: markdown
 title: "rush"
 subtitle: "R Scripting at the Command Line"
+extensions:
+  term:
+    record: "rush-demo.cast"
+    # Prepare a throwaway directory with mtcars.csv. Init commands are not
+    # recorded. Dollars are escaped because metadata is parsed as markdown.
+    init:
+      - zsh-syntax-highlighting
+      - "setopt INTERACTIVE_COMMENTS"
+      - 'demo_dir=\$(mktemp -d)'
+      - 'cd \$demo_dir'
+      - 'zshexit() { rm -rf \$demo_dir }'
+      - "rush run -o mtcars.csv mtcars"
+    typing:
+      speed: 700
+    style:
+      chrome:
+        os: macos
+        title: "rush — R One-Liners from the Shell"
 ---
 
-[![R-CMD-check](https://github.com/jeroenjanssens/rush/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/jeroenjanssens/rush/actions/workflows/R-CMD-check.yaml)
-
-{{< include _setup.qmd >}}
+[![](https://github.com/jeroenjanssens/rush/actions/workflows/R-CMD-check.yaml/badge.svg){fig-alt="R-CMD-check"}](https://github.com/jeroenjanssens/rush/actions/workflows/R-CMD-check.yaml)
 
 **`rush` brings R to the command line.** Run an R expression, wrangle a CSV,
 query a Parquet file with SQL, or draw a plot right in your terminal, all
 without opening an R session or writing a script.
 
-```{bash}
-rush run 'dplyr::filter(df, body_mass_g > 5000) |> head()' penguins.csv
+<!-- Each hidden cell below is one scene of the homepage recording. -->
+
+```{term}
+#| include: false
+rush run 'head(df, 5)' mtcars.csv #! hold: 2.5
 ```
+
+```{term}
+#| include: false
+C-l #! literal: false
+rush run -t 'df |> group_by(cyl) |> summarise(avg_mpg = mean(mpg), max_hp = max(hp))' mtcars.csv #! hold: 2.5
+```
+
+```{term}
+#| include: false
+C-l #! literal: false
+rush sql "SELECT mpg, hp, wt FROM mtcars WHERE hp > 200" mtcars.csv | \
+  rush run 'dplyr::arrange(df, mpg)' - #! hold: 2.5
+```
+
+```{term}
+#| include: false
+C-l #! literal: false
+rush convert -o mtcars.parquet mtcars.csv
+rush sql "SELECT cyl, COUNT(*) AS n FROM mtcars GROUP BY cyl ORDER BY cyl" mtcars.parquet #! hold: 2.5
+```
+
+```{term}
+#| include: false
+C-l #! literal: false
+rush run --dry-run 'df |> dplyr::filter(mpg > 25)' mtcars.csv #! hold: 2.5
+```
+
+```{term}
+#| include: false
+C-l #! literal: false
+rush plot -x wt -y mpg -c cyl -O ansi --width 78 mtcars.csv #! hold: 4
+```
+
+{{< term-player src="rush-demo.cast" autoplay=true loop=true speed=1.5 idle-time-limit=4 chrome=true chrome-title="rush" >}}
 
 R has a wonderful ecosystem for working with data, but reaching for it usually
 means launching R, loading packages, and reading files by hand. `rush` collapses
@@ -90,4 +144,3 @@ dependencies:
   no dependency resolution, no SQL or plotting, but a useful building block
   for R scripting.
 
-{{< include _cleanup.qmd >}}

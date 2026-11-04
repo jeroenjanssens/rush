@@ -1,8 +1,7 @@
 ---
+engine: markdown
 title: "rush run"
 ---
-
-{{< include ../_setup.qmd >}}
 
 The `run` command evaluates an R expression and prints (or saves) the result.
 It is the core command of `rush`.
@@ -17,23 +16,23 @@ rush run [options] [<expression>] [--] [<file>...]
 
 At its core, `rush run` evaluates any R expression and prints the result:
 
-```{bash}
+```{term}
 rush run '6 * 7'
 ```
 
 Multiple semicolon-separated expressions work; the value of the last one is printed:
 
-```{bash}
+```{term}
 rush run 'x <- 1:10; mean(x)'
 ```
 
 Strings, vectors, and lists all print naturally:
 
-```{bash}
+```{term}
 rush run 'paste("Hello", "from", "R", sep = ", ")'
 ```
 
-```{bash}
+```{term}
 rush run 'rev(LETTERS[1:8])'
 ```
 
@@ -41,14 +40,19 @@ rush run 'rev(LETTERS[1:8])'
 
 Pass a file path after the expression, and it is read into a data frame called `df`:
 
-```{bash}
-rush run 'nrow(df)' penguins.csv
+```{term}
+#| include: false
+rush run -o mtcars.csv 'mtcars'
+```
+
+```{term}
+rush run 'nrow(df)' mtcars.csv
 ```
 
 With just a file and no expression, the data is printed. A quick way to peek:
 
-```{bash}
-rush run 'head(df, 5)' penguins.csv
+```{term}
+rush run 'head(df, 5)' mtcars.csv
 ```
 
 ### The `df` and `dfs` variables
@@ -60,19 +64,15 @@ Two variables are always available in your expression:
 - **`dfs`**: a named list of all inputs, keyed by file stem. Database entries
   are nested one level deeper: `dfs$dbname$tablename`.
 
-```{bash}
-rush run 'names(dfs)' penguins.csv cities.tsv
-```
-
-```{bash}
-rush run 'nrow(dfs[["penguins"]])' penguins.csv cities.tsv
+```{term}
+rush run 'names(dfs)' mtcars.csv
 ```
 
 ### Reading from standard input
 
 Use `-` to read from stdin. This makes `rush` composable in shell pipelines:
 
-```{bash}
+```{term}
 echo "name,score
 Alice,92
 Bob,85
@@ -81,22 +81,23 @@ Carol,97" | rush run 'df |> dplyr::arrange(dplyr::desc(score))' -
 
 You can pipe the output of one `rush` into another:
 
-```{bash}
-rush run 'head(df, 5)' penguins.csv | rush run 'dplyr::select(df, species, bill_length_mm, body_mass_g)' -
+```{term}
+rush run 'head(df, 5)' mtcars.csv | rush run 'dplyr::select(df, mpg, cyl, hp)' -
 ```
 
 Use `-F` to read non-CSV formats from stdin, for example JSON:
 
-```{bash}
-rush run -O json 'head(df, 3)' penguins.csv | rush run -F json 'dplyr::select(df, species, body_mass_g)' -
+```{term}
+rush run -O json 'head(df, 3)' mtcars.csv | rush run -F json 'dplyr::select(df, mpg, hp)' -
 ```
 
 ### Reading DuckDB databases
 
 Point `rush` at a `.duckdb` file and all tables are loaded into `dfs`:
 
-```{bash}
-rush run 'names(dfs$shop)' shop.duckdb
+```{term}
+rush convert -o mtcars.duckdb mtcars.csv
+rush run 'names(dfs$mtcars)' mtcars.duckdb
 ```
 
 ## Options
@@ -105,14 +106,8 @@ rush run 'names(dfs$shop)' shop.duckdb
 
 Override the delimiter for both reading and writing:
 
-```{bash}
-rush run -d "\t" 'head(df, 3)' cities.tsv
-```
-
-Write tab-separated output:
-
-```{bash}
-rush run -d "\t" 'head(df, 3)' penguins.csv | cat
+```{term}
+rush run -d "\t" 'head(df, 3)' mtcars.csv | cat
 ```
 
 ### `--no-header` (`-H`)
@@ -120,11 +115,11 @@ rush run -d "\t" 'head(df, 3)' penguins.csv | cat
 Suppress headers on both input and output. Input columns are auto-named
 `x1`, `x2`, ...:
 
-```{bash}
-rush run -H 'sum(df$x1)' numbers.txt
+```{term}
+echo -e "10\n20\n30\n40\n50" | rush run -H 'sum(df$x1)' -
 ```
 
-```{bash}
+```{term}
 seq 5 | rush run -H 'cumsum(df$x1)' -
 ```
 
@@ -132,7 +127,7 @@ seq 5 | rush run -H 'cumsum(df$x1)' -
 
 Read without a header row, but still include a header in the output:
 
-```{bash}
+```{term}
 seq 5 | rush run --no-input-header 'cumsum(df$x1)' -
 ```
 
@@ -140,15 +135,15 @@ seq 5 | rush run --no-input-header 'cumsum(df$x1)' -
 
 Read normally but omit the header row from the output:
 
-```{bash}
-rush run --no-output-header 'head(df, 3)' penguins.csv | cat
+```{term}
+rush run --no-output-header 'head(df, 3)' mtcars.csv | cat
 ```
 
 ### `--names`
 
 Provide explicit column names (comma-separated). Implies `--no-input-header`:
 
-```{bash}
+```{term}
 echo -e "1,Alice\n2,Bob" | rush run --names "id,name" 'df'
 ```
 
@@ -157,12 +152,12 @@ echo -e "1,Alice\n2,Bob" | rush run --names "id,name" 'df'
 By default, `rush` normalizes column names (lowercase, underscores). Disable
 with `-C` to preserve the originals:
 
-```{bash}
+```{term}
 echo "First Name,Last Name,Score (%)
 Alice,Smith,92" | rush run 'names(df)' -
 ```
 
-```{bash}
+```{term}
 echo "First Name,Last Name,Score (%)
 Alice,Smith,92" | rush run -C 'names(df)' -
 ```
@@ -172,35 +167,35 @@ Alice,Smith,92" | rush run -C 'names(df)' -
 Load the entire Tidyverse (plus glue) so you can use dplyr, tidyr, stringr,
 etc. without qualifying names:
 
-```{bash}
-rush run -t 'df |> group_by(species) |> summarise(mean_mass = mean(body_mass_g)) |> arrange(desc(mean_mass))' penguins.csv
+```{term}
+rush run -t 'df |> group_by(cyl) |> summarise(avg_mpg = mean(mpg)) |> arrange(desc(avg_mpg))' mtcars.csv
 ```
 
 ### `--library` (`-l`)
 
 Load specific packages. Comma-separate multiple packages:
 
-```{bash}
+```{term}
 rush run -l stringr 'stringr::str_to_title("hello world")'
 ```
 
-```{bash}
+```{term}
 rush run -l dplyr,tidyr 'df |>
-  tidyr::pivot_longer(cols = c(bill_length_mm, bill_depth_mm), names_to = "metric") |>
-  dplyr::slice_head(n = 4)' penguins.csv
+  tidyr::pivot_longer(cols = c(mpg, hp), names_to = "metric") |>
+  dplyr::slice_head(n = 4)' mtcars.csv
 ```
 
 ### `--seed`
 
 Set the random seed for reproducible results:
 
-```{bash}
+```{term}
 rush run --seed 42 'sample(1:100, 5)'
 ```
 
 Run it again; same seed, same result:
 
-```{bash}
+```{term}
 rush run --seed 42 'sample(1:100, 5)'
 ```
 
@@ -209,16 +204,16 @@ rush run --seed 42 'sample(1:100, 5)'
 Write the result to a file instead of stdout. The output format is inferred from
 the extension:
 
-```{bash}
+```{term}
 rush run -o summary.csv 'data.frame(stat = c("min", "mean", "max"),
-                                     mass = c(min(df$body_mass_g), mean(df$body_mass_g), max(df$body_mass_g)))' penguins.csv
+                                     mpg = c(min(df$mpg), mean(df$mpg), max(df$mpg)))' mtcars.csv
 cat summary.csv
 ```
 
 Write to Parquet:
 
-```{bash}
-rush run -o subset.parquet 'dplyr::filter(df, body_mass_g > 5000)' penguins.csv
+```{term}
+rush run -o subset.parquet 'dplyr::filter(df, mpg > 25)' mtcars.csv
 rush run 'df' subset.parquet
 ```
 
@@ -227,8 +222,8 @@ rush run 'df' subset.parquet
 Customize the XML element names when writing XML. Defaults are `root`
 (root) and `record` (each record). Also used by TOML for the record name:
 
-```{bash}
-rush run -n -O xml --output-root plants --output-record observation 'head(df)' data.csv
+```{term}
+rush run -n -O xml --output-root garage --output-record car 'head(df)' mtcars.csv
 ```
 
 ### `--dry-run` (`-n`)
@@ -236,8 +231,8 @@ rush run -n -O xml --output-root plants --output-record observation 'head(df)' d
 Print the generated script instead of running it. Great for learning what `rush`
 does under the hood, or for saving scripts:
 
-```{bash}
-rush run -n 'df |> dplyr::filter(body_mass_g > 5000)' penguins.csv
+```{term}
+rush run -n 'df |> dplyr::filter(mpg > 25)' mtcars.csv
 ```
 
 ### `--no-ir` (`-I`)
@@ -245,7 +240,7 @@ rush run -n 'df |> dplyr::filter(body_mass_g > 5000)' penguins.csv
 Run with plain `Rscript` instead of `ir`. No package resolution happens --
 everything must already be installed:
 
-```{bash}
+```{term}
 rush run -I '2 + 2'
 ```
 
@@ -253,14 +248,17 @@ rush run -I '2 + 2'
 
 Show parsed arguments before running. Useful for debugging complex invocations:
 
-```{bash}
+```{term}
 rush run -v --seed 7 'sum(1:10)' 2>&1
 ```
 
 ## Help
 
-```{bash}
+```{term}
 rush run -h
 ```
 
-{{< include ../_cleanup.qmd >}}
+```{term}
+#| include: false
+rm -f mtcars.csv mtcars.duckdb summary.csv subset.parquet
+```

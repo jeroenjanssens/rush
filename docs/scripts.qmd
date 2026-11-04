@@ -1,8 +1,12 @@
 ---
+engine: markdown
 title: "Scripts"
 ---
 
-{{< include _setup.qmd >}}
+```{term}
+#| include: false
+rush run -o mtcars.csv 'mtcars'
+```
 
 ## Saving and reusing scripts
 
@@ -10,8 +14,8 @@ The script that `--dry-run` prints is not a throwaway. It is a complete,
 self-contained `ir` script. Redirect it to a file and you have a reproducible
 artifact you can version, share, or run again later:
 
-```{bash}
-rush run --dry-run 'df |> dplyr::filter(body_mass_g > 5000)' penguins.csv > analysis.R
+```{term}
+rush run --dry-run 'df |> dplyr::filter(hp > 200)' mtcars.csv > analysis.R
 head -3 analysis.R
 ```
 
@@ -23,7 +27,7 @@ its own dependencies and needs nothing but `ir` on the target machine:
 ir run analysis.R
 ```
 
-```{bash}
+```{term}
 #| echo: false
 Rscript analysis.R 2>/dev/null
 ```
@@ -48,7 +52,7 @@ packages already installed in your library (for speed, to work offline, or in
 an environment where dependencies are pinned), pass `--no-ir` (`-I`) and `rush`
 runs the script with plain `Rscript` instead:
 
-```{bash}
+```{term}
 rush run --no-ir '6 * 7'
 ```
 
@@ -57,9 +61,7 @@ installed, so every package the script needs must already be present. The
 generated script itself is unchanged, so the same file still runs under `ir`
 later.
 
-```{bash}
+```{term}
 #| include: false
-rm -f analysis.R
+rm -f mtcars.csv analysis.R
 ```
-
-{{< include _cleanup.qmd >}}

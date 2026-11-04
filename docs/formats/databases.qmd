@@ -1,16 +1,21 @@
 ---
+engine: markdown
 title: "DuckDB / SQLite"
 ---
 
-{{< include ../_setup.qmd >}}
+```{term}
+#| include: false
+rush run -o mtcars.csv 'mtcars'
+```
 
 ## DuckDB
 
 Point `rush` at a [DuckDB](https://duckdb.org/) database (`.duckdb` or `.ddb`)
 and every table is read into the `dfs` list, keyed by table name:
 
-```{bash}
-rush run 'names(dfs$shop)' shop.duckdb
+```{term}
+rush convert -o mtcars.duckdb mtcars.csv
+rush run 'names(dfs$mtcars)' mtcars.duckdb
 ```
 
 If a database holds a single table, it is also bound to `df` for convenience,
@@ -21,7 +26,7 @@ so a one-table database behaves just like any other single input.
 Write to DuckDB with `-o output.duckdb`. When the result is a named list (e.g.
 from multiple inputs), each element becomes a separate table:
 
-```{bash}
+```{term}
 echo "id,val
 1,a
 2,b" > a.csv
@@ -34,10 +39,10 @@ rush run 'names(dfs$combined)' combined.duckdb
 
 A single file uses the file stem as the table name:
 
-```{bash}
-rush convert -o penguins_db.duckdb penguins.csv
-rush sql "SELECT species, COUNT(*) AS n FROM penguins_db.penguins GROUP BY species" penguins_db.duckdb
-rm -f penguins_db.duckdb
+```{term}
+rush convert -o mtcars_db.duckdb mtcars.csv
+rush sql "SELECT cyl, COUNT(*) AS n FROM mtcars_db.mtcars GROUP BY cyl" mtcars_db.duckdb
+rm -f mtcars_db.duckdb
 ```
 
 ### Querying with SQL
@@ -45,10 +50,11 @@ rm -f penguins_db.duckdb
 A `.duckdb` file is attached as a schema, and its tables are accessible as
 `schema.table`:
 
-```{bash}
-rush sql "SELECT c.name, SUM(o.amount) AS total
-          FROM shop.customers c JOIN shop.orders o ON c.id = o.cust
-          GROUP BY c.name ORDER BY total DESC" shop.duckdb
+```{term}
+rush sql "SELECT m.mpg, m.cyl, m.hp
+          FROM mtcars.mtcars m
+          WHERE m.hp > 200
+          ORDER BY m.hp DESC" mtcars.duckdb
 ```
 
 ## SQLite
@@ -57,17 +63,16 @@ Files ending in `.sqlite` or `.db` are read with
 [RSQLite](https://rsqlite.r-dbi.org/). All tables are loaded into the `dfs`
 list, similar to DuckDB:
 
-```{bash}
-rush convert -o app.sqlite penguins.csv
-rush run 'names(dfs$app)' app.sqlite
-rm -f app.sqlite
+```{term}
+rush convert -o mtcars.sqlite mtcars.csv
+rush run 'names(dfs$mtcars)' mtcars.sqlite
 ```
 
 ### Writing to SQLite
 
 Like DuckDB, multiple inputs become separate tables:
 
-```{bash}
+```{term}
 rush convert -o combined.sqlite a.csv b.csv
 rush run 'names(dfs$combined)' combined.sqlite
 ```
@@ -76,14 +81,12 @@ rush run 'names(dfs$combined)' combined.sqlite
 
 Copy all tables from one database to another:
 
-```{bash}
-rush convert -o copy.sqlite shop.duckdb
+```{term}
+rush convert -o copy.sqlite mtcars.duckdb
 rush run 'names(dfs$copy)' copy.sqlite
 ```
 
-```{bash}
+```{term}
 #| include: false
-rm -f a.csv b.csv combined.duckdb combined.sqlite copy.sqlite
+rm -f mtcars.csv a.csv b.csv mtcars.duckdb mtcars.sqlite combined.duckdb combined.sqlite copy.sqlite
 ```
-
-{{< include ../_cleanup.qmd >}}

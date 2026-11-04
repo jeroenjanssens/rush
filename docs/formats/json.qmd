@@ -1,8 +1,12 @@
 ---
+engine: markdown
 title: "JSON / JSONL"
 ---
 
-{{< include ../_setup.qmd >}}
+```{term}
+#| include: false
+rush run -o mtcars.csv 'mtcars'
+```
 
 Files ending in `.json` are read with `jsonlite::fromJSON`; `.jsonl` and
 `.ndjson` files are read line-by-line with `jsonlite::stream_in`. Write JSON
@@ -10,12 +14,12 @@ output with `-O json` or by naming the output file `.json`.
 
 ## Reading JSON
 
-```{bash}
+```{term}
 rush run -O json 'data.frame(name = c("Alice", "Bob", "Carol"), age = c(30, 25, 35), city = c("Amsterdam", "Rotterdam", "Utrecht"))' > people.json
 cat people.json
 ```
 
-```{bash}
+```{term}
 rush run 'df |> dplyr::filter(age > 28)' people.json
 ```
 
@@ -23,12 +27,12 @@ rush run 'df |> dplyr::filter(age > 28)' people.json
 
 Use `-O json` or name the output file `.json`:
 
-```{bash}
-rush run -O json 'head(df, 3)' penguins.csv
+```{term}
+rush run -O json 'head(df, 3)' mtcars.csv
 ```
 
-```{bash}
-rush run -o top3.json 'head(df, 3)' penguins.csv
+```{term}
+rush run -o top3.json 'head(df, 3)' mtcars.csv
 cat top3.json
 ```
 
@@ -36,16 +40,16 @@ cat top3.json
 
 Files ending in `.jsonl` or `.ndjson` are read line-by-line:
 
-```{bash}
+```{term}
 rush run -O jsonl 'data.frame(event = c("login", "purchase", "logout"), user = c("alice", "bob", "alice"), ts = 1:3)' > events.jsonl
 cat events.jsonl
 ```
 
-```{bash}
+```{term}
 rush run 'nrow(df)' events.jsonl
 ```
 
-```{bash}
+```{term}
 rush run 'df |> dplyr::filter(user == "alice")' events.jsonl
 ```
 
@@ -53,8 +57,8 @@ rush run 'df |> dplyr::filter(user == "alice")' events.jsonl
 
 Streaming one JSON object per line, great for log pipelines:
 
-```{bash}
-rush run -O jsonl 'head(df, 3)' penguins.csv
+```{term}
+rush run -O jsonl 'head(df, 3)' mtcars.csv
 ```
 
 ## Nested JSON and flattening
@@ -64,27 +68,27 @@ JSON objects are automatically flattened using `jsonlite::flatten()`. Nested
 field names become dot-separated (then normalized to underscores by
 `clean_names`):
 
-```{bash}
+```{term}
 printf '{"user":"alice","event":"login","meta":{"ip":"192.168.1.1","browser":"firefox"}}\n{"user":"bob","event":"purchase","meta":{"ip":"10.0.0.5","browser":"chrome"}}\n{"user":"carol","event":"logout","meta":{"ip":"172.16.0.1","browser":"safari"}}\n' > logs.jsonl
 rush run 'df' logs.jsonl
 ```
 
 Deeper nesting is flattened recursively:
 
-```{bash}
+```{term}
 printf '{"id":1,"info":{"name":"Widget","dims":{"w":10,"h":5,"d":3}}}\n{"id":2,"info":{"name":"Gadget","dims":{"w":8,"h":4,"d":2}}}\n' > products.jsonl
 rush run 'df' products.jsonl
 ```
 
 When outputting to JSON, nesting is preserved as-is (no flattening occurs):
 
-```{bash}
+```{term}
 rush run -O json 'df' logs.jsonl
 ```
 
 This also works with `rush convert`:
 
-```{bash}
+```{term}
 rush convert -o logs.csv logs.jsonl
 cat logs.csv
 ```
@@ -93,11 +97,11 @@ cat logs.csv
 
 DuckDB reads JSON/JSONL with `read_json_auto`:
 
-```{bash}
+```{term}
 rush sql "SELECT name, age FROM people WHERE age >= 30" people.json
 ```
 
-```{bash}
+```{term}
 rush sql "SELECT event, user FROM events WHERE user = 'alice'" events.jsonl
 ```
 
@@ -105,10 +109,13 @@ rush sql "SELECT event, user FROM events WHERE user = 'alice'" events.jsonl
 
 Read a file with a non-standard extension as JSON:
 
-```{bash}
+```{term}
 cp people.json people.dat
 rush run -F json 'head(df)' people.dat
 rm -f people.dat
 ```
 
-{{< include ../_cleanup.qmd >}}
+```{term}
+#| include: false
+rm -f mtcars.csv people.json top3.json events.jsonl logs.jsonl logs.csv products.jsonl
+```

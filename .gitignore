@@ -7,3 +7,6 @@ exec/*
 !exec/rush.R
 /doc/
 /Meta/
+docs/.quarto-term-cache/
+docs/_site/
+docs/_extensions/**/bin/

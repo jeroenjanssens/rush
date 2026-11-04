@@ -1,8 +1,12 @@
 ---
+engine: markdown
 title: "rush sql"
 ---
 
-{{< include ../_setup.qmd >}}
+```{term}
+#| include: false
+rush run -o mtcars.csv 'mtcars'
+```
 
 The `sql` command runs a [DuckDB](https://duckdb.org/) query directly against
 your files, with no import step. Each file becomes a relation named after the
@@ -18,23 +22,23 @@ rush sql [options] [<query>] [--] [<file>...]
 
 Run a SQL query against one or more files:
 
-```{bash}
-rush sql "SELECT species, bill_length_mm, body_mass_g FROM penguins WHERE body_mass_g > 5500 ORDER BY body_mass_g DESC" penguins.csv
+```{term}
+rush sql "SELECT mpg, cyl, hp, wt FROM mtcars WHERE hp > 200 ORDER BY hp DESC" mtcars.csv
 ```
 
 ## Aggregations
 
 DuckDB's full SQL is available, including aggregations, window functions, and CTEs:
 
-```{bash}
-rush sql "SELECT species,
+```{term}
+rush sql "SELECT cyl,
                  COUNT(*) AS n,
-                 ROUND(AVG(body_mass_g)) AS avg_mass,
-                 MIN(bill_length_mm) AS min_bill,
-                 MAX(bill_length_mm) AS max_bill
-          FROM penguins
-          GROUP BY species
-          ORDER BY avg_mass DESC" penguins.csv
+                 ROUND(AVG(mpg), 1) AS avg_mpg,
+                 MIN(hp) AS min_hp,
+                 MAX(hp) AS max_hp
+          FROM mtcars
+          GROUP BY cyl
+          ORDER BY cyl" mtcars.csv
 ```
 
 ## Querying Parquet files
@@ -42,11 +46,12 @@ rush sql "SELECT species,
 Parquet files are registered via DuckDB's `read_parquet`, so large-file queries
 run without loading everything into memory:
 
-```{bash}
-rush sql "SELECT carrier, COUNT(*) AS flights, ROUND(AVG(arr_delay), 1) AS avg_delay
-          FROM flights
-          GROUP BY carrier
-          ORDER BY avg_delay DESC" flights.parquet
+```{term}
+rush convert -o mtcars.parquet mtcars.csv
+rush sql "SELECT cyl, COUNT(*) AS n, ROUND(AVG(mpg), 1) AS avg_mpg
+          FROM mtcars
+          GROUP BY cyl
+          ORDER BY avg_mpg DESC" mtcars.parquet
 ```
 
 ## Querying DuckDB databases
@@ -54,17 +59,19 @@ rush sql "SELECT carrier, COUNT(*) AS flights, ROUND(AVG(arr_delay), 1) AS avg_d
 A `.duckdb` file is attached as a schema, and its tables are accessible as
 `schema.table`:
 
-```{bash}
-rush sql "SELECT c.name, SUM(o.amount) AS total
-          FROM shop.customers c JOIN shop.orders o ON c.id = o.cust
-          GROUP BY c.name ORDER BY total DESC" shop.duckdb
+```{term}
+rush convert -o mtcars.duckdb mtcars.csv
+rush sql "SELECT m.mpg, m.hp, m.wt
+          FROM mtcars.mtcars m
+          WHERE m.hp > 200
+          ORDER BY m.hp DESC" mtcars.duckdb
 ```
 
 ## Querying standard input
 
 Use `-` to read CSV from stdin as a relation named `stdin`:
 
-```{bash}
+```{term}
 echo "item,price,qty
 apple,1.20,10
 banana,0.80,25
@@ -75,47 +82,49 @@ cherry,3.50,5" | rush sql "SELECT item, price * qty AS total FROM stdin ORDER BY
 
 Pass multiple files and each becomes a relation you can join:
 
-```{bash}
-echo "species,habitat
-Adelie,coastal
-Gentoo,subantarctic
-Chinstrap,rocky" > habitat.csv
-rush sql "SELECT p.species, h.habitat, ROUND(AVG(p.body_mass_g)) AS avg_mass
-          FROM penguins p JOIN habitat h ON p.species = h.species
-          GROUP BY p.species, h.habitat
-          ORDER BY avg_mass DESC" penguins.csv habitat.csv
-rm -f habitat.csv
+```{term}
+echo "cyl,engine_type
+4,inline
+6,v-type
+8,v-type" > engines.csv
+rush sql "SELECT m.mpg, m.hp, m.cyl, e.engine_type
+          FROM mtcars m JOIN engines e ON m.cyl = e.cyl
+          WHERE m.hp > 150
+          ORDER BY m.hp DESC" mtcars.csv engines.csv
 ```
 
 ## Saving SQL results
 
 Pipe a SQL result to Parquet or another file:
 
-```{bash}
-rush sql -o efficient.parquet "SELECT * FROM penguins WHERE body_mass_g > 4000" penguins.csv
-rush run 'nrow(df)' efficient.parquet
+```{term}
+rush sql -o powerful.parquet "SELECT * FROM mtcars WHERE hp > 150" mtcars.csv
+rush run 'nrow(df)' powerful.parquet
 ```
 
 ## Piping with SQL
 
 The result of a query is an ordinary data frame, so everything composes:
 
-```{bash}
-rush run 'head(df, 5)' penguins.csv | rush sql "SELECT species, body_mass_g FROM stdin WHERE body_mass_g > 4000" -
+```{term}
+rush run 'head(df, 10)' mtcars.csv | rush sql "SELECT cyl, COUNT(*) AS n FROM stdin GROUP BY cyl" -
 ```
 
 ## Dry run
 
 See the generated script that runs the query:
 
-```{bash}
-rush sql -n "SELECT COUNT(*) FROM penguins" penguins.csv
+```{term}
+rush sql -n "SELECT COUNT(*) FROM mtcars" mtcars.csv
 ```
 
 ## Help
 
-```{bash}
+```{term}
 rush sql -h
 ```
 
-{{< include ../_cleanup.qmd >}}
+```{term}
+#| include: false
+rm -f mtcars.csv mtcars.parquet mtcars.duckdb engines.csv powerful.parquet
+```

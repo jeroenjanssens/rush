@@ -1,8 +1,12 @@
 ---
+engine: markdown
 title: "Excel / ODS"
 ---
 
-{{< include ../_setup.qmd >}}
+```{term}
+#| include: false
+rush run -o mtcars.csv 'mtcars'
+```
 
 ## Excel
 
@@ -12,7 +16,7 @@ by naming the output `.xlsx`.
 
 ### Reading
 
-```{bash}
+```{term}
 rush run -o sales.xlsx 'data.frame(product = c("Widget", "Gadget", "Doohickey"), q1 = c(100, 250, 75), q2 = c(120, 200, 90), q3 = c(150, 180, 110))'
 rush run 'df' sales.xlsx
 ```
@@ -21,22 +25,22 @@ rush run 'df' sales.xlsx
 
 Select a specific sheet by name or index:
 
-```{bash}
+```{term}
 rush run --input-sheet 1 'names(df)' sales.xlsx
 ```
 
 ### Writing
 
-```{bash}
+```{term}
 rush run -o summary.xlsx 'df |> dplyr::mutate(total = q1 + q2 + q3)' sales.xlsx
 rush run 'df' summary.xlsx
 ```
 
 ### Converting CSV to Excel
 
-```{bash}
-rush convert -o penguins.xlsx penguins.csv
-rush run 'nrow(df)' penguins.xlsx
+```{term}
+rush convert -o mtcars.xlsx mtcars.csv
+rush run 'nrow(df)' mtcars.xlsx
 ```
 
 ## ODS (OpenDocument Spreadsheet)
@@ -46,19 +50,17 @@ Files ending in `.ods` are read and written with
 
 ### Reading
 
-```{bash}
+```{term}
 rush run -n 'head(df)' data.ods
 ```
 
 ### Writing
 
-```{bash}
+```{term}
 rush run -n -o output.ods 'df' data.csv
 ```
 
-```{bash}
+```{term}
 #| include: false
-rm -f sales.xlsx summary.xlsx penguins.xlsx
+rm -f mtcars.csv sales.xlsx summary.xlsx mtcars.xlsx
 ```
-
-{{< include ../_cleanup.qmd >}}

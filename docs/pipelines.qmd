@@ -1,8 +1,12 @@
 ---
+engine: markdown
 title: "Pipelines"
 ---
 
-{{< include _setup.qmd >}}
+```{term}
+#| include: false
+rush run -o mtcars.csv 'mtcars'
+```
 
 The real power of `rush` is combining commands in Unix pipelines. Because `rush`
 reads from stdin and writes to stdout by default, it composes naturally with
@@ -12,17 +16,15 @@ other command-line tools, including other `rush` invocations.
 
 Filter with `rush run`, then query with SQL:
 
-```{bash}
-
-rush run 'dplyr::filter(df, body_mass_g > 3500)' penguins.csv | \
-  rush sql "SELECT species, ROUND(AVG(bill_length_mm), 1) as avg_bill FROM stdin GROUP BY species ORDER BY avg_bill DESC" -
+```{term}
+rush run 'dplyr::filter(df, cyl == 8)' mtcars.csv | \
+  rush sql "SELECT COUNT(*) AS n, ROUND(AVG(mpg), 1) AS avg_mpg FROM stdin" -
 ```
 
 Query with SQL, then filter further with `rush run`:
 
-```{bash}
-
-rush sql "SELECT species, bill_length_mm, body_mass_g FROM penguins WHERE body_mass_g > 5000" penguins.csv | \
+```{term}
+rush sql "SELECT mpg, hp, wt FROM mtcars WHERE hp > 200" mtcars.csv | \
   rush run 'head(df, 5)' -
 ```
 
@@ -30,39 +32,37 @@ rush sql "SELECT species, bill_length_mm, body_mass_g FROM penguins WHERE body_m
 
 Produce JSON, process it, and convert back to CSV:
 
-```{bash}
-
-rush run -O json 'head(df, 3)' penguins.csv | rush run -F json 'dplyr::select(df, species, body_mass_g)' -
+```{term}
+rush run -O json 'head(df, 3)' mtcars.csv | rush run -F json 'dplyr::select(df, mpg, hp, wt)' -
 ```
 
 ## Format conversion in pipelines
 
-Read Parquet, filter with SQL, output as JSON:
+Read CSV, filter with SQL, output as JSON:
 
-```{bash}
-
-rush sql -O json "SELECT carrier, origin, dest FROM flights WHERE dep_delay > 20" flights.parquet
+```{term}
+rush sql -O json "SELECT cyl, hp, mpg FROM mtcars WHERE hp > 150 LIMIT 5" mtcars.csv
 ```
 
 ## Multiple rush commands
 
 Chain `rush run` to progressively transform data:
 
-```{bash}
-rush run 'dplyr::select(df, species, bill_length_mm, body_mass_g)' penguins.csv | \
-  rush run 'dplyr::filter(df, body_mass_g > 5000)' -
+```{term}
+rush run 'dplyr::select(df, mpg, cyl, hp, wt)' mtcars.csv | \
+  rush run 'dplyr::filter(df, hp > 200)' -
 ```
 
 ## With other tools
 
 `rush` plays well with standard Unix tools:
 
-```{bash}
-rush run 'df' penguins.csv | wc -l
+```{term}
+rush run 'df' mtcars.csv | wc -l
 ```
 
-```{bash}
-rush run 'df' penguins.csv | cut -d, -f1 | sort | uniq -c
+```{term}
+rush run 'df' mtcars.csv | cut -d, -f2 | sort | uniq -c
 ```
 
 Feed external data into rush:
@@ -71,4 +71,7 @@ Feed external data into rush:
 curl -s https://api.example.com/data.json | rush run -F json 'head(df)'
 ```
 
-{{< include _cleanup.qmd >}}
+```{term}
+#| include: false
+rm -f mtcars.csv
+```

@@ -2,9 +2,28 @@ project:
   type: website
   output-dir: _site
 
+filters:
+  - jeroenjanssens/term
+
+extensions:
+  term:
+    shell: zsh
+    init:
+      - zsh-syntax-highlighting
+      - "setopt INTERACTIVE_COMMENTS"
+      # quarto-term starts sessions in $HOME; run next to the document instead.
+      # Escape quotes and dollars, since metadata strings are parsed as markdown.
+      - 'cd \"\$QUARTO_DOCUMENT_PATH\"'
+    spacing: true
+    timeout: 120
+    style:
+      html:
+        colorscheme-light: solarized-dark
+        colorscheme-dark: solarized-light
+
 website:
   title: "rush"
-  site-url: https://jeroenjanssens.github.io/rush
+  site-url: https://rush.jeroenjanssens.com
   repo-url: https://github.com/jeroenjanssens/rush
   repo-actions: [edit, issue]
   navbar:
@@ -54,20 +73,8 @@ website:
       - icon: github
         href: https://github.com/jeroenjanssens/rush
 
-execute:
-  freeze: true
-  working-dir: "../exec"
-
-engine: knitr
-
-knitr:
-  opts_chunk:
-    collapse: true
-    comment: "#>"
-
 format:
   html:
     theme: cosmo
     toc: true
     code-copy: true
-    highlight-style: github

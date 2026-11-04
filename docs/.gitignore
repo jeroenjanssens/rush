@@ -1,7 +1,12 @@
 _site/
 _freeze/
 .quarto/
+.quarto-term-cache/
+**/.quarto-term-cache/
 **/*.quarto_ipynb
 **/*.png
+*.html
+*.cast
+site_libs/
 
 /.quarto/

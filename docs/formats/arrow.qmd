@@ -1,8 +1,12 @@
 ---
+engine: markdown
 title: "Arrow IPC"
 ---
 
-{{< include ../_setup.qmd >}}
+```{term}
+#| include: false
+rush run -o mtcars.csv 'mtcars'
+```
 
 Files ending in `.arrow`, `.ipc`, or `.feather` are read with
 [arrow](https://arrow.apache.org/docs/r/). Write Arrow IPC output with
@@ -10,22 +14,22 @@ Files ending in `.arrow`, `.ipc`, or `.feather` are read with
 
 ## Reading
 
-```{bash}
-rush run -o flights.arrow 'df' flights.parquet
-rush run 'head(df, 3) |> dplyr::select(carrier, origin, dest)' flights.arrow
+```{term}
+rush run -o mtcars.arrow 'df' mtcars.csv
+rush run 'head(df, 3) |> dplyr::select(mpg, cyl, hp)' mtcars.arrow
 ```
 
 ## Writing
 
-```{bash}
-rush run -o subset.arrow 'dplyr::filter(df, dep_delay > 10)' flights.parquet
+```{term}
+rush run -o subset.arrow 'dplyr::filter(df, mpg > 25)' mtcars.csv
 rush run 'nrow(df)' subset.arrow
 ```
 
 ## Using `-O arrow` with output flag
 
-```{bash}
-rush run -O arrow -o sample.arrow 'head(df, 5)' penguins.csv
+```{term}
+rush run -O arrow -o sample.arrow 'head(df, 5)' mtcars.csv
 rush run 'ncol(df)' sample.arrow
 ```
 
@@ -33,17 +37,15 @@ rush run 'ncol(df)' sample.arrow
 
 The `.feather` and `.ipc` extensions are also recognized:
 
-```{bash}
-cp flights.arrow flights.feather
-rush run 'nrow(df)' flights.feather
-cp flights.arrow flights.ipc
-rush run 'nrow(df)' flights.ipc
-rm -f flights.feather flights.ipc
+```{term}
+cp mtcars.arrow mtcars.feather
+rush run 'nrow(df)' mtcars.feather
+cp mtcars.arrow mtcars.ipc
+rush run 'nrow(df)' mtcars.ipc
+rm -f mtcars.feather mtcars.ipc
 ```
 
-```{bash}
+```{term}
 #| include: false
-rm -f flights.arrow subset.arrow sample.arrow
+rm -f mtcars.csv mtcars.arrow subset.arrow sample.arrow
 ```
-
-{{< include ../_cleanup.qmd >}}

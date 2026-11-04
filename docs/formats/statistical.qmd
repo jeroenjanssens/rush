@@ -1,6 +1,6 @@
 ---
+engine: markdown
 title: "Statistical formats (SPSS, Stata, SAS)"
-engine: knitr
 ---
 
 Files ending in `.sav`, `.zsav`, `.por` (SPSS), `.dta` (Stata), `.sas7bdat`, or
@@ -12,13 +12,13 @@ want to convert them to factors.
 
 ### Reading
 
-```{bash}
+```{term}
 rush run -n 'head(df)' survey.sav
 ```
 
 ### Writing
 
-```{bash}
+```{term}
 rush run -n -o result.sav 'df' data.csv
 ```
 
@@ -26,13 +26,13 @@ rush run -n -o result.sav 'df' data.csv
 
 ### Reading
 
-```{bash}
+```{term}
 rush run -n 'head(df)' data.dta
 ```
 
 ### Writing
 
-```{bash}
+```{term}
 rush run -n -o result.dta 'df' data.csv
 ```
 
@@ -40,17 +40,17 @@ rush run -n -o result.dta 'df' data.csv
 
 ### Reading
 
-```{bash}
+```{term}
 rush run -n 'head(df)' data.sas7bdat
 ```
 
-```{bash}
+```{term}
 rush run -n 'head(df)' data.xpt
 ```
 
 ### Writing SAS transport
 
-```{bash}
+```{term}
 rush run -n -o result.xpt 'df' data.csv
 ```
 

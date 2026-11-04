@@ -1,8 +1,12 @@
 ---
+engine: markdown
 title: "rush convert"
 ---
 
-{{< include ../_setup.qmd >}}
+```{term}
+#| include: false
+rush run -o mtcars.csv 'mtcars'
+```
 
 The `convert` command converts between formats without writing an expression.
 It reads the input, infers the output format from the file extension (or `-O`),
@@ -16,26 +20,26 @@ rush convert [options] [<file>...]
 
 ## Basic conversion
 
-```{bash}
-rush convert -o penguins.parquet penguins.csv
-rush run 'nrow(df)' penguins.parquet
+```{term}
+rush convert -o mtcars.parquet mtcars.csv
+rush run 'nrow(df)' mtcars.parquet
 ```
 
-```{bash}
-rush convert -o penguins.json --head 3 penguins.csv
-cat penguins.json
+```{term}
+rush convert -o mtcars.json --head 3 mtcars.csv
+cat mtcars.json
 ```
 
-```{bash}
-rush convert -O jsonl --head 2 -o penguins.jsonl penguins.csv
-cat penguins.jsonl
+```{term}
+rush convert -O jsonl --head 2 -o mtcars.jsonl mtcars.csv
+cat mtcars.jsonl
 ```
 
 ## Output templates
 
 Convert multiple files using an output template with yt-dlp-style placeholders:
 
-```{bash}
+```{term}
 echo "id,val
 1,a
 2,b" > chunk1.csv
@@ -68,7 +72,7 @@ rush convert -o 'table_%(table_index)03d.csv' big.duckdb
 When the output is a database format (DuckDB or SQLite), multiple inputs become
 separate tables named after the input file stems:
 
-```{bash}
+```{term}
 echo "id,val
 1,a
 2,b" > a.csv
@@ -81,16 +85,17 @@ rush run 'names(dfs$combined)' combined.duckdb
 
 A single input also uses the file name as the table name:
 
-```{bash}
-rush convert -o penguins_db.duckdb penguins.csv
-rush sql "SELECT species, COUNT(*) AS n FROM penguins_db.penguins GROUP BY species" penguins_db.duckdb
-rm -f penguins_db.duckdb
+```{term}
+rush convert -o cars_db.duckdb mtcars.csv
+rush sql "SELECT cyl, COUNT(*) AS n FROM cars_db.mtcars GROUP BY cyl ORDER BY cyl" cars_db.duckdb
+rm -f cars_db.duckdb
 ```
 
 Convert between database formats:
 
-```{bash}
-rush convert -o copy.sqlite shop.duckdb
+```{term}
+rush convert -o cars.duckdb mtcars.csv
+rush convert -o copy.sqlite cars.duckdb
 rush run 'names(dfs$copy)' copy.sqlite
 ```
 
@@ -98,8 +103,8 @@ rush run 'names(dfs$copy)' copy.sqlite
 
 Use `--head` to limit the number of rows written:
 
-```{bash}
-rush convert --head 5 -o top5.csv penguins.csv
+```{term}
+rush convert --head 5 -o top5.csv mtcars.csv
 cat top5.csv
 ```
 
@@ -107,44 +112,41 @@ cat top5.csv
 
 Force input and output formats regardless of extension with `-F` and `-O`:
 
-```{bash}
-cp penguins.csv penguins.dat
-rush convert -F csv -O json -o result.json --head 2 penguins.dat
+```{term}
+cp mtcars.csv mtcars.dat
+rush convert -F csv -O json -o result.json --head 2 mtcars.dat
 cat result.json
-rm -f penguins.dat
+rm -f mtcars.dat
 ```
 
 ## Delimiter control
 
-Read a TSV and convert to semicolon-separated CSV:
+Override the output delimiter:
 
-```{bash}
-rush convert -D ";" -o cities_semi.csv cities.tsv
-cat cities_semi.csv
+```{term}
+rush convert -D ";" --head 3 -o mtcars_semi.csv mtcars.csv
+cat mtcars_semi.csv
 ```
 
 ## XML element names
 
 Use `--output-root` and `--output-record` to customize the XML structure:
 
-```{bash}
-rush convert --output-root plants --output-record observation --head 2 -o plants.xml penguins.csv
-cat plants.xml
-rm -f plants.xml
+```{term}
+rush convert --output-root garage --output-record car --head 2 -o mtcars.xml mtcars.csv
+cat mtcars.xml
+rm -f mtcars.xml
 ```
 
 ## Help
 
-```{bash}
+```{term}
 rush convert -h
 ```
 
-```{bash}
+```{term}
 #| include: false
-rm -f chunk1.csv chunk2.csv chunk1.parquet chunk2.parquet
-rm -f a.csv b.csv combined.duckdb copy.sqlite
-rm -f top5.csv result.json cities_semi.csv
-rm -f penguins.parquet penguins.json penguins.jsonl
+rm -f mtcars.csv mtcars.parquet mtcars.json mtcars.jsonl chunk1.csv chunk2.csv chunk1.parquet chunk2.parquet
+rm -f a.csv b.csv combined.duckdb cars.duckdb copy.sqlite
+rm -f top5.csv result.json mtcars_semi.csv mtcars.dat
 ```
-
-{{< include ../_cleanup.qmd >}}
