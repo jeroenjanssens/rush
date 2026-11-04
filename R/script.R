@@ -571,13 +571,77 @@ dispatch_block <- function(command) {
   if (command == "plot") dispatch_plot() else dispatch_run()
 }
 
-dispatch_run <- function() {
+dispatch_header <- function() {
   '#~~~ Output dispatch (added by rush) ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .has_tty <- isatty(stdout())
 .stdout_binary <- function() {
   if (.Platform$OS.type == "windows") file("stdout", "wb", raw = TRUE)
   else file("/dev/stdout", "wb", raw = TRUE)
 }
+'
+}
+
+# Defines `.write_plot()`, shared by `rush plot` and by `rush run` when the
+# expression returns a ggplot. Renders ANSI/ASCII art on a TTY or with
+# `-O ansi`/`-O ascii`, saves to `--output`, and writes PNG bytes otherwise.
+# `restyle` swaps in a minimal theme for terminal output.
+dispatch_plot_output <- function() {
+  '.write_plot <- function(result, restyle = FALSE) {
+  out <- .rush$output
+  w <- .rush$width
+  h <- .rush$height
+  if (is.null(out)) {
+    out <- if (.rush$output_format %in% c("ansi", "ascii")) .rush$output_format
+           else if (.has_tty) "ansi"
+           else "png"
+  }
+
+  if (out %in% c("ansi", "ascii")) {
+    if (!requireNamespace("devoutansi", quietly = TRUE)) {
+      stop("Terminal plot output requires the devoutansi package. ",
+           "Use -o <file> to save the plot instead.", call. = FALSE)
+    }
+    if (is.null(w)) w <- cli::console_width()
+    if (out == "ascii") {
+      devoutansi::ansi(width = w, height = h, plain_ascii = TRUE, char_lookup_table = 2)
+    } else {
+      devoutansi::ansi(width = w, height = h)
+    }
+    if (restyle) {
+      result <- result +
+        ggplot2::theme_minimal() +
+        ggplot2::theme(panel.grid = ggplot2::element_blank())
+    }
+    print(result)
+    invisible(grDevices::dev.off())
+  } else {
+    if (tools::file_ext(out) == "") {
+      output_filename <- tempfile()
+      device <- out
+      cat_output <- TRUE
+    } else {
+      output_filename <- out
+      device <- NULL
+      cat_output <- FALSE
+    }
+    if (is.null(w)) w <- 6
+    if (is.null(h)) h <- 4
+    ggplot2::ggsave(output_filename, result, device = device,
+                    width = w, height = h, units = .rush$units, dpi = .rush$dpi)
+    if (cat_output) {
+      contents <- readBin(output_filename, raw(), n = 1e8)
+      writeBin(contents, .stdout_binary())
+    }
+  }
+}
+'
+}
+
+dispatch_run <- function() {
+  paste0(
+    dispatch_header(),
+    dispatch_plot_output(),
+    '
 if (.has_tty) options(width = if (is.null(.rush$width)) cli::console_width() else .rush$width)
 
 .write_result <- function(result, output) {
@@ -730,6 +794,8 @@ if (!is.null(.rush$output_template)) {
       }
     }
   }
+} else if (inherits(result, "gg")) {
+  .write_plot(result)
 } else if (rlang::is_atomic(result)) {
   if (is.null(.rush$output)) {
     cli::cat_line(result)
@@ -747,57 +813,13 @@ if (!is.null(.rush$output_template)) {
   }
 }
 '
+  )
 }
 
 dispatch_plot <- function() {
-  '#~~~ Output dispatch (added by rush) ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.has_tty <- isatty(stdout())
-.stdout_binary <- function() {
-  if (.Platform$OS.type == "windows") file("stdout", "wb", raw = TRUE)
-  else file("/dev/stdout", "wb", raw = TRUE)
-}
-
-out <- .rush$output
-w <- .rush$width
-h <- .rush$height
-if (is.null(out)) {
-  out <- if (.rush$output_format %in% c("ansi", "ascii")) .rush$output_format
-         else if (.has_tty) "ansi"
-         else "png"
-}
-
-if (out %in% c("ansi", "ascii")) {
-  if (is.null(w)) w <- cli::console_width()
-  if (out == "ascii") {
-    devoutansi::ansi(width = w, height = h, plain_ascii = TRUE, char_lookup_table = 2)
-  } else {
-    devoutansi::ansi(width = w, height = h)
-  }
-  if (!.rush$has_post) {
-    result <- result +
-      ggplot2::theme_minimal() +
-      ggplot2::theme(panel.grid = ggplot2::element_blank())
-  }
-  print(result)
-  invisible(grDevices::dev.off())
-} else {
-  if (fs::path_ext(out) == "") {
-    output_filename <- tempfile()
-    device <- out
-    cat_output <- TRUE
-  } else {
-    output_filename <- out
-    device <- NULL
-    cat_output <- FALSE
-  }
-  if (is.null(w)) w <- 6
-  if (is.null(h)) h <- 4
-  ggplot2::ggsave(output_filename, result, device = device,
-                  width = w, height = h, units = .rush$units, dpi = .rush$dpi)
-  if (cat_output) {
-    contents <- readBin(output_filename, raw(), n = 1e8)
-    writeBin(contents, .stdout_binary())
-  }
-}
-'
+  paste0(
+    dispatch_header(),
+    dispatch_plot_output(),
+    "\n.write_plot(result, restyle = !.rush$has_post)\n"
+  )
 }

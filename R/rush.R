@@ -27,7 +27,33 @@ build_run_body <- function(con, flags) {
     code_expression(con, result <- df)
   }
 
+  if (run_may_plot(flags)) {
+    pkgs <- c(pkgs, plot_packages())
+  }
+
   pkgs
+}
+
+# Packages needed to render a ggplot to the terminal or to a file.
+plot_packages <- function() {
+  c(
+    "ggplot2",
+    "fs",
+    "github::coolbutuseless/devout",
+    "github::jeroenjanssens/miniansi",
+    "github::coolbutuseless/devoutansi"
+  )
+}
+
+# Whether a `rush run` expression may return a ggplot, in which case the
+# generated script must declare the plotting packages. Checked statically,
+# because the result type is only known once the script runs.
+run_may_plot <- function(flags) {
+  if ("ggplot2" %in% as.character(flags$library)) {
+    return(TRUE)
+  }
+  code <- unlist(lapply(flags$expression, deparse))
+  any(grepl("ggplot|qplot", code))
 }
 
 build_sql_body <- function(con, flags) {
@@ -45,13 +71,7 @@ build_sql_body <- function(con, flags) {
 }
 
 build_plot_body <- function(con, flags) {
-  pkgs <- c(
-    "ggplot2",
-    "fs",
-    "github::coolbutuseless/devout",
-    "github::jeroenjanssens/miniansi",
-    "github::coolbutuseless/devoutansi"
-  )
+  pkgs <- plot_packages()
 
   pkgs <- c(pkgs, emit_setup_libraries(con, flags, default = "ggplot2"))
 

@@ -2888,6 +2888,81 @@ test_that("plot from Excel with --input-sheet", {
   expect_true(file.exists(out))
 })
 
+# Section 27a: rush run returning a ggplot -----------------------------------
+
+test_that("run returning a ggplot writes PNG bytes to stdout", {
+  skip_on_ci()
+  dir <- withr::local_tempdir()
+  f <- make_csv(data.frame(wt = runif(20), mpg = runif(20)), dir)
+  script <- file.path(dir, "run.R")
+  writeLines(
+    c(
+      "library(rush)",
+      paste0(
+        "rush(",
+        paste(
+          deparse(c(
+            "run",
+            "-l",
+            "ggplot2",
+            "ggplot(df, aes(x = wt, y = mpg)) + geom_point()",
+            "--",
+            f
+          )),
+          collapse = ""
+        ),
+        ")"
+      )
+    ),
+    script
+  )
+  # Redirect stdout to a file: reading binary output through a pipe with
+  # processx::run() can stall.
+  out <- file.path(dir, "stdout.png")
+  result <- processx::run(
+    "Rscript",
+    script,
+    stdout = out,
+    stderr = "|",
+    error_on_status = FALSE,
+    env = c("current", RUSH_NO_IR = "")
+  )
+  expect_equal(result$status, 0)
+  expect_equal(
+    readBin(out, raw(), n = 4),
+    as.raw(c(0x89, 0x50, 0x4e, 0x47))
+  )
+})
+
+test_that("run returning a ggplot saves it to --output", {
+  skip_on_ci()
+  dir <- withr::local_tempdir()
+  f <- make_csv(data.frame(wt = runif(20), mpg = runif(20)), dir)
+  out <- file.path(dir, "run.png")
+  result <- rush_run_exec(
+    "ggplot(df, aes(x = wt, y = mpg)) + geom_point()",
+    file = f,
+    args = list(library = "ggplot2", output = out)
+  )
+  expect_equal(result$status, 0)
+  expect_true(file.exists(out))
+  expect_gt(file.size(out), 0)
+})
+
+test_that("run returning a ggplot renders text with -O ansi", {
+  skip_on_ci()
+  dir <- withr::local_tempdir()
+  f <- make_csv(data.frame(x = 1:10, y = (1:10)^2), dir)
+  result <- rush_run_exec(
+    "ggplot(df, aes(x = x, y = y)) + geom_point()",
+    file = f,
+    args = list(library = "ggplot2", output_format = "ansi")
+  )
+  expect_equal(result$status, 0)
+  expect_true(nchar(result$stdout) > 0)
+  expect_false(grepl("PNG", result$stdout, fixed = TRUE))
+})
+
 # Section 27b: rush plot terminal output ----------------------------------------
 
 test_that("plot -O ansi produces non-empty text output", {

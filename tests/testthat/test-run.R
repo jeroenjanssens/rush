@@ -310,3 +310,33 @@ test_that("multi-file digit-prefixed names use valid dfs indexing", {
   expect_true(any(grepl('dfs\\[\\["x2025"\\]\\]', script)))
   expect_silent(parse(text = script))
 })
+
+test_that("rush_run dispatches ggplot results to the plot output", {
+  script <- capture_script(
+    rush_run,
+    expr = "ggplot(df, aes(x = wt, y = mpg)) + geom_point()",
+    file = "data.csv",
+    library = "ggplot2"
+  )
+  expect_true(any(grepl('inherits(result, "gg")', script, fixed = TRUE)))
+  expect_true(any(grepl(".write_plot <- function", script, fixed = TRUE)))
+})
+
+test_that("rush_run declares plot packages only when the expression may plot", {
+  declares_devoutansi <- function(script) {
+    "#|   - github::coolbutuseless/devoutansi" %in% script
+  }
+
+  plot_script <- capture_script(
+    rush_run,
+    expr = "ggplot2::ggplot(df, ggplot2::aes(wt, mpg))",
+    file = "data.csv"
+  )
+  expect_true(declares_devoutansi(plot_script))
+
+  lib_script <- capture_script(rush_run, expr = "nrow(df)", library = "ggplot2")
+  expect_true(declares_devoutansi(lib_script))
+
+  plain_script <- capture_script(rush_run, expr = "nrow(df)", file = "data.csv")
+  expect_false(declares_devoutansi(plain_script))
+})
