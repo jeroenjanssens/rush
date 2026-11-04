@@ -2894,44 +2894,16 @@ test_that("run returning a ggplot writes PNG bytes to stdout", {
   skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(data.frame(wt = runif(20), mpg = runif(20)), dir)
-  script <- file.path(dir, "run.R")
-  writeLines(
-    c(
-      "library(rush)",
-      paste0(
-        "rush(",
-        paste(
-          deparse(c(
-            "run",
-            "-l",
-            "ggplot2",
-            "ggplot(df, aes(x = wt, y = mpg)) + geom_point()",
-            "--",
-            f
-          )),
-          collapse = ""
-        ),
-        ")"
-      )
-    ),
-    script
-  )
-  # Redirect stdout to a file: reading binary output through a pipe with
-  # processx::run() can stall.
-  out <- file.path(dir, "stdout.png")
-  result <- processx::run(
-    "Rscript",
-    script,
-    stdout = out,
-    stderr = "|",
-    error_on_status = FALSE,
-    env = c("current", RUSH_NO_IR = "")
-  )
+  result <- rush_raw_binary(c(
+    "run",
+    "-l",
+    "ggplot2",
+    "ggplot(df, aes(x = wt, y = mpg)) + geom_point()",
+    "--",
+    f
+  ))
   expect_equal(result$status, 0)
-  expect_equal(
-    readBin(out, raw(), n = 4),
-    as.raw(c(0x89, 0x50, 0x4e, 0x47))
-  )
+  expect_equal(result$stdout[1:4], as.raw(c(0x89, 0x50, 0x4e, 0x47)))
 })
 
 test_that("run returning a ggplot saves it to --output", {
@@ -2994,10 +2966,9 @@ test_that("plot without -o and non-TTY produces PNG bytes", {
   skip_on_ci()
   dir <- withr::local_tempdir()
   f <- make_csv(data.frame(x = 1:10, y = (1:10)^2), dir)
-  result <- rush_plot_exec(f, args = list(x = "x", y = "y"))
+  result <- rush_raw_binary(c("plot", "-x", "x", "-y", "y", "--", f))
   expect_equal(result$status, 0)
-  raw_bytes <- charToRaw(substr(result$stdout, 1, 4))
-  expect_true(raw_bytes[1] == as.raw(0x89))
+  expect_equal(result$stdout[1:4], as.raw(c(0x89, 0x50, 0x4e, 0x47)))
 })
 
 test_that("plot -O ansi with --width 60 produces wider output", {

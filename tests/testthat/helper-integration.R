@@ -304,6 +304,31 @@ rush_raw <- function(argv, stdin_data = NULL) {
   result
 }
 
+# Like rush_raw(), but writes stdout to a file and returns its raw bytes.
+# Reading binary output (such as PNG) through a pipe with processx::run()
+# can stall, so redirect it to a file instead.
+rush_raw_binary <- function(argv) {
+  script <- withr::local_tempfile(fileext = ".R")
+  writeLines(
+    c(
+      "library(rush)",
+      paste0("rush(", paste(deparse(argv), collapse = ""), ")")
+    ),
+    script
+  )
+  out <- withr::local_tempfile()
+  result <- processx::run(
+    "Rscript",
+    script,
+    stdout = out,
+    stderr = "|",
+    error_on_status = FALSE,
+    env = c("current", RUSH_NO_IR = "")
+  )
+  result$stdout <- readBin(out, raw(), n = file.size(out))
+  result
+}
+
 make_csv <- function(df, dir, name = "data.csv") {
   path <- file.path(dir, name)
   readr::write_csv(df, path)
