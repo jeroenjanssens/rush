@@ -2935,6 +2935,20 @@ test_that("run returning a ggplot renders text with -O ansi", {
   expect_false(grepl("PNG", result$stdout, fixed = TRUE))
 })
 
+test_that("run returning a ggplot renders plain text with -O ascii", {
+  skip_on_ci()
+  dir <- withr::local_tempdir()
+  f <- make_csv(data.frame(x = 1:10, y = (1:10)^2), dir)
+  result <- rush_run_exec(
+    "ggplot(df, aes(x = x, y = y)) + geom_point()",
+    file = f,
+    args = list(library = "ggplot2", output_format = "ascii")
+  )
+  expect_equal(result$status, 0)
+  expect_true(nchar(result$stdout) > 0)
+  expect_false(grepl("\033", result$stdout, fixed = TRUE))
+})
+
 # Section 27b: rush plot terminal output ----------------------------------------
 
 test_that("plot -O ansi produces non-empty text output", {
@@ -2960,6 +2974,7 @@ test_that("plot -O ascii produces text output without ANSI codes", {
   )
   expect_equal(result$status, 0)
   expect_true(nchar(result$stdout) > 0)
+  expect_false(grepl("\033", result$stdout, fixed = TRUE))
 })
 
 test_that("plot without -o and non-TTY produces PNG bytes", {

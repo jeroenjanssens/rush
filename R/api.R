@@ -378,7 +378,12 @@ write <- function(result) {
       rlang::check_installed("devoutansi", reason = "for terminal plot output")
       ansi_fn <- getExportedValue("devoutansi", "ansi")
       if (out == "ascii") {
+        # devoutansi emits color codes even with plain_ascii = TRUE, so
+        # render to a file and strip them to get plain text.
+        ascii_file <- tempfile(fileext = ".txt")
+        on.exit(unlink(ascii_file), add = TRUE)
         ansi_fn(
+          filename = ascii_file,
           width = w,
           height = h,
           plain_ascii = TRUE,
@@ -389,6 +394,10 @@ write <- function(result) {
       }
       print(result)
       invisible(grDevices::dev.off())
+      if (out == "ascii") {
+        ascii_lines <- cli::ansi_strip(readLines(ascii_file, warn = FALSE))
+        cat(sub(" +$", "", ascii_lines), sep = "\n")
+      }
     } else {
       if (fs::path_ext(out) == "") {
         output_filename <- tempfile()
