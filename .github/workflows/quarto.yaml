@@ -66,10 +66,12 @@ jobs:
           key: ${{ runner.os }}-ir-pkgs-${{ hashFiles('docs/**/*.qmd') }}
           restore-keys: ${{ runner.os }}-ir-pkgs-
 
-      # Install rush the way users do, so the docs run the checked-out code
+      # Install rush the way users do, so the docs run the checked-out code.
+      # --refresh makes ir rebuild it; otherwise it reuses the build in the
+      # restored cache, even when the source has changed.
       - name: Install rush
         run: |
-          ir tool install --force --bin-dir "$HOME/.local/bin" local::.
+          ir tool install --force --refresh --bin-dir "$HOME/.local/bin" local::.
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
         shell: bash
 
