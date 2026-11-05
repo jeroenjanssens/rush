@@ -1,3 +1,5 @@
+# rush (development version)
+
 # rush 0.2.1
 
 * Scripts saved with `--dry-run` now run with `ir` on any machine (#10):
