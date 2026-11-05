@@ -1,6 +1,6 @@
 Package: rush
 Title: R One-Liners from the Shell
-Version: 0.2.0.9000
+Version: 0.2.1
 Authors@R: 
     person(given = "Jeroen",
            family = "Janssens",

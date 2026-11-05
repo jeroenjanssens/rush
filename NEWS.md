@@ -1,4 +1,4 @@
-# rush (development version)
+# rush 0.2.1
 
 * Scripts saved with `--dry-run` now run with `ir` on any machine (#10):
   * They refer to rush on GitHub, pinned to the commit or release that
