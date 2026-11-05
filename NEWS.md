@@ -1,4 +1,4 @@
-# rush (development version)
+# rush 0.2.0
 
 * `rush run` now outputs plots when the expression returns a ggplot: as
   ANSI/ASCII art in a terminal or with `-O ansi`/`-O ascii`, saved to the
