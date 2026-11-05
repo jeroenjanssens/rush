@@ -341,7 +341,8 @@ emit_read_files <- function(con, files, flags) {
       read_expr <- expr(readr::read_delim(
         !!path,
         delim = !!delim,
-        col_names = !!(flags$resolved_col_names)
+        col_names = !!(flags$resolved_col_names),
+        show_col_types = FALSE
       ))
     }
     if (!flags$no_clean_names) {

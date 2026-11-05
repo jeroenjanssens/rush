@@ -20,8 +20,11 @@ head -3 analysis.R
 ```
 
 Run it with `ir run`. The `#|` frontmatter declares the script's dependencies,
-so `ir` installs any missing packages and executes it. The saved script carries
-its own dependencies and needs nothing but `ir` on the target machine:
+so `ir` installs any missing packages and executes it. That includes `rush`
+itself, which the script refers to on GitHub (`github::jeroenjanssens/rush`),
+pinned to the commit or release that generated it, so the script keeps working
+when `rush` changes. The saved script carries its own dependencies and needs
+nothing but `ir` on the target machine:
 
 ```bash
 ir run analysis.R

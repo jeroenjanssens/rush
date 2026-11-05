@@ -757,3 +757,92 @@ test_that("sql without json files does not emit INSTALL json", {
   script <- dry_run("sql", "-n", "SELECT * FROM data", "data.csv")
   expect_false(any(grepl("INSTALL json", script)))
 })
+
+# Compact script frontmatter (#10) ---------------------------------------------
+
+# Like dry_run(), but without -R, so rush prints the compact script that
+# --dry-run shows by default. Returns only the `#| packages:` entries.
+compact_packages <- function(...) {
+  old_path <- Sys.getenv("PATH")
+  Sys.setenv(PATH = "")
+  on.exit(Sys.setenv(PATH = old_path))
+  script <- utils::capture.output(rush(...))
+  sub("^#\\|   - ", "", grep("^#\\|   - ", script, value = TRUE))
+}
+
+test_that("compact scripts refer to rush on GitHub, never to CRAN's rush", {
+  for (pkgs in list(
+    compact_packages("run", "-n", "nrow(df)", "data.csv"),
+    compact_packages("sql", "-n", "SELECT 1", "data.csv"),
+    compact_packages("plot", "-n", "-x", "a", "data.csv"),
+    compact_packages("convert", "-n", "-o", "out.parquet", "data.csv")
+  )) {
+    expect_true(any(startsWith(pkgs, "github::jeroenjanssens/rush")))
+    expect_false("rush" %in% pkgs)
+  }
+})
+
+test_that("compact scripts declare the packages they load", {
+  pkgs <- compact_packages(
+    "run",
+    "-n",
+    "-t",
+    "-l",
+    "cowsay,stringr",
+    "nrow(df)",
+    "data.parquet"
+  )
+  expect_true(all(
+    c("tidyverse", "glue", "cowsay", "stringr", "nanoparquet", "readr") %in%
+      pkgs
+  ))
+
+  plot_pkgs <- compact_packages("plot", "-n", "-x", "a", "data.csv")
+  expect_true(all(
+    c("ggplot2", "github::coolbutuseless/devoutansi") %in% plot_pkgs
+  ))
+
+  json_pkgs <- compact_packages("convert", "-n", "-o", "out.json", "data.csv")
+  expect_true("jsonlite" %in% json_pkgs)
+})
+
+test_that("compact and inline scripts declare the same packages", {
+  inline <- dry_run("run", "-n", "-l", "cowsay", "nrow(df)", "data.parquet")
+  inline_pkgs <- sub("^#\\|   - ", "", grep("^#\\|   - ", inline, value = TRUE))
+  compact_pkgs <- compact_packages(
+    "run",
+    "-n",
+    "-l",
+    "cowsay",
+    "nrow(df)",
+    "data.parquet"
+  )
+  expect_setequal(
+    compact_pkgs[!startsWith(compact_pkgs, "github::jeroenjanssens/rush")],
+    inline_pkgs
+  )
+})
+
+test_that("rush_ref() pins the commit, the release tag, or nothing", {
+  github <- list(
+    Version = "0.2.0",
+    RemoteType = "github",
+    RemoteSha = "316823c76d22f747aa6aedbee0ae024c2f056190"
+  )
+  expect_equal(
+    rush_ref(github),
+    "github::jeroenjanssens/rush@316823c76d22f747aa6aedbee0ae024c2f056190"
+  )
+  expect_equal(
+    rush_ref(list(Version = "0.2.0")),
+    "github::jeroenjanssens/rush@v0.2.0"
+  )
+  expect_equal(
+    rush_ref(list(Version = "0.2.0", RemoteType = "local")),
+    "github::jeroenjanssens/rush@v0.2.0"
+  )
+  expect_equal(
+    rush_ref(list(Version = "0.2.0.9000")),
+    "github::jeroenjanssens/rush"
+  )
+})

@@ -230,12 +230,78 @@ generate_script <- function(command, flags) {
   }
 }
 
+# Packages every generated script needs.
+base_script_packages <- function() {
+  c("rlang", "cli", "tibble", "readr")
+}
+
+# Packages needed to write the result in the resolved output format.
+output_packages <- function(flags) {
+  fmt <- flags$resolved_output_format
+  if (identical(fmt, "parquet")) {
+    "nanoparquet"
+  } else if (fmt %in% c("json", "jsonl")) {
+    "jsonlite"
+  } else if (identical(fmt, "arrow")) {
+    "arrow"
+  } else if (identical(fmt, "xlsx")) {
+    "writexl"
+  } else if (fmt %in% c("sav", "zsav", "dta", "sas7bdat", "xpt")) {
+    "haven"
+  } else if (identical(fmt, "duckdb")) {
+    c("duckdb", "DBI")
+  } else if (identical(fmt, "sqlite")) {
+    c("RSQLite", "DBI")
+  } else if (identical(fmt, "ods")) {
+    "readODS"
+  } else if (fmt %in% c("fasta", "fastq")) {
+    "microseq"
+  } else if (identical(fmt, "yaml")) {
+    "yaml"
+  } else if (identical(fmt, "xml")) {
+    "xml2"
+  } else {
+    character(0)
+  }
+}
+
+# All packages a script for `command` loads or calls into: the libraries from
+# -t and -l, the readers for the input files, the plot packages, and the writer
+# for the output format. Collected by running the inline body builder into a
+# discarded connection, so compact and inline scripts declare the same set.
+script_packages <- function(command, flags) {
+  con <- file(nullfile(), open = "w")
+  on.exit(close(con), add = TRUE)
+  body_pkgs <- switch(
+    command,
+    run = build_run_body(con, flags),
+    sql = build_sql_body(con, flags),
+    plot = build_plot_body(con, flags),
+    convert = build_convert_body(con, flags)
+  )
+  unique(c(base_script_packages(), body_pkgs, output_packages(flags)))
+}
+
+# The `rush` package on CRAN is a different package (mlr-org's "Rapid
+# Asynchronous and Distributed Computing"), so compact scripts refer to this
+# one on GitHub, pinned to the version that generated the script: the exact
+# commit when rush was installed from GitHub, the release tag for a release
+# version, and the latest commit on main for a development version.
+rush_ref <- function(desc = utils::packageDescription("rush")) {
+  ref <- if (identical(desc$RemoteType, "github") && !is.null(desc$RemoteSha)) {
+    desc$RemoteSha
+  } else if (length(unlist(package_version(desc$Version))) <= 3) {
+    paste0("v", desc$Version)
+  }
+  paste0("github::jeroenjanssens/rush", if (!is.null(ref)) paste0("@", ref))
+}
+
 generate_script_compact <- function(command, flags) {
   body_file <- tempfile()
   body <- file(body_file, open = "w")
   on.exit(unlink(body_file), add = TRUE)
 
-  pkgs <- "rush"
+  pkgs <- c(rush_ref(), script_packages(command, flags))
 
   writeLines(compact_init_call(flags), body)
   writeLines("", body)
@@ -282,7 +348,7 @@ generate_script_inline <- function(command, flags) {
   body <- file(body_file, open = "w")
   on.exit(unlink(body_file), add = TRUE)
 
-  pkgs <- c("rlang", "cli", "tibble", "readr")
+  pkgs <- base_script_packages()
 
   if (is.integer(flags$seed)) {
     code_expression(body, set.seed(!!flags$seed))
@@ -295,33 +361,7 @@ generate_script_inline <- function(command, flags) {
     plot = build_plot_body(body, flags),
     convert = build_convert_body(body, flags)
   )
-  pkgs <- c(pkgs, result)
-
-  if (identical(flags$resolved_output_format, "parquet")) {
-    pkgs <- c(pkgs, "nanoparquet")
-  } else if (flags$resolved_output_format %in% c("json", "jsonl")) {
-    pkgs <- c(pkgs, "jsonlite")
-  } else if (identical(flags$resolved_output_format, "arrow")) {
-    pkgs <- c(pkgs, "arrow")
-  } else if (identical(flags$resolved_output_format, "xlsx")) {
-    pkgs <- c(pkgs, "writexl")
-  } else if (
-    flags$resolved_output_format %in% c("sav", "zsav", "dta", "sas7bdat", "xpt")
-  ) {
-    pkgs <- c(pkgs, "haven")
-  } else if (identical(flags$resolved_output_format, "duckdb")) {
-    pkgs <- c(pkgs, "duckdb", "DBI")
-  } else if (identical(flags$resolved_output_format, "sqlite")) {
-    pkgs <- c(pkgs, "RSQLite", "DBI")
-  } else if (identical(flags$resolved_output_format, "ods")) {
-    pkgs <- c(pkgs, "readODS")
-  } else if (flags$resolved_output_format %in% c("fasta", "fastq")) {
-    pkgs <- c(pkgs, "microseq")
-  } else if (identical(flags$resolved_output_format, "yaml")) {
-    pkgs <- c(pkgs, "yaml")
-  } else if (identical(flags$resolved_output_format, "xml")) {
-    pkgs <- c(pkgs, "xml2")
-  }
+  pkgs <- c(pkgs, result, output_packages(flags))
 
   close(body)
 

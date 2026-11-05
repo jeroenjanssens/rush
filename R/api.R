@@ -94,14 +94,20 @@ read <- function(
     stdin = readr::read_delim(
       file("stdin", "rb", raw = TRUE),
       delim = delimiter,
-      col_names = col_names
+      col_names = col_names,
+      show_col_types = FALSE
     ),
     delim = {
       delim <- delimiter
       if (is.character(path) && tolower(tools::file_ext(path)) == "tsv") {
         delim <- "\t"
       }
-      readr::read_delim(path, delim = delim, col_names = col_names)
+      readr::read_delim(
+        path,
+        delim = delim,
+        col_names = col_names,
+        show_col_types = FALSE
+      )
     },
     parquet = nanoparquet::read_parquet(path),
     json = jsonlite::fromJSON(path),

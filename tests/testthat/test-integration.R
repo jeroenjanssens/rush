@@ -2949,6 +2949,43 @@ test_that("run returning a ggplot renders plain text with -O ascii", {
   expect_false(grepl("\033", result$stdout, fixed = TRUE))
 })
 
+# Section 27c: compact scripts match rush run ----------------------------------
+
+# A --dry-run script (the compact variant, using rush::read() and
+# rush::write()) should produce the same output as running the command
+# directly (the inline variant). Runs the saved script with Rscript and the
+# installed rush, so no network is needed.
+compact_matches_run <- function(args, file) {
+  script <- withr::local_tempfile(fileext = ".R")
+  dry <- rush_raw(c(args[1], "-n", args[-1], "--", file))
+  expect_equal(dry$status, 0)
+  writeLines(dry$stdout, script)
+  compact <- processx::run(
+    "Rscript",
+    script,
+    wd = dirname(file),
+    stdout = "|",
+    stderr = "|",
+    error_on_status = FALSE
+  )
+  direct <- rush_raw(c(args, "--", file))
+  expect_equal(compact$status, 0)
+  expect_equal(compact$stdout, direct$stdout)
+  expect_equal(compact$stderr, "")
+}
+
+test_that("compact script output matches rush run", {
+  skip_on_ci()
+  dir <- withr::local_tempdir()
+  f <- make_csv(
+    data.frame(bill = c(10, 20, 30), tip = c(1, 3, 6), day = c("a", "b", "a")),
+    dir
+  )
+  compact_matches_run(c("run", "mean(df$tip)"), f)
+  compact_matches_run(c("run", "dplyr::filter(df, tip > 2)"), f)
+  compact_matches_run(c("run", "-O", "json", "head(df, 2)"), f)
+})
+
 # Section 27b: rush plot terminal output ----------------------------------------
 
 test_that("plot -O ansi produces non-empty text output", {

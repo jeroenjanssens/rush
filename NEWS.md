@@ -1,3 +1,14 @@
+# rush (development version)
+
+* Scripts saved with `--dry-run` now run with `ir` on any machine (#10):
+  * They refer to rush on GitHub, pinned to the commit or release that
+    generated them, instead of as `rush`, which `ir` resolved to an unrelated
+    package on CRAN.
+  * They declare every package they use, including those loaded with
+    `--tidyverse` and `--library`, and the readers and writers for the input
+    and output formats.
+* Reading delimited files no longer prints readr's column specification.
+
 # rush 0.2.0
 
 * `rush run` now outputs plots when the expression returns a ggplot: as
