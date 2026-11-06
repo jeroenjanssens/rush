@@ -5,6 +5,8 @@
   `qplot()` that rush 0.1 used. It always used a histogram, which fails for a
   discrete x (e.g. `rush plot --x time tips.csv`). Generated scripts use the
   new exported `geom_auto()`, which decides when the script runs.
+* Terminal box plots no longer abort R when a group has a single value:
+  scripts now use miniansi 0.1.3.
 * When a generated script fails, rush now prints its error output. Without
   `--verbose` it used to discard it, so a failing plot exited with status 1
   without saying why.

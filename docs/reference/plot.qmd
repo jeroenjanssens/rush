@@ -6,6 +6,7 @@ title: "rush plot"
 ```{term}
 #| include: false
 rush run -o mtcars.csv 'mtcars'
+rush run -o mpg.csv 'ggplot2::mpg'
 ```
 
 The `plot` command builds a [ggplot2](https://ggplot2.tidyverse.org/) graphic
@@ -32,7 +33,14 @@ When only `--x` is given, `rush` uses a histogram for a numeric column:
 rush plot -x mpg -O ansi --width 72 mtcars.csv
 ```
 
-and a bar chart for anything else (text, factors, logicals):
+and a bar chart for anything else (text, factors, logicals). For example, the
+number of cars per class in ggplot2's `mpg` data:
+
+```{term}
+rush plot -x class -O ansi --width 72 mpg.csv
+```
+
+To count the distinct values of a numeric column, turn it into a factor:
 
 ```{term}
 rush plot -x 'factor(cyl)' -O ansi --width 72 mtcars.csv
@@ -72,6 +80,12 @@ Map a column to fill (useful for histograms, bar charts, density plots):
 
 ```{term}
 rush plot -x mpg -g density -f cyl --alpha 0.5 -O ansi --width 72 mtcars.csv
+```
+
+In a bar chart, `--fill` stacks the counts of each group:
+
+```{term}
+rush plot -x class -f drv -O ansi --width 78 mpg.csv
 ```
 
 ### `--alpha` (`-a`)

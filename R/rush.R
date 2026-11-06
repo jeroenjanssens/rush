@@ -40,7 +40,7 @@ build_run_body <- function(con, flags) {
 # listed because ir needs each GitHub dependency declared explicitly.
 terminal_plot_packages <- c(
   devout = "github::jeroenjanssens/devout@fae1037ac2acbc6f134e200d19d5246f31048a1f",
-  miniansi = "github::jeroenjanssens/miniansi@6252c99d3e8d75eb5699a09199ec7f50e2b62656",
+  miniansi = "github::jeroenjanssens/miniansi@d0cb29600c4d014097dbf1b9c282e1d1ee3e8931",
   devoutansi = "github::jeroenjanssens/devoutansi@f27201d6c8b1735b707c6a627cddeefb31b8a990"
 )
 
