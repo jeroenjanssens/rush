@@ -40,8 +40,8 @@ build_run_body <- function(con, flags) {
 # listed because ir needs each GitHub dependency declared explicitly.
 terminal_plot_packages <- c(
   devout = "github::jeroenjanssens/devout@fae1037ac2acbc6f134e200d19d5246f31048a1f",
-  miniansi = "github::jeroenjanssens/miniansi@38351133b5d588c4c06e34a44c6d06508089e223",
-  devoutansi = "github::jeroenjanssens/devoutansi@3e5600cf28c23995db88aa05a9bbd74b521d5758"
+  miniansi = "github::jeroenjanssens/miniansi@6252c99d3e8d75eb5699a09199ec7f50e2b62656",
+  devoutansi = "github::jeroenjanssens/devoutansi@f27201d6c8b1735b707c6a627cddeefb31b8a990"
 )
 
 # Packages needed to render a ggplot to the terminal or to a file.

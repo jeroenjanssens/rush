@@ -604,11 +604,11 @@ dispatch_plot_output <- function() {
     }
     if (is.null(w)) w <- cli::console_width()
     if (out == "ascii") {
-      # devoutansi emits color codes even with plain_ascii = TRUE, so render
-      # to a file and strip them to get plain text.
+      # Render to a file so that trailing whitespace can be trimmed.
       ascii_file <- tempfile(fileext = ".txt")
       devoutansi::ansi(filename = ascii_file, width = w, height = h,
-                       plain_ascii = TRUE, char_lookup_table = 2)
+                       plain_ascii = TRUE, char_lookup_table = 2,
+                       colour = FALSE)
     } else {
       devoutansi::ansi(width = w, height = h)
     }
@@ -620,7 +620,7 @@ dispatch_plot_output <- function() {
     print(result)
     invisible(grDevices::dev.off())
     if (out == "ascii") {
-      ascii_lines <- cli::ansi_strip(readLines(ascii_file, warn = FALSE))
+      ascii_lines <- readLines(ascii_file, warn = FALSE)
       cat(sub(" +$", "", ascii_lines), sep = "\n")
       unlink(ascii_file)
     }

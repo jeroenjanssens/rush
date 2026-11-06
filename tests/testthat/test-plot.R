@@ -164,6 +164,12 @@ test_that("rush_plot generates devoutansi dispatch when no output", {
   expect_true(any(grepl('out %in% c\\("ansi", "ascii"\\)', script)))
 })
 
+test_that("rush_plot asks devoutansi for plain text in ascii mode", {
+  script <- capture_script(rush_plot, file = "mtcars.csv", x = "wt")
+  expect_true(any(grepl("colour = FALSE", script, fixed = TRUE)))
+  expect_false(any(grepl("ansi_strip", script, fixed = TRUE)))
+})
+
 test_that("rush_plot applies theme_minimal when no --post", {
   script <- capture_script(rush_plot, file = "mtcars.csv", x = "wt")
   expect_true(any(grepl("theme_minimal\\(\\)", script)))
