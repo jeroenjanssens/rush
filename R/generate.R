@@ -537,7 +537,7 @@ build_plot_body_compact <- function(con, flags) {
     purrr::walk(flags$pre, function(e) code_expression(con, !!e))
   }
 
-  plot_call <- build_plot_call(flags)
+  plot_call <- build_plot_call(flags, compact = TRUE)
 
   if (!is.null(flags$post)) {
     code_expression(con, !!rlang::call2("<-", rlang::sym("p"), plot_call))

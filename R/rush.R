@@ -161,7 +161,9 @@ build_convert_body <- function(con, flags) {
   pkgs
 }
 
-build_plot_call <- function(flags) {
+# `compact`: for compact scripts (dry runs), which load rush; inline scripts
+# don't, so they can't call rush functions.
+build_plot_call <- function(flags, compact = FALSE) {
   aes_names <- c(
     "x",
     "y",
@@ -185,10 +187,23 @@ build_plot_call <- function(flags) {
     rlang::call2(paste0("geom_", geom))
   } else if (!is.null(flags$y)) {
     rlang::call2("geom_point")
-  } else {
+  } else if (compact) {
     # A bar chart or histogram, depending on the type of x (decided when the
     # script runs, so it also works for stdin)
     rlang::call2("geom_auto", .ns = "rush")
+  } else {
+    # The same choice as geom_auto(), without depending on rush
+    rlang::expr({
+      .x <- rlang::eval_tidy(quote(!!flags$x), df)
+      if (
+        (is.numeric(.x) && !is.factor(.x)) ||
+          inherits(.x, c("Date", "POSIXt", "difftime", "hms"))
+      ) {
+        geom_histogram()
+      } else {
+        geom_bar()
+      }
+    })
   }
   plot_call <- rlang::call2("+", plot_call, geom_call)
 

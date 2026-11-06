@@ -65,9 +65,28 @@ test_that("rush_plot guesses geom_point when x and y given", {
   expect_true(any(grepl("geom_point\\(\\)", script)))
 })
 
-test_that("rush_plot uses geom_auto when only x given", {
+test_that("rush_plot chooses the geom when only x given, without rush", {
+  # Inline scripts don't load rush, so they can't use rush::geom_auto()
   script <- capture_script(rush_plot, file = "mtcars.csv", x = "wt")
-  expect_true(any(grepl("rush::geom_auto\\(\\)", script)))
+  expect_false(any(grepl("rush::", script, fixed = TRUE)))
+  expect_true(any(grepl("geom_histogram()", script, fixed = TRUE)))
+  expect_true(any(grepl("geom_bar()", script, fixed = TRUE)))
+})
+
+test_that("the inline geom choice picks a bar chart for a discrete x", {
+  skip_if_not_installed("ggplot2")
+  flags <- list(x = quote(time), geom = "auto")
+  geom_call <- build_plot_call(flags)[[3]]
+  df <- data.frame(time = c("Dinner", "Lunch"), tip = c(1.5, 2))
+  layer <- eval(geom_call, list(df = df), asNamespace("ggplot2"))
+  expect_equal(class(layer$stat)[1], "StatCount")
+  flags$x <- quote(tip)
+  layer <- eval(
+    build_plot_call(flags)[[3]],
+    list(df = df),
+    asNamespace("ggplot2")
+  )
+  expect_equal(class(layer$stat)[1], "StatBin")
 })
 
 test_that("rush_plot geom overrides the guessed geom", {
