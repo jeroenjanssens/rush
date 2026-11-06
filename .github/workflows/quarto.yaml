@@ -84,9 +84,20 @@ jobs:
         run: |
           if grep -rlE "Execution halted|there is no package called" docs/_site; then
             echo "::error::Rendered docs contain R errors (files listed above)"
+            # Show the errors themselves, with some context
+            grep -rhoE ".{0,300}(Execution halted|there is no package called).{0,100}" docs/_site \
+              --include='*.html' | sed -E 's/<[^>]+>//g' | head -40
             exit 1
           fi
         shell: bash
+
+      - name: Upload the rendered site when the check fails
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rendered-site
+          path: docs/_site
+          retention-days: 7
 
       - name: Upload website
         if: github.event_name != 'pull_request'
