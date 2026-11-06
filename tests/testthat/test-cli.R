@@ -682,7 +682,7 @@ test_that("convert multiple csvs to duckdb writes multi-table", {
   script <- dry_run("convert", "-n", "-o", "combined.duckdb", "a.csv", "b.csv")
   expect_true(any(grepl('output_format = "duckdb"', script)))
   expect_true(any(grepl("result <- dfs", script)))
-  expect_true(any(grepl("for \\(.tbl_name in names\\(result\\)\\)", script)))
+  expect_true(any(grepl("for \\(.name in names\\(result\\)\\)", script)))
   expect_true(any(grepl("dbWriteTable\\(.con, .tbl_name", script)))
 })
 
@@ -690,13 +690,13 @@ test_that("convert multiple csvs to sqlite writes multi-table", {
   script <- dry_run("convert", "-n", "-o", "combined.sqlite", "a.csv", "b.csv")
   expect_true(any(grepl('output_format = "sqlite"', script)))
   expect_true(any(grepl("result <- dfs", script)))
-  expect_true(any(grepl("for \\(.tbl_name in names\\(result\\)\\)", script)))
+  expect_true(any(grepl("for \\(.name in names\\(result\\)\\)", script)))
 })
 
 test_that("convert single csv to duckdb uses file name as table name", {
   script <- dry_run("convert", "-n", "-o", "out.duckdb", "sales.csv")
   expect_true(any(grepl("result <- dfs", script)))
-  expect_true(any(grepl("for \\(.tbl_name in names\\(result\\)\\)", script)))
+  expect_true(any(grepl("for \\(.name in names\\(result\\)\\)", script)))
 })
 
 test_that("rush run with -O duckdb writes data frame as 'data' table", {

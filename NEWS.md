@@ -7,6 +7,9 @@
   new exported `geom_auto()`, which decides when the script runs.
 * Terminal box plots no longer abort R when a group has a single value:
   scripts now use miniansi 0.1.3.
+* Converting a database to another database (e.g.
+  `rush convert -o copy.sqlite data.duckdb`) now copies its tables. It used
+  to fail in `dbWriteTable()`, because a database input is a list of tables.
 * When a generated script fails, rush now prints its error output. Without
   `--verbose` it used to discard it, so a failing plot exited with status 1
   without saying why.

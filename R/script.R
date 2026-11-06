@@ -696,8 +696,12 @@ if (.has_tty) options(width = if (is.null(.rush$width)) cli::console_width() els
     if (is.data.frame(result)) {
       DBI::dbWriteTable(.con, "data", result)
     } else if (is.list(result)) {
-      for (.tbl_name in names(result)) {
-        DBI::dbWriteTable(.con, .tbl_name, result[[.tbl_name]])
+      # A database read as input is itself a list of tables
+      for (.name in names(result)) {
+        .tables <- if (is.data.frame(result[[.name]])) result[.name] else result[[.name]]
+        for (.tbl_name in names(.tables)) {
+          DBI::dbWriteTable(.con, .tbl_name, .tables[[.tbl_name]])
+        }
       }
     }
   } else if (identical(.rush$output_format, "sqlite")) {
@@ -706,8 +710,12 @@ if (.has_tty) options(width = if (is.null(.rush$width)) cli::console_width() els
     if (is.data.frame(result)) {
       DBI::dbWriteTable(.con, "data", result)
     } else if (is.list(result)) {
-      for (.tbl_name in names(result)) {
-        DBI::dbWriteTable(.con, .tbl_name, result[[.tbl_name]])
+      # A database read as input is itself a list of tables
+      for (.name in names(result)) {
+        .tables <- if (is.data.frame(result[[.name]])) result[.name] else result[[.name]]
+        for (.tbl_name in names(.tables)) {
+          DBI::dbWriteTable(.con, .tbl_name, .tables[[.tbl_name]])
+        }
       }
     }
   } else if (identical(.rush$output_format, "rds")) {

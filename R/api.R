@@ -290,9 +290,7 @@ write <- function(result) {
       if (is.data.frame(result)) {
         DBI::dbWriteTable(con, "data", result)
       } else if (is.list(result)) {
-        for (tbl_name in names(result)) {
-          DBI::dbWriteTable(con, tbl_name, result[[tbl_name]])
-        }
+        write_tables(con, result)
       }
     } else if (identical(cfg$output_format, "sqlite")) {
       con <- DBI::dbConnect(RSQLite::SQLite(), output)
@@ -300,9 +298,7 @@ write <- function(result) {
       if (is.data.frame(result)) {
         DBI::dbWriteTable(con, "data", result)
       } else if (is.list(result)) {
-        for (tbl_name in names(result)) {
-          DBI::dbWriteTable(con, tbl_name, result[[tbl_name]])
-        }
+        write_tables(con, result)
       }
     } else if (identical(cfg$output_format, "rds")) {
       readr::write_rds(result, output)
@@ -515,4 +511,21 @@ write <- function(result) {
   }
 
   invisible()
+}
+
+# Write a list of data frames to a database connection, one table each. An
+# element that is itself a list of data frames (a database read as input,
+# e.g. `rush convert -o copy.sqlite data.duckdb`) contributes its tables under
+# their own names.
+write_tables <- function(con, result) {
+  for (name in names(result)) {
+    tables <- if (is.data.frame(result[[name]])) {
+      result[name]
+    } else {
+      result[[name]]
+    }
+    for (tbl_name in names(tables)) {
+      DBI::dbWriteTable(con, tbl_name, tables[[tbl_name]])
+    }
+  }
 }

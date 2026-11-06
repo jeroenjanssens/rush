@@ -120,7 +120,7 @@ test_that("rush_convert multiple csvs to duckdb", {
   )
   expect_true(any(grepl('output_format = "duckdb"', script)))
   expect_true(any(grepl("result <- dfs", script)))
-  expect_true(any(grepl("for \\(.tbl_name in names\\(result\\)\\)", script)))
+  expect_true(any(grepl("for \\(.name in names\\(result\\)\\)", script)))
   expect_true(any(grepl("dbWriteTable\\(.con, .tbl_name", script)))
 })
 
@@ -132,7 +132,7 @@ test_that("rush_convert multiple csvs to sqlite", {
   )
   expect_true(any(grepl('output_format = "sqlite"', script)))
   expect_true(any(grepl("result <- dfs", script)))
-  expect_true(any(grepl("for \\(.tbl_name in names\\(result\\)\\)", script)))
+  expect_true(any(grepl("for \\(.name in names\\(result\\)\\)", script)))
 })
 
 test_that("rush_convert respects input_format override", {

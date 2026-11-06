@@ -106,10 +106,11 @@ rush plot -x wt -y mpg --size hp -c cyl -O ansi --width 72 mtcars.csv
 
 ### `--shape`
 
-Map a column to point shape:
+Map a discrete column to point shape (a numeric column like `gear` needs
+`factor()`, because ggplot2 can't map a continuous variable to shape):
 
 ```{term}
-rush plot -x wt -y mpg --shape gear -O ansi --width 72 mtcars.csv
+rush plot -x wt -y mpg --shape 'factor(gear)' -O ansi --width 72 mtcars.csv
 ```
 
 ### `--group`

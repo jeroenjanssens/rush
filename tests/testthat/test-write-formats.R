@@ -512,3 +512,35 @@ test_that("jsonl is NOT flattened when output is toml", {
   )
   expect_false(any(grepl("jsonlite::flatten", script)))
 })
+
+# Database outputs from database inputs -----------------------------------------
+
+write_database <- function(format, result) {
+  path <- withr::local_tempfile(
+    fileext = paste0(".", format),
+    .local_envir = parent.frame()
+  )
+  init(output = path, output_format = format)
+  write(result)
+  path
+}
+
+test_that("writing a database input to SQLite keeps its tables", {
+  skip_if_not_installed("RSQLite")
+  # rush convert -o copy.sqlite cars.duckdb: dfs holds a list of tables
+  result <- list(cars = list(mtcars = head(mtcars), iris = head(iris)))
+  path <- write_database("sqlite", result)
+  con <- DBI::dbConnect(RSQLite::SQLite(), path)
+  on.exit(DBI::dbDisconnect(con))
+  expect_setequal(DBI::dbListTables(con), c("mtcars", "iris"))
+  expect_equal(nrow(DBI::dbReadTable(con, "mtcars")), 6)
+})
+
+test_that("writing data frames and a database input to DuckDB", {
+  skip_if_not_installed("duckdb")
+  result <- list(a = head(mtcars, 2), db = list(iris = head(iris, 3)))
+  path <- write_database("duckdb", result)
+  con <- DBI::dbConnect(duckdb::duckdb(), dbdir = path, read_only = TRUE)
+  on.exit(DBI::dbDisconnect(con, shutdown = TRUE))
+  expect_setequal(DBI::dbListTables(con), c("a", "iris"))
+})
