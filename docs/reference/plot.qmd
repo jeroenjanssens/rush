@@ -160,7 +160,7 @@ rush plot -x wt -y mpg --post 'p + ggplot2::theme_minimal() + ggplot2::geom_smoo
 
 When no `--output` is given and stdout is connected to a terminal, `rush`
 renders the plot using
-[devoutansi](https://github.com/coolbutuseless/devoutansi). Use `-O ascii`
+[devoutansi](https://github.com/jeroenjanssens/devoutansi). Use `-O ascii`
 for plain-text output or `-O ansi` for colored output with ANSI escape codes:
 
 ```{term}

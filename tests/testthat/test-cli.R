@@ -282,12 +282,7 @@ test_that("plot reads multiple files into a dfs list", {
 
 test_that("plot frontmatter injects the terminal-plotting GitHub packages", {
   script <- dry_run("plot", "-n", "-x", "wt", "mtcars.csv")
-  expect_true(any(grepl("^#\\|   - github::coolbutuseless/devout$", script)))
-  expect_true(any(grepl("^#\\|   - github::jeroenjanssens/miniansi$", script)))
-  expect_true(any(grepl(
-    "^#\\|   - github::coolbutuseless/devoutansi$",
-    script
-  )))
+  expect_true(all(paste0("#|   - ", terminal_plot_packages) %in% script))
 })
 
 test_that("plot generates devoutansi terminal dispatch", {
@@ -799,7 +794,7 @@ test_that("compact scripts declare the packages they load", {
 
   plot_pkgs <- compact_packages("plot", "-n", "-x", "a", "data.csv")
   expect_true(all(
-    c("ggplot2", "github::coolbutuseless/devoutansi") %in% plot_pkgs
+    c("ggplot2", terminal_plot_packages[["devoutansi"]]) %in% plot_pkgs
   ))
 
   json_pkgs <- compact_packages("convert", "-n", "-o", "out.json", "data.csv")

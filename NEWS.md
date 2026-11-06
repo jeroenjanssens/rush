@@ -1,5 +1,10 @@
 # rush (development version)
 
+* Terminal plotting now installs devout, devoutansi, and miniansi from forks
+  under jeroenjanssens on GitHub, pinned to fixed commits, instead of from the
+  unmaintained upstream repositories. Changes to those repositories can no
+  longer break plotting.
+
 # rush 0.2.1
 
 * Scripts saved with `--dry-run` now run with `ir` on any machine (#10):

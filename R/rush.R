@@ -34,15 +34,19 @@ build_run_body <- function(con, flags) {
   pkgs
 }
 
+# GitHub packages that render a ggplot to the terminal. They come from forks
+# of coolbutuseless's packages, pinned to commits so that changes upstream or
+# in the forks only reach rush when these SHAs are updated. All three are
+# listed because ir needs each GitHub dependency declared explicitly.
+terminal_plot_packages <- c(
+  devout = "github::jeroenjanssens/devout@fae1037ac2acbc6f134e200d19d5246f31048a1f",
+  miniansi = "github::jeroenjanssens/miniansi@38351133b5d588c4c06e34a44c6d06508089e223",
+  devoutansi = "github::jeroenjanssens/devoutansi@3e5600cf28c23995db88aa05a9bbd74b521d5758"
+)
+
 # Packages needed to render a ggplot to the terminal or to a file.
 plot_packages <- function() {
-  c(
-    "ggplot2",
-    "fs",
-    "github::coolbutuseless/devout",
-    "github::jeroenjanssens/miniansi",
-    "github::coolbutuseless/devoutansi"
-  )
+  c("ggplot2", "fs", unname(terminal_plot_packages))
 }
 
 # Whether a `rush run` expression may return a ggplot, in which case the

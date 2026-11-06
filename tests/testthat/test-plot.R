@@ -33,12 +33,18 @@ test_that("rush_plot reads multiple files into a dfs list", {
 
 test_that("rush_plot injects terminal-plotting GitHub packages", {
   script <- capture_script(rush_plot, file = "mtcars.csv", x = "wt")
-  expect_true(any(grepl("^#\\|   - github::coolbutuseless/devout$", script)))
-  expect_true(any(grepl("^#\\|   - github::jeroenjanssens/miniansi$", script)))
-  expect_true(any(grepl(
-    "^#\\|   - github::coolbutuseless/devoutansi$",
-    script
-  )))
+  expect_true(all(paste0("#|   - ", terminal_plot_packages) %in% script))
+})
+
+test_that("terminal-plotting packages come from pinned jeroenjanssens forks", {
+  expect_named(terminal_plot_packages, c("devout", "miniansi", "devoutansi"))
+  expect_match(
+    terminal_plot_packages,
+    "^github::jeroenjanssens/(devout|miniansi|devoutansi)@[0-9a-f]{40}$"
+  )
+  repos <- sub("^github::jeroenjanssens/([^@]+)@.*$", "\\1",
+               terminal_plot_packages)
+  expect_identical(unname(repos), names(terminal_plot_packages))
 })
 
 test_that("rush_plot generates a ggplot call with aesthetics", {

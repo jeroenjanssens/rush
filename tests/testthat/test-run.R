@@ -324,7 +324,7 @@ test_that("rush_run dispatches ggplot results to the plot output", {
 
 test_that("rush_run declares plot packages only when the expression may plot", {
   declares_devoutansi <- function(script) {
-    "#|   - github::coolbutuseless/devoutansi" %in% script
+    paste0("#|   - ", terminal_plot_packages[["devoutansi"]]) %in% script
   }
 
   plot_script <- capture_script(
