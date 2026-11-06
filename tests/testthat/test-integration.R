@@ -2292,6 +2292,40 @@ test_that("plot histogram to PNG", {
   expect_true(file.exists(out))
 })
 
+test_that("plot bar chart to PNG for a text column", {
+  skip_on_ci()
+  dir <- withr::local_tempdir()
+  f <- make_csv(
+    data.frame(time = c("Dinner", "Lunch", "Dinner")),
+    dir,
+    "data.csv"
+  )
+  out <- file.path(dir, "bar.png")
+  result <- rush_raw(c("plot", "--no-ir", "--x", "time", "-o", out, f))
+  expect_equal(result$status, 0)
+  expect_gt(file.size(out), 0)
+})
+
+test_that("a failing plot shows the R error", {
+  skip_on_ci()
+  dir <- withr::local_tempdir()
+  f <- make_csv(data.frame(x = 1:3), dir, "data.csv")
+  out <- file.path(dir, "fail.png")
+  result <- rush_raw(c(
+    "plot",
+    "--no-ir",
+    "--x",
+    "x",
+    "--geom",
+    "nonexistent",
+    "-o",
+    out,
+    f
+  ))
+  # rush_raw() doesn't pass on the exit status; the error message is the point
+  expect_match(result$stderr, "geom_nonexistent")
+})
+
 test_that("plot line geom to PNG", {
   skip_on_ci()
   dir <- withr::local_tempdir()

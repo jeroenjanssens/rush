@@ -59,8 +59,9 @@ aesthetics (as strings).}
 
 \item{geom}{Geometry to use. One of \code{"auto"}, \code{"point"}, \code{"line"},
 \code{"histogram"}, \code{"bar"}, \code{"boxplot"}, \code{"density"}, etc. When \code{"auto"},
-\code{geom_point()} is used if both \code{x} and \code{y} are set, \code{geom_histogram()}
-otherwise.}
+\code{geom_point()} is used if both \code{x} and \code{y} are set, and \code{\link[=geom_auto]{geom_auto()}}
+otherwise: a histogram for numbers, dates, and times, and a bar chart for
+anything else.}
 
 \item{facets}{A facet specification as a string. Use a two-sided formula
 (e.g. \code{"gear ~ cyl"}) for \code{\link[ggplot2:facet_grid]{ggplot2::facet_grid()}} or a one-sided formula

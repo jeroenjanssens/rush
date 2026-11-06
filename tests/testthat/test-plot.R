@@ -42,8 +42,11 @@ test_that("terminal-plotting packages come from pinned jeroenjanssens forks", {
     terminal_plot_packages,
     "^github::jeroenjanssens/(devout|miniansi|devoutansi)@[0-9a-f]{40}$"
   )
-  repos <- sub("^github::jeroenjanssens/([^@]+)@.*$", "\\1",
-               terminal_plot_packages)
+  repos <- sub(
+    "^github::jeroenjanssens/([^@]+)@.*$",
+    "\\1",
+    terminal_plot_packages
+  )
   expect_identical(unname(repos), names(terminal_plot_packages))
 })
 
@@ -62,9 +65,9 @@ test_that("rush_plot guesses geom_point when x and y given", {
   expect_true(any(grepl("geom_point\\(\\)", script)))
 })
 
-test_that("rush_plot guesses geom_histogram when only x given", {
+test_that("rush_plot uses geom_auto when only x given", {
   script <- capture_script(rush_plot, file = "mtcars.csv", x = "wt")
-  expect_true(any(grepl("geom_histogram\\(\\)", script)))
+  expect_true(any(grepl("rush::geom_auto\\(\\)", script)))
 })
 
 test_that("rush_plot geom overrides the guessed geom", {

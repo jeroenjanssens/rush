@@ -181,10 +181,16 @@ build_plot_call <- function(flags) {
   plot_call <- rlang::call2("ggplot", rlang::sym("df"), aes_call)
 
   geom <- flags$geom
-  if (geom == "auto") {
-    geom <- if (!is.null(flags$y)) "point" else "histogram"
+  geom_call <- if (geom != "auto") {
+    rlang::call2(paste0("geom_", geom))
+  } else if (!is.null(flags$y)) {
+    rlang::call2("geom_point")
+  } else {
+    # A bar chart or histogram, depending on the type of x (decided when the
+    # script runs, so it also works for stdin)
+    rlang::call2("geom_auto", .ns = "rush")
   }
-  plot_call <- rlang::call2("+", plot_call, rlang::call2(paste0("geom_", geom)))
+  plot_call <- rlang::call2("+", plot_call, geom_call)
 
   if (!is.null(flags$log)) {
     if (!flags$log %in% c("x", "y", "xy")) {
@@ -268,16 +274,25 @@ run_generated_script <- function(filename, flags) {
   }
 
   default_pkgs <- "datasets,utils,grDevices,graphics,stats,methods"
-  stderr_to <- if (flags$verbose) "" else NULL
+  # Without --verbose, the script's stderr (package startup messages, ir's
+  # progress) is only shown when the script fails, so errors aren't hidden.
+  stderr_file <- if (flags$verbose) "" else tempfile(fileext = ".log")
+  if (!flags$verbose) {
+    on.exit(unlink(stderr_file), add = TRUE)
+  }
   proc <- processx::process$new(
     exe,
     exe_args,
     stdin = "",
     stdout = "",
-    stderr = stderr_to,
+    stderr = stderr_file,
     cleanup = TRUE,
     env = c("current", R_DEFAULT_PACKAGES = default_pkgs)
   )
   proc$wait()
-  invisible(proc$get_exit_status())
+  status <- proc$get_exit_status()
+  if (!flags$verbose && !identical(status, 0L) && file.exists(stderr_file)) {
+    cat(readLines(stderr_file, warn = FALSE), sep = "\n", file = stderr())
+  }
+  invisible(status)
 }

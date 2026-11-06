@@ -26,11 +26,19 @@ When both `--x` and `--y` are given, `rush` guesses `geom_point`:
 rush plot -x wt -y mpg -O ansi --width 72 mtcars.csv
 ```
 
-When only `--x` is given, `rush` guesses `geom_histogram`:
+When only `--x` is given, `rush` uses a histogram for a numeric column:
 
 ```{term}
 rush plot -x mpg -O ansi --width 72 mtcars.csv
 ```
+
+and a bar chart for anything else (text, factors, logicals):
+
+```{term}
+rush plot -x 'factor(cyl)' -O ansi --width 72 mtcars.csv
+```
+
+The choice is made when the script runs, so the generated script contains `rush::geom_auto()`.
 
 ### `--geom` (`-g`)
 

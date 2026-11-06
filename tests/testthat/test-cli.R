@@ -325,9 +325,9 @@ test_that("plot guesses geom_point when a y column is given", {
   expect_true(any(grepl("geom_point\\(\\)", script)))
 })
 
-test_that("plot guesses geom_histogram when only x is given", {
+test_that("plot uses geom_auto when only x is given", {
   script <- dry_run("plot", "-n", "-x", "wt", "mtcars.csv")
-  expect_true(any(grepl("geom_histogram\\(\\)", script)))
+  expect_true(any(grepl("rush::geom_auto\\(\\)", script)))
 })
 
 test_that("plot --geom overrides the guessed geom", {

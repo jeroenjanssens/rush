@@ -13,8 +13,9 @@
 #'   aesthetics (as strings).
 #' @param geom Geometry to use. One of `"auto"`, `"point"`, `"line"`,
 #'   `"histogram"`, `"bar"`, `"boxplot"`, `"density"`, etc. When `"auto"`,
-#'   `geom_point()` is used if both `x` and `y` are set, `geom_histogram()`
-#'   otherwise.
+#'   `geom_point()` is used if both `x` and `y` are set, and [geom_auto()]
+#'   otherwise: a histogram for numbers, dates, and times, and a bar chart for
+#'   anything else.
 #' @param facets A facet specification as a string. Use a two-sided formula
 #'   (e.g. `"gear ~ cyl"`) for [ggplot2::facet_grid()] or a one-sided formula
 #'   (e.g. `"~ cyl"`) for [ggplot2::facet_wrap()].

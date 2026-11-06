@@ -1,5 +1,13 @@
 # rush (development version)
 
+* `rush plot` with only `--x` now draws a bar chart for a text, factor, or
+  logical column and a histogram for numbers, dates, and times, like the
+  `qplot()` that rush 0.1 used. It always used a histogram, which fails for a
+  discrete x (e.g. `rush plot --x time tips.csv`). Generated scripts use the
+  new exported `geom_auto()`, which decides when the script runs.
+* When a generated script fails, rush now prints its error output. Without
+  `--verbose` it used to discard it, so a failing plot exited with status 1
+  without saying why.
 * Terminal plotting now installs devout, devoutansi, and miniansi from forks
   under jeroenjanssens on GitHub, pinned to fixed commits, instead of from the
   unmaintained upstream repositories. Changes to those repositories can no
