@@ -33,6 +33,7 @@ build_flags <- function(
   group = NULL,
   aes = NULL,
   geom = "auto",
+  geom_args = NULL,
   facets = NULL,
   log = NULL,
   title = NULL,
@@ -97,6 +98,18 @@ build_flags <- function(
     }
   }
 
+  geom_args_val <- if (!is.null(geom_args)) {
+    if (is.character(geom_args)) {
+      parse_geom_args(geom_args)
+    } else if (is.list(geom_args)) {
+      geom_args
+    } else {
+      cli::cli_abort(
+        "{.arg geom_args} must be a character string (such as {.code \"adjust = 3\"}) or a list."
+      )
+    }
+  }
+
   pre_val <- if (!is.null(pre)) {
     if (is.character(pre)) rlang::parse_exprs(pre) else pre
   }
@@ -141,6 +154,7 @@ build_flags <- function(
     group = aes_sym(group),
     aes = aes,
     geom = geom,
+    geom_args = geom_args_val,
     facets = facets_val,
     log = log,
     title = title,

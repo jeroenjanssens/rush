@@ -265,3 +265,133 @@ test_that("rush_plot fill aesthetic works", {
   ggplot_line <- script[grepl("ggplot\\(", script)]
   expect_match(ggplot_line, "fill = cyl")
 })
+
+# --geom-args ---------------------------------------------------------------
+
+test_that("geom_args are passed to an explicit geom", {
+  script <- capture_script(
+    rush_plot,
+    file = "wine.csv",
+    x = "quality",
+    fill = "type",
+    geom = "density",
+    geom_args = "adjust = 3, alpha = 0.5"
+  )
+  expect_true(any(grepl(
+    "geom_density(adjust = 3, alpha = 0.5)",
+    script,
+    fixed = TRUE
+  )))
+})
+
+test_that("geom_args can be a list", {
+  script <- capture_script(
+    rush_plot,
+    file = "wine.csv",
+    x = "quality",
+    geom = "density",
+    geom_args = list(adjust = 3, alpha = 0.5)
+  )
+  expect_true(any(grepl(
+    "geom_density(adjust = 3, alpha = 0.5)",
+    script,
+    fixed = TRUE
+  )))
+})
+
+test_that("geom_args are passed to the guessed geom_point", {
+  script <- capture_script(
+    rush_plot,
+    file = "mtcars.csv",
+    x = "wt",
+    y = "mpg",
+    geom_args = "size = 3"
+  )
+  expect_true(any(grepl("geom_point(size = 3)", script, fixed = TRUE)))
+})
+
+test_that("geom_args are passed to both branches of the inline geom choice", {
+  script <- capture_script(
+    rush_plot,
+    file = "mtcars.csv",
+    x = "wt",
+    geom_args = "fill = \"steelblue\""
+  )
+  expect_true(any(grepl(
+    "geom_histogram(fill = \"steelblue\")",
+    script,
+    fixed = TRUE
+  )))
+  expect_true(any(grepl(
+    "geom_bar(fill = \"steelblue\")",
+    script,
+    fixed = TRUE
+  )))
+})
+
+test_that("geom_args are passed to rush::geom_auto() in compact scripts", {
+  flags <- list(x = quote(wt), geom = "auto", geom_args = list(bins = 10))
+  geom_call <- build_plot_call(flags, compact = TRUE)[[3]]
+  expect_equal(rlang::expr_deparse(geom_call), "rush::geom_auto(bins = 10)")
+})
+
+test_that("without geom_args, geoms get no arguments", {
+  flags <- list(x = quote(wt), y = quote(mpg), geom = "density")
+  expect_equal(
+    rlang::expr_deparse(build_plot_call(flags)[[3]]),
+    "geom_density()"
+  )
+  flags$geom_args <- list()
+  expect_equal(
+    rlang::expr_deparse(build_plot_call(flags)[[3]]),
+    "geom_density()"
+  )
+})
+
+test_that("geom_args end up in the layer's parameters", {
+  skip_if_not_installed("ggplot2")
+  flags <- list(
+    x = quote(quality),
+    fill = quote(type),
+    geom = "density",
+    geom_args = parse_geom_args("adjust = 3, alpha = 0.5")
+  )
+  df <- data.frame(
+    quality = c(5, 6, 6, 7),
+    type = c("red", "white", "red", "white")
+  )
+  plot <- eval(build_plot_call(flags), list(df = df), asNamespace("ggplot2"))
+  layer <- plot$layers[[1]]
+  expect_equal(layer$stat_params$adjust, 3)
+  # A fixed alpha (not mapped, so no legend for it)
+  expect_equal(layer$aes_params$alpha, 0.5)
+  expect_null(plot$mapping$alpha)
+})
+
+test_that("geom_auto() passes geom_args on to the geom it picks", {
+  skip_if_not_installed("ggplot2")
+  df <- data.frame(wt = c(1.5, 2.5, 3.5), time = c("Dinner", "Lunch", "Dinner"))
+  plot <- ggplot2::ggplot(df, ggplot2::aes(x = wt)) + geom_auto(bins = 7)
+  expect_equal(plot$layers[[1]]$stat_params$bins, 7)
+  plot <- ggplot2::ggplot(df, ggplot2::aes(x = time)) + geom_auto(width = 0.5)
+  expect_equal(plot$layers[[1]]$stat_params$width, 0.5)
+})
+
+test_that("parse_geom_args parses named and unnamed arguments", {
+  args <- parse_geom_args("adjust = 3, alpha = 0.5")
+  expect_equal(names(args), c("adjust", "alpha"))
+  expect_equal(args$adjust, 3)
+  args <- parse_geom_args("stat = \"identity\", position = position_dodge(0.9)")
+  expect_equal(args$stat, "identity")
+  expect_true(rlang::is_call(args$position, "position_dodge"))
+})
+
+test_that("invalid geom_args give a clear error", {
+  expect_error(parse_geom_args("adjust = (3"), "--geom-args")
+  expect_error(parse_geom_args("adjust ="), "--geom-args")
+  expect_error(parse_geom_args("adjust = 3,, alpha = 1"), "--geom-args")
+  expect_error(
+    capture_script(rush_plot, file = "mtcars.csv", x = "wt", geom_args = 3),
+    "geom_args"
+  )
+})

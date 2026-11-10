@@ -11,6 +11,25 @@ parse_named_exprs <- function(x) {
   rlang::call_args(rlang::parse_expr(paste0("list(", x, ")")))
 }
 
+# --geom-args: arguments for the geometry, e.g. "adjust = 3, alpha = 0.5"
+parse_geom_args <- function(x) {
+  fail <- function() {
+    cli::cli_abort(
+      c(
+        "{.arg --geom-args} must be arguments for the geometry, such as {.code adjust = 3, alpha = 0.5}.",
+        x = "Can't parse {.val {x}}."
+      ),
+      call = NULL
+    )
+  }
+  args <- tryCatch(parse_named_exprs(x), error = function(e) fail())
+  # `adjust =` parses, but as an empty argument
+  if (any(vapply(args, rlang::is_missing, logical(1)))) {
+    fail()
+  }
+  args
+}
+
 # Guess whether a flag value is numeric (e.g. --dpi 300) or should stay a
 # string; a lightweight stand-in for readr::parse_guess.
 parse_guess <- function(x) {
@@ -53,6 +72,7 @@ flags_df <-
     NA     , "pre"              , "code"      , "Code to run before plotting"            , NA       , NA                 , rlang::parse_exprs , "plot"    ,
     "f"    , "fill"             , "name"      , "Fill column"                            , NA       , NA                 , rlang::parse_expr  , "plot"    ,
     "g"    , "geom"             , "geom"      , "Geometry"                               , "auto"   , NA                 , as.character       , "plot"    ,
+    NA     , "geom-args"        , "args"      , "Arguments for the geometry"             , NA       , "geom_args"        , parse_geom_args    , "plot"    ,
     NA     , "facets"           , "formula"   , "Facet specification"                    , NA       , NA                 , rlang::parse_expr  , "plot"    ,
     NA     , "log"              , "x|y|xy"    , "Variables to log transform"             , NA       , NA                 , as.character       , "plot"    ,
     NA     , "xlab"             , "str"       , "X axis label"                           , NA       , NA                 , as.character       , "plot"    ,
@@ -274,7 +294,9 @@ parse_arguments <- function(...) {
 
   args$command <- command
   args <- args[stringr::str_starts(names(args), "[:alnum:]")]
-  args <- purrr::map2(args, names(args), convert_flag)
+  # Map(), not purrr::map2(): a parser's error (e.g. for --geom-args) is shown
+  # as is, without purrr's "In index" wrapper
+  args <- Map(convert_flag, args, names(args))
   args[order(names(args))]
 }
 

@@ -851,3 +851,65 @@ test_that("rush_ref() pins the commit, the release tag, or nothing", {
     "github::jeroenjanssens/rush"
   )
 })
+
+test_that("--geom-args is passed to the geometry", {
+  script <- dry_run(
+    "plot",
+    "-n",
+    "--x",
+    "quality",
+    "--fill",
+    "type",
+    "--geom",
+    "density",
+    "--geom-args",
+    "adjust = 3, alpha = 0.5",
+    "wine.csv"
+  )
+  expect_true(any(grepl(
+    "geom_density(adjust = 3, alpha = 0.5)",
+    script,
+    fixed = TRUE
+  )))
+})
+
+test_that("--geom-args and --alpha are different things", {
+  # --alpha maps a column (or constant) in aes(); --geom-args sets a value
+  script <- dry_run(
+    "plot",
+    "-n",
+    "--x",
+    "quality",
+    "--alpha",
+    "0.5",
+    "wine.csv"
+  )
+  expect_true(any(grepl("aes(x = quality, alpha = 0.5)", script, fixed = TRUE)))
+  script <- dry_run(
+    "plot",
+    "-n",
+    "--x",
+    "quality",
+    "--geom",
+    "density",
+    "--geom-args",
+    "alpha = 0.5",
+    "wine.csv"
+  )
+  expect_true(any(grepl("aes(x = quality)", script, fixed = TRUE)))
+  expect_true(any(grepl("geom_density(alpha = 0.5)", script, fixed = TRUE)))
+})
+
+test_that("invalid --geom-args errors gracefully", {
+  expect_error(
+    rush("plot", "--x", "quality", "--geom-args", "adjust =", "wine.csv"),
+    "--geom-args"
+  )
+})
+
+test_that("plot --help lists --geom-args", {
+  # docopt prints --help itself and quits R, so check the help text it gets
+  help <- glue::glue(docs[["plot"]])
+  expect_true(grepl("--geom-args <args>", help, fixed = TRUE))
+  expect_true(grepl("Arguments for the geometry", help, fixed = TRUE))
+})

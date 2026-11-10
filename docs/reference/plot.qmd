@@ -64,6 +64,23 @@ rush plot -x cyl -y mpg -g boxplot -O ansi --width 72 mtcars.csv
 rush plot -x wt -y mpg -g smooth -O ansi --width 72 mtcars.csv
 ```
 
+### `--geom-args`
+
+Pass arguments to the geom, as R code. For example, `adjust` smooths a density
+curve, and `alpha` makes it transparent:
+
+```{term}
+rush plot -x hwy -f drv -g density --geom-args 'adjust = 2, alpha = 0.5' -n mpg.csv | grep 'ggplot('
+```
+
+```{term}
+rush plot -x hwy -f drv -g density --geom-args 'adjust = 2, alpha = 0.5' -O ansi --width 78 mpg.csv
+```
+
+Arguments set fixed values for the whole layer, unlike aesthetics such as
+`--alpha`, which map a column. They also work with the guessed geom, e.g.
+`--geom-args 'bins = 20'` for a histogram.
+
 ## Aesthetics
 
 ### `--color` (`-c`)
@@ -90,7 +107,9 @@ rush plot -x class -f drv -O ansi --width 78 mpg.csv
 
 ### `--alpha` (`-a`)
 
-Map a column to transparency, or use a constant for semi-transparent geoms:
+Map a column to transparency. A constant such as `0.6` is mapped too, so it
+adds a legend; to make a geom semi-transparent, use `--geom-args 'alpha = 0.6'`
+instead:
 
 ```{term}
 rush plot -x wt -y mpg --alpha 0.6 -O ansi --width 72 mtcars.csv
