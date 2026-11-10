@@ -4,41 +4,69 @@ title: "Bioinformatics (FASTA/FASTQ)"
 ---
 
 Sequence files (`.fasta`, `.fa`, `.fna`, `.fastq`, `.fq`) are read and written
-with [microseq](https://github.com/larssnip/microseq). FASTA files produce a
-data frame with `Header` and `Sequence` columns; FASTQ adds a `Quality` column.
+with [microseq](https://github.com/larssnip/microseq). A FASTA file becomes a
+data frame with the columns `header` and `sequence`; a FASTQ file adds
+`quality`.
 
 ## FASTA
 
-### Reading
+Write a FASTA file from a data frame with `header` and `sequence` columns:
 
 ```{term}
-rush run -n 'head(df)' sequences.fasta
+rush run -o genes.fasta 'data.frame(
+  header = c("gene1 E. coli", "gene2 B. subtilis", "gene3 S. aureus"),
+  sequence = c("ATGAAACGCATTAGC", "ATGGCTTTAACGTTAGCCGTA", "ATGTCAGGT")
+)'
+cat genes.fasta
 ```
 
-### Writing
+Read it, and compute on the sequences like any other column:
 
 ```{term}
-rush run -n -O fasta -o output.fasta 'df' data.csv
+rush run 'dplyr::mutate(df, length = nchar(sequence))' genes.fasta
+```
+
+Filter the sequences and write the result as FASTA again, here to standard
+output with `-O fasta`:
+
+```{term}
+rush run -O fasta 'dplyr::filter(df, nchar(sequence) > 10)' genes.fasta
 ```
 
 ## FASTQ
 
-### Reading
+A FASTQ file also stores the quality of each base:
 
 ```{term}
-rush run -n 'head(df)' reads.fastq
+rush run -o reads.fastq 'data.frame(
+  header = c("read1", "read2"),
+  sequence = c("GATTACA", "ACGTTGCA"),
+  quality = c("IIIIHHG", "IIIHHGGF")
+)'
+cat reads.fastq
 ```
-
-### Writing
 
 ```{term}
-rush run -n -O fastq -o output.fastq 'df' data.csv
+rush run 'df' reads.fastq
 ```
 
-## Example workflows
+## Converting
 
-```bash
-rush run 'nrow(df)' sequences.fasta
-rush run 'df |> dplyr::filter(nchar(Sequence) > 100)' reads.fastq
-rush convert -o filtered.fasta data.csv
+Convert FASTQ to FASTA, which drops the quality:
+
+```{term}
+rush convert -o reads.fasta reads.fastq
+cat reads.fasta
+```
+
+Or export sequences to CSV for other tools:
+
+```{term}
+rush convert -o genes.csv genes.fasta
+cat genes.csv
+```
+
+```{term}
+#| include: false
+rm -f genes.fasta reads.fastq reads.fasta genes.csv
 ```

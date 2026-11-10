@@ -8,37 +8,56 @@ title: "Scripts"
 rush run -o mtcars.csv 'mtcars'
 ```
 
-## Saving and reusing scripts
+Every `rush` command writes a small R script and runs it. With `--dry-run`
+(`-n`), `rush` prints that script instead, so you can save it, edit it, and run
+it again later.
 
-The script that `--dry-run` prints is not a throwaway. It is a complete,
-self-contained `ir` script. Redirect it to a file and you have a reproducible
-artifact you can version, share, or run again later:
+## Saving a script
+
+The script that `--dry-run` prints is a complete, self-contained
+[`ir`](https://r-lib.github.io/ir/) script. Redirect it to a file:
 
 ```{term}
-rush run --dry-run 'df |> dplyr::filter(hp > 200)' mtcars.csv > analysis.R
-head -3 analysis.R
+rush run --dry-run 'dplyr::filter(df, hp > 200)' mtcars.csv > analysis.R
+cat analysis.R
 ```
 
-Run it with `ir run`. The `#|` frontmatter declares the script's dependencies,
-so `ir` installs any missing packages and executes it. That includes `rush`
-itself, which the script refers to on GitHub (`github::jeroenjanssens/rush`),
-pinned to the commit or release that generated it, so the script keeps working
-when `rush` changes. The saved script carries its own dependencies and needs
-nothing but `ir` on the target machine:
+The `#|` frontmatter at the top declares the packages the script needs. That
+includes `rush` itself, which the script refers to on GitHub
+(`github::jeroenjanssens/rush`), pinned to the commit or release that
+generated it, so the script keeps working when `rush` changes.
 
-```bash
+## Running a script
+
+Run it with `ir run`. `ir` installs any missing packages, so the script needs
+nothing but `ir` on the machine that runs it:
+
+```{term}
 ir run analysis.R
 ```
 
+The `#!/usr/bin/env -S ir run` line at the top also makes the file
+executable (`chmod +x analysis.R && ./analysis.R`). This is handy for
+tweaking: dump a `rush` one-liner to a file, edit the generated R to do
+something `rush` doesn't express directly, and run it later.
+
+## Scripts without rush
+
+The script above calls helper functions from `rush`, such as `rush::read()`,
+which keeps it short. Add `--no-rush` (`-R`) for a script with all of that
+code inlined, which doesn't need `rush` at all:
+
 ```{term}
-#| echo: false
-Rscript analysis.R 2>/dev/null
+rush run -n -R 'dplyr::filter(df, hp > 200)' mtcars.csv > standalone.R
+wc -l analysis.R standalone.R
 ```
 
-The `#!/usr/bin/env -S ir run` shebang also makes the file directly executable
-(`chmod +x analysis.R && ./analysis.R`). This is handy for tweaking: dump a
-`rush` one-liner to a file, edit the generated R to do something `rush` does not
-express directly, and run it later.
+The script is longer, but it only uses common packages such as readr, and it
+runs the same way:
+
+```{term}
+ir run standalone.R
+```
 
 ## Formatting with air
 
@@ -49,10 +68,10 @@ script that actually runs is never reformatted.
 
 ## Running without `ir`
 
-By default `rush` runs each script with `ir`, which resolves the packages
-declared in the frontmatter on the fly. If you would rather run against the
-packages already installed in your library (for speed, to work offline, or in
-an environment where dependencies are pinned), pass `--no-ir` (`-I`) and `rush`
+By default `rush` runs each script with `ir`, which installs the packages
+declared in the frontmatter when needed. If you would rather use the packages
+already installed in your R library (for speed, to work offline, or in an
+environment where dependencies are pinned), pass `--no-ir` (`-I`), and `rush`
 runs the script with plain `Rscript` instead:
 
 ```{term}
@@ -66,5 +85,5 @@ later.
 
 ```{term}
 #| include: false
-rm -f mtcars.csv analysis.R
+rm -f mtcars.csv analysis.R standalone.R
 ```

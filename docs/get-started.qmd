@@ -5,48 +5,64 @@ title: "Get started"
 
 ## Installation
 
-First install [`ir`](https://r-lib.github.io/ir/#installation). Then install
-`rush` as an `ir` tool, which puts a `rush` launcher on your `PATH`:
+First install [`ir`](https://r-lib.github.io/ir/#installation), which runs R
+scripts and installs the packages they need. Then install `rush` as an `ir`
+tool, which puts a `rush` command on your `PATH`:
 
 ```sh
 ir tool install github::jeroenjanssens/rush
 ```
 
-That's it; there's no separate R package to load. The first time a command
-needs a package (say, ggplot2 for a plot), `ir` fetches and caches it for you.
+Check that it works:
+
+```{term}
+rush --version
+```
+
+That's it; there's no R package to load. The first time a command needs a
+package (say, ggplot2 for a plot), `ir` installs it for you.
+
+To upgrade `rush` later, install it again. `--force` replaces the installed
+command, and `--refresh` makes `ir` look up the latest version:
+
+```sh
+ir tool install --force --refresh github::jeroenjanssens/rush
+```
 
 ## Quick tour
 
-Evaluate an expression. The value of the last expression is printed:
+Evaluate an R expression. Its value is printed:
 
 ```{term}
 rush run '6 * 7'
 ```
 
-Read from standard input with `-`. Input is read into a data frame called `df`,
-so `seq 6` becomes a one-column table you can compute on:
-
-```{term}
-seq 6 | rush run -H '2 * sum(df$x1)' -
-```
-
-Give `rush run` a file and it is read into `df` before your expression runs.
-With no expression, the data frame is simply printed back out, a handy way to
-peek at a file:
+Give `rush run` a file, and it is read into a data frame called `df` before
+your expression runs. Here, we first save R's `mtcars` data set as CSV:
 
 ```{term}
 rush run -o mtcars.csv 'mtcars'
 rush run 'head(df, 5)' mtcars.csv
 ```
 
-Because `rush` writes plain CSV to standard output, you can keep piping into the
-next command, including another `rush`:
+In the terminal, the result is printed as a table. When you pipe it into
+another command, `rush` writes CSV, so you can keep going, including with
+another `rush`. Use `-` to read from standard input:
 
 ```{term}
-rush run 'head(df, 10)' mtcars.csv | rush run 'df |> dplyr::select(mpg, cyl, hp, wt)' -
+rush run 'head(df, 10)' mtcars.csv |
+  rush run 'dplyr::select(df, mpg, cyl, hp)' -
 ```
 
-Load extra packages with `-l`, or enter the whole Tidyverse with `-t`:
+Data without a header row works too. With `-H`, the columns are named `x1`,
+`x2`, and so on:
+
+```{term}
+seq 6 | rush run -H '2 * sum(df$x1)' -
+```
+
+Load packages with `-l`, or the whole tidyverse with `-t`, to use their
+functions without the `package::` prefix:
 
 ```{term}
 rush run -t 'count(df, cyl, sort = TRUE)' mtcars.csv
@@ -59,17 +75,24 @@ rush sql "SELECT cyl, ROUND(AVG(mpg), 1) AS avg_mpg, COUNT(*) AS n
           FROM mtcars GROUP BY cyl ORDER BY avg_mpg DESC" mtcars.csv
 ```
 
-Convert between formats in one step:
+Convert between formats:
 
 ```{term}
 rush convert -o mtcars.parquet mtcars.csv
 rush run 'nrow(df)' mtcars.parquet
 ```
 
-Draw a quick terminal plot:
+Draw a plot in the terminal:
 
 ```{term}
-rush plot -x wt -y mpg -c cyl -O ansi --width 72 mtcars.csv
+rush plot -x wt -y mpg -c 'factor(cyl)' mtcars.csv
+```
+
+Every command writes a small R script and runs it. Use `--dry-run` (`-n`) to
+see that script, and save it to build on:
+
+```{term}
+rush run -n 'dplyr::filter(df, mpg > 25)' mtcars.csv
 ```
 
 ```{term}
@@ -80,7 +103,8 @@ rm -f mtcars.csv mtcars.parquet
 ## What's next?
 
 - Learn about the four commands: [`run`](reference/run.qmd),
-  [`sql`](reference/sql.qmd), [`plot`](reference/plot.qmd),
+  [`sql`](reference/sql.qmd), [`plot`](reference/plot.qmd), and
   [`convert`](reference/convert.qmd)
 - See all [supported formats](formats.qmd)
 - Explore [pipeline patterns](pipelines.qmd) for composing shell commands
+- Save and share the generated [scripts](scripts.qmd)

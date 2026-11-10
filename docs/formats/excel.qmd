@@ -3,64 +3,98 @@ engine: markdown
 title: "Excel / ODS"
 ---
 
+## Excel
+
+Files ending in `.xlsx` or `.xls` are read with
+[readxl](https://readxl.tidyverse.org/). Point `--output` (`-o`) at an `.xlsx`
+file to write one with [writexl](https://docs.ropensci.org/writexl/). The older
+`.xls` format can only be read.
+
+### Reading and writing
+
+```{term}
+rush run -o sales.xlsx 'data.frame(
+  product = c("Widget", "Gadget", "Doohickey"),
+  q1 = c(100, 250, 75),
+  q2 = c(120, 200, 90)
+)'
+rush run 'dplyr::mutate(df, total = q1 + q2)' sales.xlsx
+```
+
+Convert a CSV file to Excel:
+
 ```{term}
 #| include: false
 rush run -o mtcars.csv 'mtcars'
 ```
-
-## Excel
-
-Files ending in `.xlsx` or `.xls` are read with
-[readxl](https://readxl.tidyverse.org/). Write Excel files with `-O xlsx` or
-by naming the output `.xlsx`.
-
-### Reading
-
-```{term}
-rush run -o sales.xlsx 'data.frame(product = c("Widget", "Gadget", "Doohickey"), q1 = c(100, 250, 75), q2 = c(120, 200, 90), q3 = c(150, 180, 110))'
-rush run 'df' sales.xlsx
-```
-
-### `--input-sheet`
-
-Select a specific sheet by name or index:
-
-```{term}
-rush run --input-sheet 1 'names(df)' sales.xlsx
-```
-
-### Writing
-
-```{term}
-rush run -o summary.xlsx 'df |> dplyr::mutate(total = q1 + q2 + q3)' sales.xlsx
-rush run 'df' summary.xlsx
-```
-
-### Converting CSV to Excel
 
 ```{term}
 rush convert -o mtcars.xlsx mtcars.csv
 rush run 'nrow(df)' mtcars.xlsx
 ```
 
+### `--input-sheet`
+
+`rush` reads the first sheet of a workbook. To read another, pass its name or
+its position to `--input-sheet`. readxl comes with an example workbook in the
+`.xls` format that has several sheets:
+
+```{term}
+cp "$(rush run 'readxl::readxl_example("datasets.xls")')" datasets.xls
+rush run 'readxl::excel_sheets("datasets.xls")'
+rush run --input-sheet quakes 'head(df, 3)' datasets.xls
+```
+
+### `--output-sheet`
+
+Name the sheet that is written (`Sheet1` by default):
+
+```{term}
+rush run --output-sheet cars -o cars.xlsx 'head(df, 3)' mtcars.csv
+rush run 'readxl::excel_sheets("cars.xlsx")'
+```
+
+### Multiple sheets
+
+A list of data frames is written as one sheet per element, named after the
+list names. For example, split the cars by their number of cylinders:
+
+```{term}
+rush run -o split.xlsx 'split(df, ~ cyl)' mtcars.csv
+rush run 'readxl::excel_sheets("split.xlsx")'
+```
+
+`--input-sheet` takes a number as the position of the sheet, so read the
+sheet named `8` as the third sheet:
+
+```{term}
+rush run --input-sheet 3 'nrow(df)' split.xlsx
+```
+
+`rush convert` puts multiple files in one workbook, a sheet each. A database
+becomes a sheet per table:
+
+```{term}
+rush run -o fast.csv 'dplyr::filter(df, hp > 200)' mtcars.csv
+rush convert -o book.xlsx mtcars.csv fast.csv
+rush run 'readxl::excel_sheets("book.xlsx")'
+```
+
 ## ODS (OpenDocument Spreadsheet)
 
-Files ending in `.ods` are read and written with
+Files ending in `.ods`, as used by LibreOffice, are read and written with
 [readODS](https://docs.ropensci.org/readODS/):
 
-### Reading
-
 ```{term}
-rush run -n 'head(df)' data.ods
+rush convert -o sales.ods sales.xlsx
+rush run 'df' sales.ods
 ```
 
-### Writing
-
-```{term}
-rush run -n -o output.ods 'df' data.csv
-```
+`--input-sheet`, `--output-sheet`, and multiple sheets work for ODS files
+too.
 
 ```{term}
 #| include: false
-rm -f mtcars.csv sales.xlsx summary.xlsx mtcars.xlsx
+rm -f mtcars.csv fast.csv sales.xlsx mtcars.xlsx datasets.xls cars.xlsx sales.ods
+rm -f split.xlsx book.xlsx
 ```

@@ -3,80 +3,51 @@ engine: markdown
 title: "Supported formats"
 ---
 
-`rush` can read and write a wide range of data formats. The file extension
-determines which reader or writer is used automatically. Override with `-F`
-(input) or `-O` (output).
+`rush` reads and writes a wide range of data formats. The file extension
+determines which reader or writer is used. To override it, pass the format's
+name to `--input-format` (`-F`) or `--output-format` (`-O`).
 
-| Format | Extensions | Read | Write | Package |
-|--------|-----------|:----:|:-----:|---------|
-| Delimited text | `.csv`, `.tsv` | yes | yes | readr |
-| Parquet | `.parquet`, `.pq` | yes | yes | nanoparquet |
-| JSON | `.json` | yes | yes | jsonlite |
-| JSON Lines | `.jsonl`, `.ndjson` | yes | yes | jsonlite |
-| Excel | `.xlsx`, `.xls` | yes | yes | readxl / writexl |
-| Arrow IPC | `.arrow`, `.ipc`, `.feather` | yes | yes | arrow |
-| DuckDB | `.duckdb`, `.ddb` | yes | yes | duckdb |
-| SPSS | `.sav`, `.zsav`, `.por` | yes | yes | haven |
-| Stata | `.dta` | yes | yes | haven |
-| SAS | `.sas7bdat`, `.xpt` | yes | yes | haven |
-| SQLite | `.sqlite`, `.db` | yes | yes | RSQLite |
-| Fixed-width | `.fwf` | yes | no | readr |
-| RDS | `.rds` | yes | yes | readr |
-| ODS | `.ods` | yes | yes | readODS |
-| FASTA | `.fasta`, `.fa`, `.fna` | yes | yes | microseq |
-| FASTQ | `.fastq`, `.fq` | yes | yes | microseq |
-| YAML | `.yaml`, `.yml` | yes | yes | yaml |
-| TOML | `.toml` | yes | yes | RcppTOML |
-| XML | `.xml` | yes | yes | xml2 |
+| Format | Extensions | Name | Read | Write | Package |
+|--------|------------|------|:----:|:-----:|---------|
+| Delimited text | `.csv`, `.tsv` | `csv`, `tsv`, `delim` | yes | yes | readr |
+| Parquet | `.parquet`, `.pq` | `parquet` | yes | yes | nanoparquet |
+| JSON | `.json` | `json` | yes | yes | jsonlite |
+| JSON Lines | `.jsonl`, `.ndjson` | `jsonl` | yes | yes | jsonlite |
+| Excel | `.xlsx` | `xlsx` | yes | yes | readxl / writexl |
+| Excel 97-2003 | `.xls` | `xlsx` | yes | no | readxl |
+| ODS | `.ods` | `ods` | yes | yes | readODS |
+| Arrow IPC | `.arrow`, `.ipc`, `.feather` | `arrow` | yes | yes | arrow |
+| DuckDB | `.duckdb`, `.ddb` | `duckdb` | yes | yes | duckdb |
+| SQLite | `.sqlite`, `.db` | `sqlite` | yes | yes | RSQLite |
+| SPSS | `.sav`, `.zsav` | `sav`, `zsav` | yes | yes | haven |
+| SPSS portable | `.por` | `por` | yes | no | haven |
+| Stata | `.dta` | `dta` | yes | yes | haven |
+| SAS | `.sas7bdat`, `.xpt` | `sas7bdat`, `xpt` | yes | yes | haven |
+| RDS | `.rds` | `rds` | yes | yes | readr |
+| YAML | `.yaml`, `.yml` | `yaml` | yes | yes | yaml |
+| TOML | `.toml` | `toml` | yes | yes | RcppTOML |
+| XML | `.xml` | `xml` | yes | yes | xml2 |
+| Fixed-width | `.fwf` | `fwf` | yes | no | readr |
+| FASTA | `.fasta`, `.fa`, `.fna` | `fasta` | yes | yes | microseq |
+| FASTQ | `.fastq`, `.fq` | `fastq` | yes | yes | microseq |
 
-Any readable format can be converted to any writable format (through a data
-frame). The diagram below shows the full conversion graph:
+Any other extension is read and written as CSV. Writing a format that `rush`
+can only read, such as `-o data.xls`, is an error.
 
-```{mermaid}
-graph LR
-  CSV_in[CSV/TSV] --> rush((rush))
-  Parquet_in[Parquet] --> rush
-  JSON_in[JSON/JSONL] --> rush
-  Excel_in[Excel] --> rush
-  Arrow_in[Arrow IPC] --> rush
-  DuckDB_in[DuckDB] --> rush
-  SPSS_in[SPSS] --> rush
-  Stata_in[Stata] --> rush
-  SAS_in[SAS] --> rush
-  SQLite_in[SQLite] --> rush
-  FWF_in[FWF] --> rush
-  RDS_in[RDS] --> rush
-  ODS_in[ODS] --> rush
-  FASTA_in[FASTA] --> rush
-  FASTQ_in[FASTQ] --> rush
-  YAML_in[YAML] --> rush
-  TOML_in[TOML] --> rush
-  XML_in[XML] --> rush
+Any readable format can be converted to any writable format, either with
+[`rush convert`](reference/convert.qmd) or by naming the output file of
+another command. A database holds several tables, so it converts to another
+database, to a spreadsheet with a sheet per table, or to one file per table
+with an [output template](reference/convert.qmd#multiple-files-with-output-templates).
 
-  rush --> CSV_out[CSV/TSV]
-  rush --> Parquet_out[Parquet]
-  rush --> JSON_out[JSON/JSONL]
-  rush --> Excel_out[Excel]
-  rush --> Arrow_out[Arrow IPC]
-  rush --> DuckDB_out[DuckDB]
-  rush --> SPSS_out[SPSS]
-  rush --> Stata_out[Stata]
-  rush --> SAS_out[SAS]
-  rush --> SQLite_out[SQLite]
-  rush --> RDS_out[RDS]
-  rush --> ODS_out[ODS]
-  rush --> FASTA_out[FASTA]
-  rush --> FASTQ_out[FASTQ]
-  rush --> YAML_out[YAML]
-  rush --> TOML_out[TOML]
-  rush --> XML_out[XML]
-```
+Plots have their own output formats (ANSI, ASCII, PNG, SVG, PDF, and more),
+described in [`rush plot`](reference/plot.qmd#output).
 
 ## Format-specific documentation
 
-Each format has detailed documentation with examples:
+Each format has its own page with examples:
 
-- [Delimited (CSV/TSV)](formats/delimited.qmd): delimiter control, format flags, `--head`
+- [Delimited (CSV/TSV)](formats/delimited.qmd): delimiters, headers, `--head`
 - [Parquet](formats/parquet.qmd): columnar storage via nanoparquet
 - [JSON / JSONL](formats/json.qmd): nested data, flattening, streaming
 - [Excel / ODS](formats/excel.qmd): sheets, spreadsheets

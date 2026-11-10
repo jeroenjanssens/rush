@@ -8,9 +8,9 @@ title: "rush convert"
 rush run -o mtcars.csv 'mtcars'
 ```
 
-The `convert` command converts between formats without writing an expression.
-It reads the input, infers the output format from the file extension (or `-O`),
-and writes the result.
+The `convert` command converts files between [formats](../formats.qmd)
+without an R expression. It reads the input, and writes it in the format of
+the output file's extension, or of `--output-format` (`-O`).
 
 ## Usage
 
@@ -18,124 +18,115 @@ and writes the result.
 rush convert [options] [<file>...]
 ```
 
-## Basic conversion
+## Converting a file
+
+Name the output file with `--output` (`-o`):
 
 ```{term}
 rush convert -o mtcars.parquet mtcars.csv
 rush run 'nrow(df)' mtcars.parquet
 ```
 
+Or write to standard output with `-O`:
+
 ```{term}
-rush convert -o mtcars.json --head 3 mtcars.csv
-cat mtcars.json
+rush convert -O jsonl --head 2 mtcars.csv
 ```
 
+Converting to a format that `rush` can only read, such as `.xls`, is an
+error.
+
+## Multiple files with output templates
+
+To convert multiple files to separate files, give the output a template with
+yt-dlp-style placeholders. Each input gets its own output file. (To combine
+them in one file instead, write a [database or spreadsheet](#database-and-spreadsheet-output).)
+
 ```{term}
-rush convert -O jsonl --head 2 -o mtcars.jsonl mtcars.csv
-cat mtcars.jsonl
-```
-
-## Output templates
-
-Convert multiple files using an output template with yt-dlp-style placeholders:
-
-```{term}
-echo "id,val
-1,a
-2,b" > chunk1.csv
-echo "id,val
-3,c
-4,d" > chunk2.csv
+printf 'id,val\n1,a\n2,b\n' > chunk1.csv
+printf 'id,val\n3,c\n4,d\n' > chunk2.csv
 rush convert -o '%(file_name)s.parquet' chunk1.csv chunk2.csv
-rush run 'df' chunk1.parquet
+ls chunk*
 ```
-
-### Available placeholders
 
 | Placeholder | Description |
 |-------------|-------------|
-| `%(file_name)s` | Input file stem |
-| `%(file_index)d` | 1-based file position |
+| `%(file_name)s` | Input file name, without its extension |
+| `%(file_index)d` | 1-based position of the input file |
 | `%(table_name)s` | Table name (databases) |
-| `%(table_index)d` | 1-based table position |
+| `%(table_index)d` | 1-based position of the table (databases) |
 
-The format spec after `)` follows `sprintf()` conventions: `s` for string, `d`
-for integer, `03d` for zero-padded. Use `l` for lowercase or `u` for uppercase:
-
-```bash
-rush convert -o '%(table_name)l.csv' sales.duckdb
-rush convert -o 'table_%(table_index)03d.csv' big.duckdb
-```
-
-## Database output
-
-When the output is a database format (DuckDB or SQLite), multiple inputs become
-separate tables named after the input file stems:
+The format after the `)` follows `sprintf()`: `s` for text, `d` for a
+number, `03d` for a number padded with zeros. Use `l` or `u` for text in
+lowercase or uppercase. For example, to write every table of a database to
+its own file:
 
 ```{term}
-echo "id,val
-1,a
-2,b" > a.csv
-echo "id,val
-3,c
-4,d" > b.csv
-rush convert -o combined.duckdb a.csv b.csv
-rush run 'names(dfs$combined)' combined.duckdb
+#| include: false
+rush convert -o garage.duckdb chunk1.csv chunk2.csv
 ```
-
-A single input also uses the file name as the table name:
 
 ```{term}
-rush convert -o cars_db.duckdb mtcars.csv
-rush sql "SELECT cyl, COUNT(*) AS n FROM cars_db.mtcars GROUP BY cyl ORDER BY cyl" cars_db.duckdb
-rm -f cars_db.duckdb
+rush convert -o 'table_%(table_index)02d_%(table_name)s.csv' garage.duckdb
+ls table_*
 ```
 
-Convert between database formats:
+## Database and spreadsheet output
+
+When the output is a database (DuckDB or SQLite), each input becomes a
+table, named after the input file:
 
 ```{term}
-rush convert -o cars.duckdb mtcars.csv
-rush convert -o copy.sqlite cars.duckdb
-rush run 'names(dfs$copy)' copy.sqlite
+rush convert -o chunks.duckdb chunk1.csv chunk2.csv
+rush run 'names(dfs$chunks)' chunks.duckdb
 ```
 
-## Limiting rows
-
-Use `--head` to limit the number of rows written:
+A spreadsheet (Excel or ODS) works the same way, with a sheet per input:
 
 ```{term}
-rush convert --head 5 -o top5.csv mtcars.csv
-cat top5.csv
+rush convert -o chunks.xlsx chunk1.csv chunk2.csv
+rush run 'readxl::excel_sheets("chunks.xlsx")'
 ```
 
-## Format overrides
+Converting a database to another database copies all its tables, and
+converting it to a spreadsheet gives a sheet per table:
 
-Force input and output formats regardless of extension with `-F` and `-O`:
+```{term}
+rush convert -o chunks.sqlite chunks.duckdb
+rush run 'names(dfs$chunks)' chunks.sqlite
+rush convert -o tables.xlsx chunks.duckdb
+rush run 'readxl::excel_sheets("tables.xlsx")'
+```
+
+## Options
+
+### `--head`
+
+Write only the first rows:
+
+```{term}
+rush convert --head 3 -o top3.csv mtcars.csv
+cat top3.csv
+```
+
+### `--input-format` (`-F`), `--output-format` (`-O`)
+
+Choose the formats regardless of the extensions:
 
 ```{term}
 cp mtcars.csv mtcars.dat
-rush convert -F csv -O json -o result.json --head 2 mtcars.dat
-cat result.json
-rm -f mtcars.dat
+rush convert -F csv -O json --head 2 mtcars.dat
 ```
 
-## Delimiter control
+### Format-specific options
 
-Override the output delimiter:
-
-```{term}
-rush convert -D ";" --head 3 -o mtcars_semi.csv mtcars.csv
-cat mtcars_semi.csv
-```
-
-## XML element names
-
-Use `--output-root` and `--output-record` to customize the XML structure:
+The options that set delimiters, headers, sheets, indentation, and element
+names work as in [`rush run`](run.qmd#format-specific-options). For example,
+`--output-delimiter` (`-D`):
 
 ```{term}
-rush convert --output-root garage --output-record car --head 2 -o mtcars.xml mtcars.csv
-cat mtcars.xml
-rm -f mtcars.xml
+rush convert -D ';' --head 3 -o semicolons.csv mtcars.csv
+cat semicolons.csv
 ```
 
 ## Help
@@ -146,7 +137,7 @@ rush convert -h
 
 ```{term}
 #| include: false
-rm -f mtcars.csv mtcars.parquet mtcars.json mtcars.jsonl chunk1.csv chunk2.csv chunk1.parquet chunk2.parquet
-rm -f a.csv b.csv combined.duckdb cars.duckdb copy.sqlite
-rm -f top5.csv result.json mtcars_semi.csv mtcars.dat
+rm -f mtcars.csv mtcars.parquet mtcars.dat chunk1.csv chunk2.csv
+rm -f chunk1.parquet chunk2.parquet garage.duckdb table_*.csv
+rm -f chunks.duckdb chunks.sqlite chunks.xlsx tables.xlsx top3.csv semicolons.csv
 ```

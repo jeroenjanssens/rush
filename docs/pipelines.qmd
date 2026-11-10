@@ -8,67 +8,64 @@ title: "Pipelines"
 rush run -o mtcars.csv 'mtcars'
 ```
 
-The real power of `rush` is combining commands in Unix pipelines. Because `rush`
-reads from stdin and writes to stdout by default, it composes naturally with
-other command-line tools, including other `rush` invocations.
+The real power of `rush` is combining commands in Unix pipelines. `rush`
+writes CSV when its output is piped, and reads standard input when you pass
+`-` as the file. So it composes with other command-line tools, and with
+itself.
 
 ## Chaining rush commands
 
-Filter with `rush run`, then query with SQL:
+Filter with `rush run`, then aggregate with SQL. Standard input is the
+relation `stdin`:
 
 ```{term}
-rush run 'dplyr::filter(df, cyl == 8)' mtcars.csv | \
+rush run 'dplyr::filter(df, cyl == 8)' mtcars.csv |
   rush sql "SELECT COUNT(*) AS n, ROUND(AVG(mpg), 1) AS avg_mpg FROM stdin" -
 ```
 
-Query with SQL, then filter further with `rush run`:
+Or the other way around, and as many steps as you like:
 
 ```{term}
-rush sql "SELECT mpg, hp, wt FROM mtcars WHERE hp > 200" mtcars.csv | \
-  rush run 'head(df, 5)' -
+rush sql "SELECT mpg, cyl, hp, wt FROM mtcars WHERE hp > 200" mtcars.csv |
+  rush run 'dplyr::arrange(df, mpg)' - |
+  rush run 'head(df, 3)' -
 ```
 
-## JSON in pipelines
+## Changing formats along the way
 
-Produce JSON, process it, and convert back to CSV:
+Each step can use another format, as long as the next step knows which one it
+reads (`-F`):
 
 ```{term}
-rush run -O json 'head(df, 3)' mtcars.csv | rush run -F json 'dplyr::select(df, mpg, hp, wt)' -
+rush run -O json 'head(df[1:4], 2)' mtcars.csv |
+  rush run -F json 'dplyr::mutate(df, kpl = mpg * 0.425)' -
 ```
 
-## Format conversion in pipelines
+## Ending with a plot
 
-Read CSV, filter with SQL, output as JSON:
-
-```{term}
-rush sql -O json "SELECT cyl, hp, mpg FROM mtcars WHERE hp > 150 LIMIT 5" mtcars.csv
-```
-
-## Multiple rush commands
-
-Chain `rush run` to progressively transform data:
+`rush plot` also reads standard input when you pass `-`, so a pipeline can end
+with a plot:
 
 ```{term}
-rush run 'dplyr::select(df, mpg, cyl, hp, wt)' mtcars.csv | \
-  rush run 'dplyr::filter(df, hp > 200)' -
+rush sql "SELECT * FROM mtcars WHERE am = 1" mtcars.csv |
+  rush plot -x wt -y mpg -O ascii -w 60 -
 ```
 
 ## With other tools
 
-`rush` plays well with standard Unix tools:
+Use other tools before or after `rush`. For example, count the rows with
+`wc` (without the header):
 
 ```{term}
-rush run 'df' mtcars.csv | wc -l
+rush run --no-output-header 'dplyr::filter(df, hp > 100)' mtcars.csv | wc -l
 ```
+
+Or download JSON with `curl`, and summarize it. Note that the column names
+are cleaned, so `Origin` becomes `origin`:
 
 ```{term}
-rush run 'df' mtcars.csv | cut -d, -f2 | sort | uniq -c
-```
-
-Feed external data into rush:
-
-```bash
-curl -s https://api.example.com/data.json | rush run -F json 'head(df)'
+curl -s https://cdn.jsdelivr.net/npm/vega-datasets@2.11.0/data/cars.json |
+  rush run -F json 'dplyr::count(df, origin)' -
 ```
 
 ```{term}

@@ -8,106 +8,118 @@ title: "Delimited text (CSV/TSV)"
 rush run -o mtcars.csv 'mtcars'
 ```
 
-CSV is the default format. Use `--delimiter` (`-d`) for other separators and
-`--no-header` (`-H`) for files without a header row. For finer control, use
-`--input-delimiter` and `--output-delimiter` (`-D`) to set them independently,
-`--no-input-header` and `--no-output-header` to control headers per side,
-or `-F`/`-O` to force a specific format regardless of extension.
+CSV is the default format, for reading and for writing. Files ending in `.tsv`
+are read and written with tabs, and so is standard output with `-O tsv`.
 
-## Reading CSV
+## Terminal and pipe
 
-```{term}
-rush run 'df |> dplyr::filter(mpg > 25) |> dplyr::select(mpg, cyl, hp)' mtcars.csv
-```
-
-## Reading TSV
+When the output is a terminal, `rush` prints a data frame as a table, so
+that you can read it:
 
 ```{term}
-rush convert -O tsv -o mtcars.tsv mtcars.csv
-rush run 'head(df, 3)' mtcars.tsv
+rush run 'head(df, 3)' mtcars.csv
 ```
 
-## Delimiter control
+When the output is a file or another command, `rush` writes CSV, so that
+the next tool can read it. Here, `cat` shows what `rush` writes:
+
+```{term}
+rush run 'head(df, 3)' mtcars.csv | cat
+```
+
+The options below change what is written, so most examples on this page end
+with `| cat`.
+
+## Delimiters
 
 ### `--delimiter` (`-d`)
 
-Override the delimiter for both reading and writing:
+Set the delimiter for both reading and writing. For example, to read a
+semicolon-separated file and write one:
 
 ```{term}
-rush run -d "\t" 'head(df, 3)' mtcars.csv | cat
+#| include: false
+rush run -D ';' -o semicolons.csv 'head(df, 3)' mtcars.csv
+```
+
+```{term}
+cat semicolons.csv
+rush run -d ';' 'dplyr::select(df, mpg, cyl)' semicolons.csv | cat
 ```
 
 ### `--input-delimiter`
 
-Override only the input delimiter while keeping the output as CSV:
+Set only the input delimiter, and keep writing CSV:
 
 ```{term}
-rush run --input-delimiter "\t" 'head(df, 3)' mtcars.tsv
+rush run --input-delimiter ';' 'dplyr::select(df, mpg, cyl)' semicolons.csv |
+  cat
 ```
 
 ### `--output-delimiter` (`-D`)
 
-Override only the output delimiter:
+Set only the output delimiter:
 
 ```{term}
-rush run -D "|" 'head(df, 3)' mtcars.csv
+rush run -D '|' 'head(df, 3)' mtcars.csv | cat
 ```
 
-### Independent input and output delimiters
+Use `$'\t'` (in bash and zsh) to pass a tab, or `-O tsv`, which is easier to
+type.
 
-Read tab-separated input, write semicolons:
+## TSV
+
+Files ending in `.tsv` are read and written with tabs:
 
 ```{term}
-rush run --input-delimiter "\t" -D ";" 'head(df, 3)' mtcars.tsv
+rush convert -o mtcars.tsv mtcars.csv
+head -3 mtcars.tsv
+rush run 'nrow(df)' mtcars.tsv
 ```
 
-## Format flags
+## Formats
 
 ### `--input-format` (`-F`)
 
-Force a specific input format regardless of extension:
+Read a file as CSV regardless of its extension. This is also the default for
+extensions that `rush` doesn't know:
 
 ```{term}
 cp mtcars.csv mtcars.txt
-rush run -F csv 'head(df, 3)' mtcars.txt
-rm -f mtcars.txt
+rush run -F csv 'nrow(df)' mtcars.txt
 ```
 
 ### `--output-format` (`-O`)
 
-Force a specific output format:
+Write a specific format to standard output. Unlike the default, an explicit
+`-O` is used in the terminal too:
 
 ```{term}
 rush run -O tsv 'head(df, 3)' mtcars.csv
 ```
 
-Write as tab-separated even when piping (no output file):
-
-```{term}
-rush run -O tsv 'head(df, 3)' mtcars.csv | cat
-```
-
-## Header control
+## Headers
 
 ### `--no-header` (`-H`)
 
-Suppress the header on both input (no column names in the file) and output:
+Read a file without a header row, and write without one. The columns are
+named `x1`, `x2`, and so on:
 
 ```{term}
-echo -e "1,Alice\n2,Bob\n3,Carol" | rush run -H 'df'
+printf '1,Alice\n2,Bob\n3,Carol\n' | rush run -H 'dplyr::filter(df, x1 > 1)' -
 ```
 
 ### `--no-input-header`
 
-Read a file without a header row, but still include a header in the output:
+Read a file without a header row, but write one:
 
 ```{term}
-echo -e "1,Alice\n2,Bob\n3,Carol" | rush run --no-input-header 'df'
+printf '1,Alice\n2,Bob\n3,Carol\n' | rush run --no-input-header 'df' - | cat
 ```
 
 ### `--no-output-header`
 
-Read normally but suppress the header in the output:
+Read the header as usual, but write without one:
 
 ```{term}
 rush run --no-output-header 'head(df, 3)' mtcars.csv | cat
@@ -115,33 +127,40 @@ rush run --no-output-header 'head(df, 3)' mtcars.csv | cat
 
 ### `--names`
 
-Provide explicit column names (comma-separated). Implies `--no-input-header`:
+Name the columns of a file without a header row (this implies
+`--no-input-header`):
 
 ```{term}
-echo -e "1,Alice\n2,Bob\n3,Carol" | rush run --names "id,name" 'df'
+printf '1,Alice\n2,Bob\n3,Carol\n' | rush run --names id,name 'df' - | cat
 ```
 
-## Limiting output with `--head`
+### `--no-clean-names` (`-C`)
 
-Limit output to the first N rows:
+`rush` cleans column names with
+[`janitor::clean_names()`](https://sfirke.github.io/janitor/reference/clean_names.html),
+so they are easy to use in R: lowercase, with underscores. Use `-C` to keep
+the original names:
 
 ```{term}
-rush run --head 5 'df' mtcars.csv
+printf 'First Name,Score (%%)\nAlice,92\n' | rush run 'names(df)' -
+printf 'First Name,Score (%%)\nAlice,92\n' | rush run -C 'names(df)' -
 ```
 
-Works with any output format:
+## Limiting rows with `--head`
+
+Write only the first rows of the result:
 
 ```{term}
-rush run --head 3 -O tsv 'df' mtcars.csv
+rush run --head 3 'df' mtcars.csv | cat
 ```
 
-Combined with SQL:
+This works for any output format, and with `rush sql` and `rush convert`:
 
 ```{term}
-rush sql --head 3 "SELECT * FROM mtcars ORDER BY mpg DESC" mtcars.csv
+rush sql --head 3 "SELECT mpg, cyl FROM mtcars ORDER BY mpg DESC" mtcars.csv
 ```
 
 ```{term}
 #| include: false
-rm -f mtcars.csv mtcars.tsv
+rm -f mtcars.csv mtcars.tsv mtcars.txt semicolons.csv
 ```

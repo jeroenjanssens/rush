@@ -19,7 +19,7 @@ extensions:
     style:
       chrome:
         os: macos
-        title: "rush — R One-Liners from the Shell"
+        title: "rush — R Scripting at the Command Line"
 ---
 
 [![](https://github.com/jeroenjanssens/rush/actions/workflows/R-CMD-check.yaml/badge.svg){fig-alt="R-CMD-check"}](https://github.com/jeroenjanssens/rush/actions/workflows/R-CMD-check.yaml)
@@ -64,7 +64,7 @@ rush run --dry-run 'df |> dplyr::filter(mpg > 25)' mtcars.csv #! hold: 2.5
 ```{term}
 #| include: false
 C-l #! literal: false
-rush plot -x wt -y mpg -c cyl -O ansi --width 78 mtcars.csv #! hold: 4
+rush plot -x wt -y mpg -c 'factor(cyl)' mtcars.csv #! hold: 4
 ```
 
 {{< term-player src="rush-demo.cast" autoplay=true loop=true speed=1.5 idle-time-limit=4 chrome=true chrome-title="rush" >}}
@@ -90,7 +90,7 @@ and `jq`.
 - **Query with SQL.** The [`sql`](reference/sql.qmd) command runs DuckDB
   queries directly against your files, no import step required.
 - **Plots in your terminal.** The [`plot`](reference/plot.qmd) command renders
-  ggplot2 graphics as ANSI/ASCII art, or saves them to PNG, PDF, and more.
+  ggplot2 graphics as ANSI/ASCII art, or saves them as PNG, SVG, PDF, and more.
 - **Zero dependency management.** Packages are resolved on demand by `ir`.
 
 ## How it works

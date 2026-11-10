@@ -378,12 +378,12 @@ rush plot -x cyl -y avg_mpg -g col \
 ### `--post`
 
 Run R code after the plot is built, to add layers, scales, or a theme. The
-plot is available as `p`, and the value of the last expression is drawn:
+plot is available as `p`, and the value of the last expression is drawn.
+ggplot2 is loaded, so its functions don't need the `ggplot2::` prefix:
 
 ```{term}
 rush plot -x wt -y mpg -o post.png \
-  --post 'p + ggplot2::geom_smooth(method = "lm") + ggplot2::theme_minimal()' \
-  mtcars.csv
+  --post 'p + geom_smooth(method = "lm") + theme_minimal()' mtcars.csv
 ```
 
 ![](post.png){fig-alt="Scatter plot of fuel economy against weight with a linear regression line and a minimal theme" width="560"}
@@ -398,8 +398,9 @@ with `--input-format` (`-F`).
 
 ### Standard input
 
-Without a file, or with `-`, `plot` reads from standard input, so it can be
-the last step of a [pipeline](../pipelines.qmd):
+With `-` as the file, `plot` reads from standard input, so it can be the last
+step of a [pipeline](../pipelines.qmd). Without a file, `plot` is an error; it
+doesn't read standard input unless you ask for it:
 
 ```{term}
 rush run 'dplyr::filter(df, class == "suv")' mpg.csv |

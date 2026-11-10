@@ -3,103 +3,101 @@ engine: markdown
 title: "Structured data (YAML, TOML, XML, RDS, FWF)"
 ---
 
+These formats are read into a data frame with one row per record. Nested
+structures are kept when the output format supports nesting (JSON, YAML,
+TOML, XML, RDS), and flattened otherwise.
+
 ## YAML
 
-Files ending in `.yaml` or `.yml` are read with
-[yaml](https://cran.r-project.org/package=yaml). Nested structures are
-preserved when the output format supports nesting (JSON, YAML, TOML, XML, RDS);
-otherwise they are flattened.
-
-### Reading
+Files ending in `.yaml` or `.yml` are read and written with
+[yaml](https://cran.r-project.org/package=yaml). A list of records becomes a
+data frame:
 
 ```{term}
-rush run -n 'head(df)' config.yaml
+echo "- name: web
+  port: 8080
+  replicas: 3
+- name: db
+  port: 5432
+  replicas: 1" > servers.yaml
+rush run 'df' servers.yaml
 ```
 
-### Writing
+Write YAML with `-O yaml` or an output file ending in `.yaml`. Converting
+nested JSON keeps the nesting:
 
 ```{term}
-rush run -n -O yaml -o output.yaml 'df' data.csv
-```
-
-### Converting (nesting preserved)
-
-```{term}
-rush convert -n -o output.yaml data.json
+echo '[{"name": "web", "limits": {"cpu": 2, "memory": "4G"}},
+       {"name": "db", "limits": {"cpu": 4, "memory": "16G"}}]' > limits.json
+rush convert -O yaml limits.json
 ```
 
 ## TOML
 
 Files ending in `.toml` are read with
-[RcppTOML](https://cran.r-project.org/package=RcppTOML):
-
-### Reading
+[RcppTOML](https://cran.r-project.org/package=RcppTOML). Each record is
+written as a table in an array named after `--output-record` (`record` by
+default):
 
 ```{term}
-rush run -n 'head(df)' config.toml
+rush convert --output-record server -o servers.toml servers.yaml
+cat servers.toml
 ```
 
-### Writing
+Reading TOML sorts the columns by name:
 
 ```{term}
-rush run -n -O toml -o output.toml 'df' data.csv
+rush run 'df' servers.toml
 ```
 
 ## XML
 
-Files ending in `.xml` are read with [xml2](https://xml2.r-lib.org/).
-Data frames are serialized as rows, with configurable element names.
-
-### Reading
+Files ending in `.xml` are read and written with
+[xml2](https://xml2.r-lib.org/). Each row becomes an element, with a child
+element per column. Use `--output-root` and `--output-record` to name the
+elements (`root` and `record` by default):
 
 ```{term}
-rush run -n 'head(df)' data.xml
+rush convert --output-root servers --output-record server -o servers.xml \
+  servers.yaml
+cat servers.xml
 ```
 
-### Writing
+XML has no column types, so every column is read as text:
 
 ```{term}
-rush run -n -O xml -o output.xml 'df' data.csv
-```
-
-### `--output-root` and `--output-record`
-
-Customize the root and record element names (defaults: `root` and `record`):
-
-```{term}
-rush run -n -O xml --output-root plants --output-record observation 'head(df)' data.csv
+rush run 'df' servers.xml
 ```
 
 ## RDS
 
-R's native serialisation format. Files ending in `.rds` are read with
-`readr::read_rds()` and written with `readr::write_rds()`:
-
-### Reading
-
-```{term}
-rush run -n 'head(df)' data.rds
-```
-
-### Writing
+R's own serialization format. Files ending in `.rds` are read and written with
+`readr::read_rds()` and `readr::write_rds()`. Unlike CSV, RDS keeps R's column
+types, such as factors and dates:
 
 ```{term}
-rush run -n -o output.rds 'df' data.csv
+rush run -o flowers.rds 'head(iris, 3)'
+rush run 'tibble::tibble(column = names(df), class = sapply(df, class))' \
+  flowers.rds
 ```
 
 ## Fixed-width files (FWF)
 
-Files ending in `.fwf` are read with `readr::read_fwf()`. Column positions are
-auto-detected. This format is read-only.
-
-### Reading
+Files ending in `.fwf` are read with `readr::read_fwf()`, which detects the
+column positions from the spaces between them. Such files rarely have a
+header, so name the columns with `--names`:
 
 ```{term}
-rush run -n 'head(df)' data.fwf
+echo "Alice   30 Amsterdam
+Bob     25 Rotterdam
+Carol   35 Utrecht" > people.fwf
+rush run --names name,age,city 'df' people.fwf
 ```
 
-### Using `-F fwf` for files without the `.fwf` extension
+Use `-F fwf` for files with another extension, such as `.txt`. Fixed-width
+files can only be read.
 
 ```{term}
-rush run -n -F fwf 'head(df)' legacy.txt
+#| include: false
+rm -f servers.yaml limits.json servers.toml servers.xml flowers.rds people.fwf
 ```

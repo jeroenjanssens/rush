@@ -8,44 +8,32 @@ title: "Arrow IPC"
 rush run -o mtcars.csv 'mtcars'
 ```
 
-Files ending in `.arrow`, `.ipc`, or `.feather` are read with
-[arrow](https://arrow.apache.org/docs/r/). Write Arrow IPC output with
-`-O arrow` or by naming the output accordingly.
-
-## Reading
-
-```{term}
-rush run -o mtcars.arrow 'df' mtcars.csv
-rush run 'head(df, 3) |> dplyr::select(mpg, cyl, hp)' mtcars.arrow
-```
+Files ending in `.arrow`, `.ipc`, or `.feather` are read and written with
+[arrow](https://arrow.apache.org/docs/r/). Arrow IPC (also known as Feather)
+is a fast binary format for exchanging data between tools such as R, Python,
+and DuckDB. Write it with `-O arrow` or an output file with one of these
+extensions.
 
 ## Writing
 
 ```{term}
-rush run -o subset.arrow 'dplyr::filter(df, mpg > 25)' mtcars.csv
-rush run 'nrow(df)' subset.arrow
+rush run -o fast.arrow 'dplyr::filter(df, hp > 200)' mtcars.csv
 ```
 
-## Using `-O arrow` with output flag
+## Reading
 
 ```{term}
-rush run -O arrow -o sample.arrow 'head(df, 5)' mtcars.csv
-rush run 'ncol(df)' sample.arrow
+rush run 'dplyr::select(df, mpg, cyl, hp)' fast.arrow
 ```
 
-## Alternative extensions
-
-The `.feather` and `.ipc` extensions are also recognized:
+The `.feather` and `.ipc` extensions work the same way:
 
 ```{term}
-cp mtcars.arrow mtcars.feather
-rush run 'nrow(df)' mtcars.feather
-cp mtcars.arrow mtcars.ipc
-rush run 'nrow(df)' mtcars.ipc
-rm -f mtcars.feather mtcars.ipc
+rush convert -o fast.feather fast.arrow
+rush run 'nrow(df)' fast.feather
 ```
 
 ```{term}
 #| include: false
-rm -f mtcars.csv mtcars.arrow subset.arrow sample.arrow
+rm -f mtcars.csv fast.arrow fast.feather
 ```

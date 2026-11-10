@@ -4,60 +4,70 @@ title: "Statistical formats (SPSS, Stata, SAS)"
 ---
 
 Files ending in `.sav`, `.zsav`, `.por` (SPSS), `.dta` (Stata), `.sas7bdat`, or
-`.xpt` (SAS) are read with [haven](https://haven.tidyverse.org/). Labelled
-columns are kept as-is; apply `haven::as_factor()` in your expression if you
-want to convert them to factors.
+`.xpt` (SAS) are read with [haven](https://haven.tidyverse.org/). Point
+`--output` (`-o`) at a `.sav`, `.zsav`, `.dta`, `.sas7bdat`, or `.xpt` file to
+write one. SPSS portable files (`.por`) can only be read.
+
+These formats store labels with the data. For example, a column with the codes
+1 and 2 can carry the labels "Male" and "Female". haven keeps such a column as
+labelled numbers, and `haven::as_factor()` turns it into a factor of labels.
 
 ## SPSS
 
-### Reading
+Write a small survey with a labelled column:
 
 ```{term}
-rush run -n 'head(df)' survey.sav
+rush run -o survey.sav 'tibble::tibble(
+  id = 1:4,
+  gender = haven::labelled(c(1, 2, 2, 1), c(Male = 1, Female = 2)),
+  score = c(7, 9, 6, 8)
+)'
 ```
 
-### Writing
+Reading it back keeps the codes and their labels:
 
 ```{term}
-rush run -n -o result.sav 'df' data.csv
+rush run 'df' survey.sav
+```
+
+Use `haven::as_factor()` to work with the labels instead:
+
+```{term}
+rush run 'df |> haven::as_factor() |> dplyr::count(gender)' survey.sav
 ```
 
 ## Stata
 
-### Reading
+Convert the SPSS file to Stata. The labels come along:
 
 ```{term}
-rush run -n 'head(df)' data.dta
-```
-
-### Writing
-
-```{term}
-rush run -n -o result.dta 'df' data.csv
+rush convert -o survey.dta survey.sav
+rush run 'haven::as_factor(df)' survey.dta
 ```
 
 ## SAS
 
-### Reading
+Write a SAS transport file (`.xpt`), and read it back. SAS keeps value labels
+in a separate format catalog, so only the codes remain:
 
 ```{term}
-rush run -n 'head(df)' data.sas7bdat
+rush convert -o survey.xpt survey.sav
+rush run 'df' survey.xpt
+```
+
+`.sas7bdat` files are read and written the same way, but SAS transport files
+are the more portable choice for sharing data with SAS users.
+
+## Converting to other formats
+
+Labelled columns become their codes in formats without labels, such as CSV.
+Convert them to factors first to keep the labels as text:
+
+```{term}
+rush run 'haven::as_factor(df)' survey.sav | cat
 ```
 
 ```{term}
-rush run -n 'head(df)' data.xpt
-```
-
-### Writing SAS transport
-
-```{term}
-rush run -n -o result.xpt 'df' data.csv
-```
-
-## Converting between formats
-
-```bash
-rush convert -o output.sav data.csv
-rush convert -o output.dta data.csv
-rush convert -o output.xpt data.csv
+#| include: false
+rm -f survey.sav survey.dta survey.xpt
 ```

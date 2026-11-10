@@ -8,30 +8,31 @@ title: "Parquet"
 rush run -o mtcars.csv 'mtcars'
 ```
 
-Files ending in `.parquet` or `.pq` are read with
-[nanoparquet](https://nanoparquet.r-lib.org/), no flags needed. Point
-`--output` (`-o`) at a `.parquet` file to write one.
+Files ending in `.parquet` or `.pq` are read and written with
+[nanoparquet](https://nanoparquet.r-lib.org/), no flags needed. Parquet stores
+data by column, compressed and with its types, so it is smaller and faster to
+read than CSV.
+
+## Writing
+
+Point `--output` (`-o`) at a `.parquet` file, or use `rush convert`:
+
+```{term}
+rush convert -o mtcars.parquet mtcars.csv
+ls -l mtcars.csv mtcars.parquet
+```
 
 ## Reading
 
 ```{term}
-rush convert -o mtcars.parquet mtcars.csv
-rush run 'df |> dplyr::filter(mpg > 25) |> dplyr::select(mpg, cyl, hp)' mtcars.parquet
-```
-
-## Writing
-
-Convert CSV to Parquet and read it back:
-
-```{term}
-rush run --output mtcars.parquet 'df' mtcars.csv
-rush run 'head(df, 3)' mtcars.parquet
+rush run 'dplyr::filter(df, mpg > 25) |> dplyr::select(mpg, cyl, hp)' \
+  mtcars.parquet
 ```
 
 ## With SQL
 
-Because DuckDB reads Parquet natively, large-file queries run without loading
-everything into memory:
+`rush sql` lets DuckDB read Parquet files directly, so a query on a large file
+doesn't load the whole file into memory:
 
 ```{term}
 rush sql "SELECT cyl, COUNT(*) AS n, ROUND(AVG(mpg), 1) AS avg_mpg

@@ -18,8 +18,16 @@ rush convert -o mtcars.duckdb mtcars.csv
 rush run 'names(dfs$mtcars)' mtcars.duckdb
 ```
 
-If a database holds a single table, it is also bound to `df` for convenience,
-so a one-table database behaves just like any other single input.
+For a database, `df` is a named list of its tables too, even when it has only
+one, so pick a table by name:
+
+```{term}
+rush run 'dplyr::count(df$mtcars, cyl)' mtcars.duckdb
+```
+
+(`rush plot` is the exception: it plots the first table.) To turn each table
+into its own file, use `rush convert` with an
+[output template](../reference/convert.qmd#multiple-files-with-output-templates).
 
 ### Writing to DuckDB
 
@@ -41,8 +49,8 @@ A single file uses the file stem as the table name:
 
 ```{term}
 rush convert -o mtcars_db.duckdb mtcars.csv
-rush sql "SELECT cyl, COUNT(*) AS n FROM mtcars_db.mtcars GROUP BY cyl" mtcars_db.duckdb
-rm -f mtcars_db.duckdb
+rush sql "SELECT cyl, COUNT(*) AS n FROM mtcars_db.mtcars GROUP BY cyl" \
+  mtcars_db.duckdb
 ```
 
 ### Querying with SQL
@@ -88,5 +96,6 @@ rush run 'names(dfs$copy)' copy.sqlite
 
 ```{term}
 #| include: false
-rm -f mtcars.csv a.csv b.csv mtcars.duckdb mtcars.sqlite combined.duckdb combined.sqlite copy.sqlite
+rm -f mtcars.csv a.csv b.csv mtcars.duckdb mtcars_db.duckdb mtcars.sqlite
+rm -f combined.duckdb combined.sqlite copy.sqlite
 ```

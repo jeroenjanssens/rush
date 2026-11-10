@@ -3,8 +3,14 @@ engine: markdown
 title: "rush run"
 ---
 
-The `run` command evaluates an R expression and prints (or saves) the result.
-It is the core command of `rush`.
+```{term}
+#| include: false
+rush run -o mtcars.csv 'mtcars'
+```
+
+The `run` command evaluates an R expression and prints or saves its value. If
+you give it files, they are read into data frames first. It is the core
+command of `rush`.
 
 ## Usage
 
@@ -12,244 +18,241 @@ It is the core command of `rush`.
 rush run [options] [<expression>] [--] [<file>...]
 ```
 
-## Simple expressions
+## Expressions
 
-At its core, `rush run` evaluates any R expression and prints the result:
+`rush run` evaluates any R expression and prints its value:
 
 ```{term}
 rush run '6 * 7'
 ```
 
-Multiple semicolon-separated expressions work; the value of the last one is printed:
+Separate multiple expressions with semicolons (or newlines). The value of the
+last one is printed:
 
 ```{term}
 rush run 'x <- 1:10; mean(x)'
 ```
 
-Strings, vectors, and lists all print naturally:
+Vectors are printed one element per line, so they work well with other
+command-line tools:
 
 ```{term}
-rush run 'paste("Hello", "from", "R", sep = ", ")'
+rush run 'rev(LETTERS[1:5])'
 ```
 
-```{term}
-rush run 'rev(LETTERS[1:8])'
-```
+## Input
 
-## Reading input files
+### Files
 
-Pass a file path after the expression, and it is read into a data frame called `df`:
-
-```{term}
-#| include: false
-rush run -o mtcars.csv 'mtcars'
-```
+Pass one or more files after the expression. The first is read into a data
+frame called `df`:
 
 ```{term}
 rush run 'nrow(df)' mtcars.csv
 ```
 
-With just a file and no expression, the data is printed. A quick way to peek:
-
-```{term}
-rush run 'head(df, 5)' mtcars.csv
-```
+The reader is chosen by the file extension. See [Formats](../formats.qmd) for
+all of them, and `--input-format` (`-F`) to override the choice.
 
 ### The `df` and `dfs` variables
 
 Two variables are always available in your expression:
 
-- **`df`**: the first input (a data frame for flat files, or a named list of
-  tables for database files).
-- **`dfs`**: a named list of all inputs, keyed by file stem. Database entries
-  are nested one level deeper: `dfs$dbname$tablename`.
+- **`df`**: the first input. For a database file (DuckDB or SQLite), this is a
+  named list of its tables.
+- **`dfs`**: a named list of all inputs, named after the file names without
+  their extension. Database tables are nested one level deeper:
+  `dfs$dbname$tablename`.
 
 ```{term}
-rush run 'names(dfs)' mtcars.csv
+rush run -o fast.csv 'dplyr::filter(df, hp > 200)' mtcars.csv
+rush run 'names(dfs)' mtcars.csv fast.csv
+rush run 'nrow(dfs$fast)' mtcars.csv fast.csv
 ```
 
-### Reading from standard input
+### Standard input
 
-Use `-` to read from stdin. This makes `rush` composable in shell pipelines:
+Use `-` as the file name to read from standard input:
 
 ```{term}
-echo "name,score
-Alice,92
-Bob,85
-Carol,97" | rush run 'df |> dplyr::arrange(dplyr::desc(score))' -
+printf 'name,score\nAlice,92\nBob,85\nCarol,97\n' |
+  rush run 'dplyr::arrange(df, dplyr::desc(score))' -
 ```
 
-You can pipe the output of one `rush` into another:
+Without `-`, `rush run` doesn't read standard input. Standard input is read
+as CSV; use `-F` for another format:
 
 ```{term}
-rush run 'head(df, 5)' mtcars.csv | rush run 'dplyr::select(df, mpg, cyl, hp)' -
+rush run -O json 'head(df, 2)' mtcars.csv |
+  rush run -F json 'dplyr::select(df, mpg, hp)' -
 ```
 
-Use `-F` to read non-CSV formats from stdin, for example JSON:
+## Output
+
+Where the result goes depends on `--output` (`-o`), `--output-format` (`-O`),
+and whether standard output is a terminal:
+
+| The result is | In a terminal | Piped or redirected |
+|---------------|---------------|---------------------|
+| A data frame  | A table       | CSV                 |
+| A vector      | One element per line | The same     |
+| A ggplot      | ANSI art      | PNG                 |
+
+### Terminal and pipe
+
+In a terminal, a data frame is printed as a table:
 
 ```{term}
-rush run -O json 'head(df, 3)' mtcars.csv | rush run -F json 'dplyr::select(df, mpg, hp)' -
+rush run 'head(df, 3)' mtcars.csv
 ```
 
-### Reading DuckDB databases
-
-Point `rush` at a `.duckdb` file and all tables are loaded into `dfs`:
+Piped into another command, it is written as CSV, which `cat` shows here:
 
 ```{term}
-rush convert -o mtcars.duckdb mtcars.csv
-rush run 'names(dfs$mtcars)' mtcars.duckdb
+rush run 'head(df, 3)' mtcars.csv | cat
 ```
 
-## Options
-
-### `--delimiter` (`-d`)
-
-Override the delimiter for both reading and writing:
+A ggplot is drawn as a plot. See [`rush plot`](plot.qmd#output) for its output
+formats:
 
 ```{term}
-rush run -d "\t" 'head(df, 3)' mtcars.csv | cat
+rush run -l ggplot2 'ggplot(df, aes(wt, mpg)) + geom_point()' mtcars.csv
 ```
 
-### `--no-header` (`-H`)
+### `--output` (`-o`)
 
-Suppress headers on both input and output. Input columns are auto-named
-`x1`, `x2`, ...:
+Write the result to a file. The format is inferred from the extension:
 
 ```{term}
-echo -e "10\n20\n30\n40\n50" | rush run -H 'sum(df$x1)' -
+rush run -o fast.parquet 'dplyr::filter(df, hp > 200)' mtcars.csv
+rush run 'dim(df)' fast.parquet
 ```
+
+### `--output-format` (`-O`)
+
+Write another format to standard output. An explicit `-O` is used in the
+terminal too:
+
+```{term}
+rush run -O json 'head(df[1:3], 2)' mtcars.csv
+```
+
+### `--head`
+
+Write only the first rows of a data frame:
+
+```{term}
+rush run --head 2 'df' mtcars.csv | cat
+```
+
+### `--width` (`-w`), `--height`
+
+Limit the width and the number of rows of a table in the terminal. (For plots,
+they set the size of the plot.)
+
+```{term}
+rush run -w 50 --height 3 'df' mtcars.csv
+```
+
+### Format-specific options
+
+- `--output-delimiter` (`-D`): the delimiter of
+  [delimited text](../formats/delimited.qmd#output-delimiter--d)
+- `--output-sheet`: the sheet name of an
+  [Excel or ODS file](../formats/excel.qmd#output-sheet)
+- `--output-indent`: the indentation of JSON and YAML (2 by default)
+- `--output-root`, `--output-record`: the element names of
+  [XML](../formats/structured.qmd#xml), and the table name of TOML
+
+```{term}
+rush run -O xml --output-root garage --output-record car 'head(df[1:3], 2)' \
+  mtcars.csv
+```
+
+## Reading options
+
+These options control how files are read. The page on
+[delimited text](../formats/delimited.qmd) shows them in more detail.
+
+- `--delimiter` (`-d`): the delimiter for reading and writing (`,` by
+  default)
+- `--input-delimiter`: the delimiter for reading only
+- `--input-format` (`-F`): the format of the input, instead of the extension
+- `--input-sheet`: the sheet of an [Excel or ODS file](../formats/excel.qmd)
+- `--no-header` (`-H`), `--no-input-header`, `--no-output-header`: files
+  without a header row
+- `--names`: column names for a file without a header row
+- `--no-clean-names` (`-C`): keep the column names as they are
+
+For example, `-H` reads columns without a header as `x1`, `x2`, and so on:
 
 ```{term}
 seq 5 | rush run -H 'cumsum(df$x1)' -
 ```
 
-### `--no-input-header`
-
-Read without a header row, but still include a header in the output:
-
-```{term}
-seq 5 | rush run --no-input-header 'cumsum(df$x1)' -
-```
-
-### `--no-output-header`
-
-Read normally but omit the header row from the output:
-
-```{term}
-rush run --no-output-header 'head(df, 3)' mtcars.csv | cat
-```
-
-### `--names`
-
-Provide explicit column names (comma-separated). Implies `--no-input-header`:
-
-```{term}
-echo -e "1,Alice\n2,Bob" | rush run --names "id,name" 'df'
-```
-
-### `--no-clean-names` (`-C`)
-
-By default, `rush` normalizes column names (lowercase, underscores). Disable
-with `-C` to preserve the originals:
-
-```{term}
-echo "First Name,Last Name,Score (%)
-Alice,Smith,92" | rush run 'names(df)' -
-```
-
-```{term}
-echo "First Name,Last Name,Score (%)
-Alice,Smith,92" | rush run -C 'names(df)' -
-```
+## Setup options
 
 ### `--tidyverse` (`-t`)
 
-Load the entire Tidyverse (plus glue) so you can use dplyr, tidyr, stringr,
-etc. without qualifying names:
+Load the [tidyverse](https://www.tidyverse.org/) (and glue), so you can use
+dplyr, tidyr, stringr, and friends without the `package::` prefix:
 
 ```{term}
-rush run -t 'df |> group_by(cyl) |> summarise(avg_mpg = mean(mpg)) |> arrange(desc(avg_mpg))' mtcars.csv
+rush run -t 'df |> group_by(cyl) |> summarise(avg_mpg = mean(mpg))' mtcars.csv
 ```
 
 ### `--library` (`-l`)
 
-Load specific packages. Comma-separate multiple packages:
-
-```{term}
-rush run -l stringr 'stringr::str_to_title("hello world")'
-```
+Load packages, separated by commas. `rush` installs them when needed:
 
 ```{term}
 rush run -l dplyr,tidyr 'df |>
-  tidyr::pivot_longer(cols = c(mpg, hp), names_to = "metric") |>
-  dplyr::slice_head(n = 4)' mtcars.csv
+  pivot_longer(c(mpg, hp), names_to = "metric") |>
+  count(metric)' mtcars.csv
 ```
 
 ### `--seed`
 
-Set the random seed for reproducible results:
+Set the seed of the random number generator, for reproducible results:
 
 ```{term}
 rush run --seed 42 'sample(1:100, 5)'
 ```
 
-Run it again; same seed, same result:
-
-```{term}
-rush run --seed 42 'sample(1:100, 5)'
-```
-
-### `--output` (`-o`)
-
-Write the result to a file instead of stdout. The output format is inferred from
-the extension:
-
-```{term}
-rush run -o summary.csv 'data.frame(stat = c("min", "mean", "max"),
-                                     mpg = c(min(df$mpg), mean(df$mpg), max(df$mpg)))' mtcars.csv
-cat summary.csv
-```
-
-Write to Parquet:
-
-```{term}
-rush run -o subset.parquet 'dplyr::filter(df, mpg > 25)' mtcars.csv
-rush run 'df' subset.parquet
-```
-
-### `--output-root`, `--output-record`
-
-Customize the XML element names when writing XML. Defaults are `root`
-(root) and `record` (each record). Also used by TOML for the record name:
-
-```{term}
-rush run -n -O xml --output-root garage --output-record car 'head(df)' mtcars.csv
-```
+## General options
 
 ### `--dry-run` (`-n`)
 
-Print the generated script instead of running it. Great for learning what `rush`
-does under the hood, or for saving scripts:
+Print the generated R script instead of running it. See
+[Scripts](../scripts.qmd) for how to save and run it:
 
 ```{term}
-rush run -n 'df |> dplyr::filter(mpg > 25)' mtcars.csv
+rush run -n 'dplyr::filter(df, mpg > 25)' mtcars.csv
 ```
+
+### `--no-rush` (`-R`)
+
+Combined with `--dry-run`, print a script that doesn't need `rush` to run:
+every helper is inlined. See [Scripts](../scripts.qmd#scripts-without-rush).
 
 ### `--no-ir` (`-I`)
 
-Run with plain `Rscript` instead of `ir`. No package resolution happens --
-everything must already be installed:
-
-```{term}
-rush run -I '2 + 2'
-```
+Run the script with `Rscript` instead of `ir`, using the packages installed in
+your R library. See [Scripts](../scripts.qmd#running-without-ir).
 
 ### `--verbose` (`-v`)
 
-Show parsed arguments before running. Useful for debugging complex invocations:
+Print the parsed options to standard error before running. Useful when an
+option doesn't do what you expect:
 
 ```{term}
-rush run -v --seed 7 'sum(1:10)' 2>&1
+rush run -v --seed 7 'sum(1:10)'
+```
+
+### `--version`
+
+```{term}
+rush --version
 ```
 
 ## Help
@@ -260,5 +263,5 @@ rush run -h
 
 ```{term}
 #| include: false
-rm -f mtcars.csv mtcars.duckdb summary.csv subset.parquet
+rm -f mtcars.csv fast.csv fast.parquet
 ```

@@ -10,7 +10,7 @@ rush run -o mtcars.csv 'mtcars'
 
 The `sql` command runs a [DuckDB](https://duckdb.org/) query directly against
 your files, with no import step. Each file becomes a relation named after the
-file, so you can reference it right in the query.
+file, so you can refer to it right in the query.
 
 ## Usage
 
@@ -18,104 +18,110 @@ file, so you can reference it right in the query.
 rush sql [options] [<query>] [--] [<file>...]
 ```
 
-## Basic queries
+## Queries
 
-Run a SQL query against one or more files:
+Pass a query and the files it uses:
 
 ```{term}
-rush sql "SELECT mpg, cyl, hp, wt FROM mtcars WHERE hp > 200 ORDER BY hp DESC" mtcars.csv
+rush sql "SELECT mpg, cyl, hp FROM mtcars WHERE hp > 200 ORDER BY hp DESC" \
+  mtcars.csv
 ```
 
-## Aggregations
-
-DuckDB's full SQL is available, including aggregations, window functions, and CTEs:
+All of DuckDB's SQL is available, including aggregations, window functions,
+and common table expressions:
 
 ```{term}
 rush sql "SELECT cyl,
                  COUNT(*) AS n,
                  ROUND(AVG(mpg), 1) AS avg_mpg,
-                 MIN(hp) AS min_hp,
                  MAX(hp) AS max_hp
           FROM mtcars
           GROUP BY cyl
           ORDER BY cyl" mtcars.csv
 ```
 
-## Querying Parquet files
+## Input
 
-Parquet files are registered via DuckDB's `read_parquet`, so large-file queries
-run without loading everything into memory:
+### Files and relation names
+
+Each file becomes a relation named after the file name without its extension:
+lowercase, with other characters than letters and digits turned into
+underscores. A name that starts with a digit gets an `x` in front, so
+`2024 Sales.csv` becomes `x2024_sales`.
+
+`rush sql` queries these formats:
+
+| Format | How |
+|--------|-----|
+| CSV, TSV, and other text | `read_csv_auto()`, which detects the delimiter |
+| Parquet | `read_parquet()` |
+| JSON, JSON Lines | `read_json_auto()` |
+| DuckDB | Attached, so its tables are `name.table` |
+
+DuckDB reads these files itself, so a query on a large Parquet file doesn't
+load the whole file into memory. For other formats, use
+[`rush run`](run.qmd), or convert the file first with
+[`rush convert`](convert.qmd).
 
 ```{term}
 rush convert -o mtcars.parquet mtcars.csv
-rush sql "SELECT cyl, COUNT(*) AS n, ROUND(AVG(mpg), 1) AS avg_mpg
-          FROM mtcars
-          GROUP BY cyl
-          ORDER BY avg_mpg DESC" mtcars.parquet
+rush sql "SELECT cyl, COUNT(*) AS n FROM mtcars GROUP BY cyl ORDER BY cyl" \
+  mtcars.parquet
 ```
 
-## Querying DuckDB databases
+### DuckDB databases
 
-A `.duckdb` file is attached as a schema, and its tables are accessible as
-`schema.table`:
+A DuckDB database is attached under its name, and its tables are
+`name.table`:
 
 ```{term}
-rush convert -o mtcars.duckdb mtcars.csv
-rush sql "SELECT m.mpg, m.hp, m.wt
-          FROM mtcars.mtcars m
-          WHERE m.hp > 200
-          ORDER BY m.hp DESC" mtcars.duckdb
+rush convert -o garage.duckdb mtcars.csv
+rush sql "SELECT COUNT(*) AS n FROM garage.mtcars WHERE hp > 200" \
+  garage.duckdb
 ```
 
-## Querying standard input
+### Standard input
 
-Use `-` to read CSV from stdin as a relation named `stdin`:
+Use `-` to read CSV from standard input, as a relation named `stdin`:
 
 ```{term}
-echo "item,price,qty
-apple,1.20,10
-banana,0.80,25
-cherry,3.50,5" | rush sql "SELECT item, price * qty AS total FROM stdin ORDER BY total DESC" -
+printf 'item,price,qty\napple,1.20,10\nbanana,0.80,25\ncherry,3.50,5\n' |
+  rush sql "SELECT item, price * qty AS total FROM stdin" -
 ```
 
-## Joining multiple files
+### Joining multiple files
 
-Pass multiple files and each becomes a relation you can join:
+Pass multiple files, and join their relations:
 
 ```{term}
-echo "cyl,engine_type
-4,inline
-6,v-type
-8,v-type" > engines.csv
-rush sql "SELECT m.mpg, m.hp, m.cyl, e.engine_type
+printf 'cyl,engine\n4,inline\n6,V6\n8,V8\n' > engines.csv
+rush sql "SELECT m.mpg, m.hp, e.engine
           FROM mtcars m JOIN engines e ON m.cyl = e.cyl
-          WHERE m.hp > 150
-          ORDER BY m.hp DESC" mtcars.csv engines.csv
+          WHERE m.hp > 200" mtcars.csv engines.csv
 ```
 
-## Saving SQL results
+## Output
 
-Pipe a SQL result to Parquet or another file:
+The result is written like that of [`rush run`](run.qmd#output): a table in
+the terminal, CSV when piped, and any format with `--output` (`-o`) or
+`--output-format` (`-O`):
 
 ```{term}
-rush sql -o powerful.parquet "SELECT * FROM mtcars WHERE hp > 150" mtcars.csv
-rush run 'nrow(df)' powerful.parquet
+rush sql -o fast.parquet "SELECT * FROM mtcars WHERE hp > 200" mtcars.csv
+rush sql -O json "SELECT cyl, COUNT(*) AS n FROM fast GROUP BY cyl" \
+  fast.parquet
 ```
 
-## Piping with SQL
-
-The result of a query is an ordinary data frame, so everything composes:
-
-```{term}
-rush run 'head(df, 10)' mtcars.csv | rush sql "SELECT cyl, COUNT(*) AS n FROM stdin GROUP BY cyl" -
-```
+Use `--head` to write only the first rows. Because the result is an ordinary
+table, it can be piped into another command, including another `rush`. See
+[Pipelines](../pipelines.qmd).
 
 ## Dry run
 
-See the generated script that runs the query:
+See the script that runs the query:
 
 ```{term}
-rush sql -n "SELECT COUNT(*) FROM mtcars" mtcars.csv
+rush sql -n "SELECT COUNT(*) AS n FROM mtcars" mtcars.csv
 ```
 
 ## Help
@@ -126,5 +132,5 @@ rush sql -h
 
 ```{term}
 #| include: false
-rm -f mtcars.csv mtcars.parquet mtcars.duckdb engines.csv powerful.parquet
+rm -f mtcars.csv mtcars.parquet garage.duckdb engines.csv fast.parquet
 ```
