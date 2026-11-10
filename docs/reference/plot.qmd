@@ -5,13 +5,19 @@ title: "rush plot"
 
 ```{term}
 #| include: false
-rush run -o mtcars.csv 'mtcars'
+rush run -o mtcars.csv 'tibble::rownames_to_column(mtcars, "model")'
 rush run -o mpg.csv 'ggplot2::mpg'
+rush run -o economics.csv 'ggplot2::economics_long'
+rush run -o faithfuld.csv 'ggplot2::faithfuld'
 ```
 
 The `plot` command builds a [ggplot2](https://ggplot2.tidyverse.org/) graphic
 from your data. Choose columns with `--x`, `--y`, `--color`, and friends, and a
-sensible geom is guessed for you (override it with `--geom`).
+sensible geom is guessed for you (override it with `--geom`). The plot is drawn
+right in your terminal, or saved as an image.
+
+The examples on this page use two data sets from R: `mtcars` (32 cars, with
+their `model` name as a column) and ggplot2's `mpg` (fuel economy of 234 cars).
 
 ## Usage
 
@@ -19,50 +25,170 @@ sensible geom is guessed for you (override it with `--geom`).
 rush plot [options] [--] [<file>...]
 ```
 
-## Geom selection
+## Output
 
-When both `--x` and `--y` are given, `rush` guesses `geom_point`:
+Where the plot goes depends on `--output` (`-o`), `--output-format` (`-O`), and
+whether standard output is a terminal:
+
+| You run                         | You get                                        |
+|---------------------------------|------------------------------------------------|
+| `rush plot ...` in a terminal   | ANSI art, in color                             |
+| `rush plot ... > file`, or a pipe | PNG bytes                                    |
+| `-O ansi` or `-O ascii`         | ANSI art, or plain ASCII art without colors    |
+| `-O svg`, `-O pdf`, ...         | That format, on standard output                |
+| `-o plot.png`                   | A file, its format inferred from the extension |
+
+Here's the same plot in each of the three main formats.
+
+### ANSI
+
+In a terminal, `rush` draws the plot with colored characters using
+[devoutansi](https://github.com/jeroenjanssens/devoutansi):
 
 ```{term}
-rush plot -x wt -y mpg -O ansi --width 72 mtcars.csv
+rush plot -x displ -y hwy -c drv mpg.csv
 ```
 
-When only `--x` is given, `rush` uses a histogram for a numeric column:
+This is the quickest way to look at your data, and works over SSH too.
+
+### ASCII
+
+`-O ascii` draws with plain characters and no escape codes, so the output can
+be pasted into an email, a code comment, or a text file:
 
 ```{term}
-rush plot -x mpg -O ansi --width 72 mtcars.csv
+rush plot -x displ -y hwy -c drv -O ascii mpg.csv
 ```
 
-and a bar chart for anything else (text, factors, logicals). For example, the
-number of cars per class in ggplot2's `mpg` data:
+### PNG
+
+`-o` saves the plot as an image:
 
 ```{term}
-rush plot -x class -O ansi --width 72 mpg.csv
+rush plot -x displ -y hwy -c drv -o displ-hwy.png mpg.csv
+```
+
+![](displ-hwy.png){fig-alt="Scatter plot of highway mileage against engine displacement, colored by drive type, in the mpg data set" width="560"}
+
+In the terminal, `rush` uses a minimal theme without grid lines, which works
+better with characters. Images keep the default ggplot2 theme. (When you pass
+`--post`, the terminal keeps your theme too.)
+
+### `--output` (`-o`)
+
+The format follows from the file extension. Any format that
+[`ggsave()`](https://ggplot2.tidyverse.org/reference/ggsave.html) supports
+works, such as `.png`, `.jpeg`, `.pdf`, and `.svg`:
+
+```{term}
+rush plot -x displ -y hwy -c drv -o displ-hwy.svg mpg.csv
+```
+
+![](displ-hwy.svg){fig-alt="The same scatter plot as an SVG image" width="560"}
+
+Use `-o -` to write to standard output, just as without `-o`.
+
+### `--output-format` (`-O`)
+
+Without `--output`, `rush` writes ANSI art to a terminal and PNG bytes to
+anything else, such as a file or a pipe:
+
+```{term}
+rush plot -x displ -y hwy mpg.csv > displ-hwy-piped.png
+file -b displ-hwy-piped.png
+```
+
+`-O` overrides that guess. Use `-O ansi` or `-O ascii` to get terminal art
+when piping, for example into a pager, or `-O svg`, `-O pdf`, and so on for
+another image format:
+
+```bash
+rush plot -x displ -y hwy -O ansi mpg.csv | less -R
+rush plot -x displ -y hwy -O svg mpg.csv > displ-hwy.svg
+```
+
+### `--width` (`-w`), `--height`
+
+In the terminal, the size is in characters. The width defaults to the width
+of your terminal:
+
+```{term}
+rush plot -x displ -y hwy -O ascii -w 50 --height 15 mpg.csv
+```
+
+For images, the size is in `--units` and defaults to 6 by 4 inches:
+
+```{term}
+rush plot -x displ -y hwy -c drv -o displ-hwy-wide.png -w 9 --height 3 \
+  mpg.csv
+```
+
+![](displ-hwy-wide.png){fig-alt="A wide, short version of the scatter plot" width="560"}
+
+### `--units`, `--dpi`
+
+`--units` is one of `in` (the default), `cm`, `mm`, or `px`. `--dpi` sets the
+resolution in pixels per inch, which defaults to 300 (print quality). A lower
+resolution gives an image with fewer pixels and a smaller file:
+
+```{term}
+rush plot -x displ -y hwy -o displ-hwy-small.png \
+  -w 10 --height 7 --units cm --dpi 100 mpg.csv
+file -b displ-hwy-small.png
+```
+
+## Choosing a geom
+
+When both `--x` and `--y` are given, `rush` draws points (`geom_point`):
+
+```{term}
+rush plot -x wt -y mpg mtcars.csv
+```
+
+When only `--x` is given, `rush` draws a histogram for a numeric (or date)
+column:
+
+```{term}
+rush plot -x hwy mpg.csv
+```
+
+and a bar chart for anything else (text, factors, logicals), which counts the
+rows per value. For example, the number of cars per class:
+
+```{term}
+rush plot -x class mpg.csv
 ```
 
 To count the distinct values of a numeric column, turn it into a factor:
 
 ```{term}
-rush plot -x 'factor(cyl)' -O ansi --width 72 mtcars.csv
+rush plot -x 'factor(cyl)' mtcars.csv
 ```
 
-The choice is made when the script runs, so the generated script contains `rush::geom_auto()`.
+The choice between histogram and bar chart is made when the script runs, so
+the [generated script](#seeing-the-generated-script) contains
+`rush::geom_auto()`.
 
 ### `--geom` (`-g`)
 
-Override the guessed geom. Any ggplot2 geom suffix works:
+Override the guessed geom. Any ggplot2 geom works, without the `geom_` prefix:
 
 ```{term}
-rush plot -x mpg -g density -O ansi --width 72 mtcars.csv
+rush plot -x hwy -g density mpg.csv
 ```
 
 ```{term}
-rush plot -x cyl -y mpg -g boxplot -O ansi --width 72 mtcars.csv
+rush plot -x class -y hwy -g boxplot mpg.csv
 ```
 
+Some geoms show more detail as an image, such as the confidence band of
+`smooth`:
+
 ```{term}
-rush plot -x wt -y mpg -g smooth -O ansi --width 72 mtcars.csv
+rush plot -x displ -y hwy -g smooth -o smooth.png mpg.csv
 ```
+
+![](smooth.png){fig-alt="A smoothed curve of highway mileage against engine displacement, with a gray confidence band" width="560"}
 
 ### `--geom-args`
 
@@ -70,14 +196,16 @@ Pass arguments to the geom, as R code. For example, `adjust` smooths a density
 curve, and `alpha` makes it transparent:
 
 ```{term}
-rush plot -x hwy -f drv -g density --geom-args 'adjust = 2, alpha = 0.5' -n mpg.csv | grep -A 1 'ggplot('
+rush plot -x hwy -f drv -g density --geom-args 'adjust = 2, alpha = 0.5' \
+  -n mpg.csv | grep 'ggplot('
 ```
 
 ```{term}
-rush plot -x hwy -f drv -g density --geom-args 'adjust = 2, alpha = 0.5' mpg.csv > density.png
+rush plot -x hwy -f drv -g density --geom-args 'adjust = 2, alpha = 0.5' \
+  -o density.png mpg.csv
 ```
 
-![](density.png){fig-alt="Smoothed, half-transparent density curves of highway mileage for each drive type in the mpg data set" width="500"}
+![](density.png){fig-alt="Smoothed, half-transparent density curves of highway mileage for each drive type in the mpg data set" width="560"}
 
 Arguments set fixed values for the whole layer, unlike aesthetics such as
 `--alpha`, which map a column. They also work with the guessed geom, e.g.
@@ -85,213 +213,222 @@ Arguments set fixed values for the whole layer, unlike aesthetics such as
 
 ## Aesthetics
 
+Aesthetics map a column to a visual property. Each option takes a column
+name, or an R expression such as `'factor(cyl)'` or `'hwy / cty'`.
+
 ### `--color` (`-c`)
 
-Map a column to the color aesthetic:
+Map a column to color. A discrete column gets a color per value:
 
 ```{term}
-rush plot -x wt -y mpg -c cyl -O ansi --width 72 mtcars.csv
+rush plot -x displ -y hwy -c class -o color.png mpg.csv
 ```
+
+![](color.png){fig-alt="Scatter plot of highway mileage against engine displacement, with a different color for each of the seven car classes" width="560"}
 
 ### `--fill` (`-f`)
 
-Map a column to fill (useful for histograms, bar charts, density plots):
+Map a column to the fill color of areas, such as bars, histograms, and
+density curves. In a bar chart, it stacks the counts of each group:
 
 ```{term}
-rush plot -x mpg -g density -f cyl --alpha 0.5 -O ansi --width 72 mtcars.csv
+rush plot -x class -f drv mpg.csv
 ```
-
-In a bar chart, `--fill` stacks the counts of each group:
 
 ```{term}
-rush plot -x class -f drv -O ansi --width 78 mpg.csv
+rush plot -x hwy -f drv -o fill.png mpg.csv
 ```
+
+![](fill.png){fig-alt="Stacked histogram of highway mileage, with a different fill color for each drive type" width="560"}
 
 ### `--alpha` (`-a`)
 
-Map a column to transparency. A constant such as `0.6` is mapped too, so it
-adds a legend; to make a geom semi-transparent, use `--geom-args 'alpha = 0.6'`
-instead:
+Map a column to transparency:
 
 ```{term}
-rush plot -x wt -y mpg --alpha 0.6 -O ansi --width 72 mtcars.csv
+rush plot -x displ -y hwy --alpha cty -o alpha.png mpg.csv
 ```
+
+![](alpha.png){fig-alt="Scatter plot of highway mileage against engine displacement, where cars with a higher city mileage are drawn more opaque" width="560"}
+
+To make the whole geom semi-transparent, use `--geom-args 'alpha = 0.5'`
+instead. A constant such as `--alpha 0.5` is mapped as if it were a column,
+so it adds a legend.
 
 ### `--size`
 
-Map a column to point size, great for bubble charts:
+Map a column to the size of points, which gives a bubble chart:
 
 ```{term}
-rush plot -x wt -y mpg --size hp -c cyl -O ansi --width 72 mtcars.csv
+rush plot -x wt -y mpg --size hp -c 'factor(cyl)' -o size.png mtcars.csv
 ```
+
+![](size.png){fig-alt="Bubble chart of fuel economy against weight, where heavier engines have bigger bubbles, colored by the number of cylinders" width="560"}
 
 ### `--shape`
 
-Map a discrete column to point shape (a numeric column like `gear` needs
-`factor()`, because ggplot2 can't map a continuous variable to shape):
+Map a discrete column to the shape of points (ggplot2 can't map a numeric
+column to shape, so wrap it in `factor()`):
 
 ```{term}
-rush plot -x wt -y mpg --shape 'factor(gear)' -O ansi --width 72 mtcars.csv
+rush plot -x displ -y hwy --shape drv -o shape.png mpg.csv
 ```
+
+![](shape.png){fig-alt="Scatter plot of highway mileage against engine displacement, with circles, triangles, and squares for the three drive types" width="560"}
 
 ### `--group`
 
-Group observations for geoms like `geom_line` that connect points:
+Group the rows, for geoms such as `line` that connect them. Here, each of the
+five economic indicators (scaled from 0 to 1) gets its own line:
 
 ```{term}
-rush plot -x wt -y mpg --group cyl -g line -O ansi --width 72 mtcars.csv
+rush plot -x date -y value01 --group variable -g line economics.csv
 ```
+
+`--color`, `--fill`, `--shape`, and other discrete aesthetics group the rows
+too; use `--group` to get separate lines without separate colors.
+
+### `--z`
+
+Map a column to `z`, for geoms that draw a third variable on the plane, such as
+`contour`. ggplot2's `faithfuld` data set has the density of eruptions of the
+Old Faithful geyser:
+
+```{term}
+rush plot -x waiting -y eruptions -z density -g contour \
+  -o contour.png faithfuld.csv
+```
+
+![](contour.png){fig-alt="Contour lines of the density of Old Faithful eruptions by waiting time and eruption duration" width="560"}
 
 ### `--aes`
 
-Pass additional aesthetics as `key=value` pairs:
+Map any other aesthetic with `key=value` pairs, separated by commas. For
+example, `label` for `text` (the `--geom-args` keep the labels inside the plot
+and drop the ones that would overlap):
 
 ```{term}
-rush plot -x disp -y mpg --aes "label=cyl" -g text -O ansi --width 72 mtcars.csv
+rush plot -x wt -y mpg --aes 'label=model' -g text -o label.png \
+  --geom-args 'hjust = "inward", check_overlap = TRUE' mtcars.csv
 ```
 
-## Axis and labels
+![](label.png){fig-alt="The names of the cars in mtcars, placed by weight and fuel economy" width="560"}
+
+## Scales and labels
 
 ### `--log`
 
-Log-transform axes. Accepts `x`, `y`, or `xy`:
+Log-transform the `x` axis, the `y` axis, or both (`xy`):
 
 ```{term}
-rush plot -x hp -y mpg --log x -O ansi --width 72 mtcars.csv
+rush plot -x hp -y mpg --log x mtcars.csv
 ```
 
 ### `--title`, `--xlab`, `--ylab`
 
-Add axis labels and a title:
+Add a title and axis labels. They default to nothing and the column names:
 
 ```{term}
-rush plot -x wt -y mpg --title "Weight vs Fuel Economy" --xlab "Weight (1000 lbs)" --ylab "Miles per gallon" -O ansi --width 72 mtcars.csv
+rush plot -x wt -y mpg --title 'Heavier cars use more fuel' \
+  --xlab 'Weight (1000 lbs)' --ylab 'Miles per gallon' \
+  -o labels.png mtcars.csv
 ```
+
+![](labels.png){fig-alt="Scatter plot of fuel economy against weight, with the title 'Heavier cars use more fuel' and descriptive axis labels" width="560"}
 
 ## Facets
 
-### One-sided formula (facet_wrap)
+### `--facets`
+
+Split the plot into small multiples. A one-sided formula such as `'~ class'`
+wraps the panels
+([`facet_wrap()`](https://ggplot2.tidyverse.org/reference/facet_wrap.html)):
 
 ```{term}
-rush plot -x wt -y mpg --facets '~ cyl' -O ansi --width 72 mtcars.csv
+rush plot -x displ -y hwy --facets '~ class' -o facets.png mpg.csv
 ```
 
-### Two-sided formula (facet_grid) + `--margins`
+![](facets.png){fig-alt="Seven small scatter plots of highway mileage against engine displacement, one per car class" width="560"}
+
+A two-sided formula such as `'drv ~ cyl'` puts the panels in a grid, with rows
+and columns
+([`facet_grid()`](https://ggplot2.tidyverse.org/reference/facet_grid.html)).
+
+### `--margins`
+
+Add a panel with all rows to each row and column of a grid:
 
 ```{term}
-rush plot -x wt -y mpg --facets 'am ~ cyl' --margins -O ansi --width 72 mtcars.csv
+rush plot -x displ -y hwy --facets 'drv ~ cyl' --margins mpg.csv
 ```
 
-## Pre- and post-processing
+## Customizing with R code
 
 ### `--pre`
 
-Run code before the plot is built. Useful for data transformations:
+Run R code before the plot is built, to transform `df`. For example, plot the
+average fuel economy per number of cylinders:
 
 ```{term}
-rush plot -x cyl -y avg_mpg --pre 'df <- df |> dplyr::summarise(avg_mpg = mean(mpg), .by = cyl)' -g col -O ansi --width 72 mtcars.csv
+rush plot -x cyl -y avg_mpg -g col \
+  --pre 'df <- dplyr::summarise(df, avg_mpg = mean(mpg), .by = cyl)' \
+  mtcars.csv
 ```
 
 ### `--post`
 
-Run code after the plot is built. The plot object is available as `p`:
+Run R code after the plot is built, to add layers, scales, or a theme. The
+plot is available as `p`, and the value of the last expression is drawn:
 
 ```{term}
-rush plot -x wt -y mpg --post 'p + ggplot2::theme_minimal() + ggplot2::geom_smooth(method = "lm")' -O ansi --width 72 mtcars.csv
+rush plot -x wt -y mpg -o post.png \
+  --post 'p + ggplot2::geom_smooth(method = "lm") + ggplot2::theme_minimal()' \
+  mtcars.csv
 ```
 
-## Terminal output
+![](post.png){fig-alt="Scatter plot of fuel economy against weight with a linear regression line and a minimal theme" width="560"}
 
-When no `--output` is given and stdout is connected to a terminal, `rush`
-renders the plot using
-[devoutansi](https://github.com/jeroenjanssens/devoutansi). Use `-O ascii`
-for plain-text output or `-O ansi` for colored output with ANSI escape codes:
+## Input
+
+### Files
+
+`plot` reads the same [formats](../formats.qmd) as `rush run`, such as CSV,
+Parquet, Excel, and DuckDB. The format follows from the extension, or set it
+with `--input-format` (`-F`).
+
+### Standard input
+
+Without a file, or with `-`, `plot` reads from standard input, so it can be
+the last step of a [pipeline](../pipelines.qmd):
 
 ```{term}
-rush plot -x wt -y mpg -O ascii --width 70 mtcars.csv
+rush run 'dplyr::filter(df, class == "suv")' mpg.csv |
+  rush plot -x displ -y hwy -O ascii -
 ```
 
-### `--width`
+### Multiple files
 
-Control how many characters wide the terminal art is (defaults to your
-terminal width):
+With multiple files, each is read into the list `dfs`, and only the first into
+`df`. Use `--pre` to combine them into `df`:
 
 ```{term}
-rush plot -x wt -y mpg -O ascii --width 40 mtcars.csv
+rush run -o compact.csv 'dplyr::filter(df, class == "compact")' mpg.csv
+rush run -o suv.csv 'dplyr::filter(df, class == "suv")' mpg.csv
+rush plot -x displ -y hwy -c class --pre 'df <- dplyr::bind_rows(dfs)' \
+  compact.csv suv.csv
 ```
 
-### `--output-format ansi` / `ascii` (`-O`)
+## Seeing the generated script
 
-Without `-O`, the behaviour depends on whether stdout is a terminal. When it
-is, `rush` renders ANSI art automatically. When it is not (piped or
-redirected), it outputs raw PNG bytes by default. Use `-O ansi` to force
-terminal art regardless:
-
-```bash
-rush plot -x wt -y mpg -O ansi mtcars.csv | less -R
-```
-
-The `ascii` variant uses plain ASCII characters without ANSI color codes,
-which is useful for environments that do not support colors.
-
-### Without a terminal
-
-When stdout is not a terminal (for example, piped into another command), rush
-outputs raw PNG bytes by default. You can redirect this to a file:
+`rush plot` writes an R script and runs it. `--dry-run` (`-n`) prints that
+script instead, so you can see the ggplot2 code, or save it and build on it:
 
 ```{term}
-rush plot -x wt -y mpg mtcars.csv > scatter.png
+rush plot -x displ -y hwy -c drv -n mpg.csv
 ```
 
-This is the resulting `scatter.png`:
-
-![](scatter.png){fig-alt="Scatter plot of mpg against wt for the mtcars data set" width="500"}
-
-## Saving plots
-
-### `--output` (`-o`)
-
-When `--output` points to a file, the plot is saved (device inferred from extension):
-
-```{term}
-rush plot -x wt -y mpg -c cyl -o colored.png mtcars.csv
-ls -la colored.png
-```
-
-### `--width`, `--height`, `--units`, `--dpi`
-
-Control the saved image dimensions and resolution:
-
-```{term}
-rush plot -x wt -y mpg -o hires.png --width 10 --height 6 --units in --dpi 150 mtcars.csv
-ls -la hires.png
-```
-
-## Reading from stdin
-
-Without a file argument, `plot` reads from standard input:
-
-```{term}
-rush run 'head(df, 15)' mtcars.csv | rush plot -x wt -y mpg -O ansi --width 72 -
-```
-
-## Multiple files
-
-With multiple files, each is read into `dfs`. Use `--pre` to combine them
-into `df` before plotting:
-
-```{term}
-echo "src,x,y
-A,1,2
-A,2,4
-A,3,5" > a.csv
-echo "src,x,y
-B,1,3
-B,2,2
-B,3,6" > b.csv
-rush plot -x x -y y -c src --pre 'df <- dplyr::bind_rows(dfs)' -O ansi --width 72 a.csv b.csv
-rm -f a.csv b.csv
-```
+Add `--no-rush` (`-R`) for a script that doesn't need rush to run. See
+[Scripts](../scripts.qmd) for more.
 
 ## Help
 
@@ -301,5 +438,5 @@ rush plot -h
 
 ```{term}
 #| include: false
-rm -f mtcars.csv mpg.csv colored.png hires.png
+rm -f mtcars.csv mpg.csv economics.csv faithfuld.csv compact.csv suv.csv
 ```
