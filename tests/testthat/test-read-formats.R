@@ -280,6 +280,22 @@ test_that("reads a .fwf file with readr::read_fwf", {
   expect_false(any(grepl("read_delim", script)))
 })
 
+test_that("--names sets the column names of a .fwf file", {
+  script <- capture_script(
+    rush_run,
+    expr = "df",
+    file = "data.fwf",
+    names = "name,age"
+  )
+  expect_true(any(grepl('col_names = c("name", "age")', script, fixed = TRUE)))
+
+  path <- withr::local_tempfile(fileext = ".fwf")
+  writeLines(c("Alice  30", "Bob    25"), path)
+  df <- read(path, col_names = c("name", "age"))
+  expect_equal(names(df), c("name", "age"))
+  expect_equal(df$age, c(30, 25))
+})
+
 test_that("input_format = 'fwf' overrides extension", {
   script <- capture_script(
     rush_run,

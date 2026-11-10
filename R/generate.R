@@ -180,6 +180,7 @@ resolve_flags <- function(flags) {
   if (identical(flags$output, "-")) {
     flags$output <- NULL
   }
+  check_output_format(flags)
   flags$resolved_no_input_header <- if (isTRUE(flags$no_input_header)) {
     TRUE
   } else {
@@ -547,10 +548,7 @@ build_sql_body_compact <- function(con, flags) {
 build_plot_body_compact <- function(con, flags) {
   emit_compact_libraries(con, flags, default = "ggplot2")
 
-  plot_files <- flags$file %||% "-"
-  if (length(plot_files) == 0) {
-    plot_files <- "-"
-  }
+  plot_files <- plot_input_files(flags)
   emit_compact_reads(con, plot_files, flags)
 
   first_kind <- file_kind(plot_files[[1]], flags$input_format %||% "auto")
@@ -608,10 +606,12 @@ build_convert_body_compact <- function(con, flags) {
         c("duckdb", "sqlite")
     )
   output_is_db <- flags$resolved_output_format %in% c("duckdb", "sqlite")
+  # Multiple inputs (or a database) become one sheet each in a spreadsheet
+  output_is_book <- flags$resolved_output_format %in% c("xlsx", "ods")
 
   if (!is.null(flags$output_template)) {
     code_expression(con, result <- dfs)
-  } else if (output_is_db) {
+  } else if (output_is_db || (output_is_book && is_multi)) {
     code_expression(con, result <- dfs)
   } else if (is_multi) {
     cli::cli_abort(c(

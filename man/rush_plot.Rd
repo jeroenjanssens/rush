@@ -5,7 +5,7 @@
 \title{Create a quick plot}
 \usage{
 rush_plot(
-  file = "-",
+  file = character(),
   x = NULL,
   y = NULL,
   z = NULL,

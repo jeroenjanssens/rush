@@ -9,6 +9,30 @@
 * Scripts that save a plot as SVG (`-o plot.svg` or `-O svg`) now declare
   svglite, which `ggsave()` needs for SVG. They used to fail when svglite
   wasn't installed.
+* Writing a format that rush can only read (`.xls`, `.por`, `.fwf`) is now an
+  error, as is an `-O` value that rush can't write. rush used to write CSV
+  with that extension instead.
+* Writing FASTA and FASTQ now works for data read from FASTA or FASTQ (e.g.
+  `rush convert -o reads.fasta reads.fastq`), whose column names are
+  lowercase after cleaning, and to standard output with `-O fasta`.
+* `--names` now sets the column names of a fixed-width (`.fwf`) file. It was
+  ignored, so the columns were always named `x1`, `x2`, and so on.
+* `--output-indent` now sets the indentation of JSON. It was ignored, so
+  JSON was always indented by 2 spaces.
+* `rush sql` with a file it can't query (e.g. Excel or SQLite) now says so.
+  It used to pass the file to DuckDB as CSV, which failed with a confusing
+  error.
+* Output templates with `l` (lowercase) or `u` (uppercase), such as
+  `-o '%(table_name)l.csv'`, now work. They failed with "invalid format".
+* A list of data frames is now written to Excel (`.xlsx`) and ODS files as
+  one sheet per element, named after the list names. `rush convert` does the
+  same for multiple inputs and databases, e.g.
+  `rush convert -o book.xlsx a.csv b.csv` or
+  `rush convert -o book.xlsx data.duckdb`.
+* `--input-sheet` and `--output-sheet` now work for ODS files. They were
+  ignored, so the first sheet was read and the sheet was named `Sheet1`.
+* `rush plot` without a file is now an error, like the other commands. It
+  used to read standard input; use `-` for that.
 * `-o -` now writes to standard output, like omitting `-o`. It used to create
   a file named `-`, and `rush plot -o -` failed with "Unknown graphics device".
 * The `<file>` description in `rush plot -h` now lists all input formats and

@@ -7,8 +7,12 @@ test_that("rush_plot reads a single file into df", {
   expect_true(any(grepl("df <- dfs\\[\\[1(L)?\\]\\]", script)))
 })
 
-test_that("rush_plot defaults to reading df from stdin", {
-  script <- capture_script(rush_plot, x = "wt")
+test_that("rush_plot without a file is an error", {
+  expect_error(capture_script(rush_plot, x = "wt"), "No input file to plot")
+})
+
+test_that("rush_plot reads standard input with file = \"-\"", {
+  script <- capture_script(rush_plot, file = "-", x = "wt")
   expect_true(any(grepl('dfs\\[\\["stdin"\\]\\] <- .*stdin', script)))
   expect_true(any(grepl("df <- dfs\\[\\[1(L)?\\]\\]", script)))
 })

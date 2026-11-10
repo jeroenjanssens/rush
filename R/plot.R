@@ -95,7 +95,7 @@
 #' @seealso [rush_run()], [rush_sql()], [rush_convert()]
 #' @export
 rush_plot <- function(
-  file = "-",
+  file = character(),
   x = NULL,
   y = NULL,
   z = NULL,

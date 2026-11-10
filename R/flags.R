@@ -187,8 +187,8 @@ Arguments:
                            is read into a data frame named 'df', and all inputs
                            into a named list 'dfs', keyed by file stem; combine
                            multiple files into 'df' with the --pre option, e.g.
-                           'df <- dplyr::bind_rows(dfs)'. Use '-' or omit to
-                           read from standard input.
+                           'df <- dplyr::bind_rows(dfs)'. Use '-' to read
+                           from standard input.
 
 Note: Without --output, the plot is drawn as ANSI art on a terminal and
 written as PNG to standard output otherwise. Use -O ansi, -O ascii, or a
@@ -249,8 +249,10 @@ Arguments:
                            relation is double-quoted in the generated SQL, so
                            refer to it as e.g. SELECT * FROM \"x2024\". CSV files
                            are read with read_csv_auto, Parquet with read_parquet,
-                           and a '.duckdb' database is attached so its tables are
-                           addressed as name.table. Use '-' to read CSV from
+                           JSON and JSONL with read_json_auto, and a '.duckdb'
+                           database is attached so its tables are addressed as
+                           name.table. Other formats can't be queried; convert
+                           them first. Use '-' to read CSV from
                            standard input as a relation named 'stdin'. Files with
                            the same base name in different directories collide.
 

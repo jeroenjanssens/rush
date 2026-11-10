@@ -74,15 +74,28 @@ build_sql_body <- function(con, flags) {
   c(pkgs, "duckdb", "DBI")
 }
 
+# The files to plot. Standard input is only read with an explicit "-", as for
+# the other commands.
+plot_input_files <- function(flags) {
+  if (length(flags$file) == 0) {
+    cli::cli_abort(
+      c(
+        "No input file to plot.",
+        i = "Provide a file, e.g. {.code rush plot -x wt -y mpg mtcars.csv}, or {.code -} to read from standard input.",
+        i = "See {.code rush plot -h} for usage."
+      ),
+      call = NULL
+    )
+  }
+  flags$file
+}
+
 build_plot_body <- function(con, flags) {
   pkgs <- plot_packages()
 
   pkgs <- c(pkgs, emit_setup_libraries(con, flags, default = "ggplot2"))
 
-  plot_files <- flags$file %||% "-"
-  if (length(plot_files) == 0) {
-    plot_files <- "-"
-  }
+  plot_files <- plot_input_files(flags)
   pkgs <- c(pkgs, emit_read_files(con, plot_files, flags))
 
   first_kind <- file_kind(plot_files[[1]], flags$input_format %||% "auto")
@@ -142,10 +155,12 @@ build_convert_body <- function(con, flags) {
         c("duckdb", "sqlite")
     )
   output_is_db <- flags$resolved_output_format %in% c("duckdb", "sqlite")
+  # Multiple inputs (or a database) become one sheet each in a spreadsheet
+  output_is_book <- flags$resolved_output_format %in% c("xlsx", "ods")
 
   if (!is.null(flags$output_template)) {
     code_expression(con, result <- dfs)
-  } else if (output_is_db) {
+  } else if (output_is_db || (output_is_book && is_multi)) {
     code_expression(con, result <- dfs)
   } else if (is_multi) {
     cli::cli_abort(c(

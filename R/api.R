@@ -125,9 +125,16 @@ read <- function(
     dta = haven::read_dta(path),
     sas7bdat = haven::read_sas(path),
     xpt = haven::read_xpt(path),
-    fwf = readr::read_fwf(path, col_positions = readr::fwf_empty(path)),
+    fwf = readr::read_fwf(
+      path,
+      col_positions = readr::fwf_empty(
+        path,
+        col_names = if (is.character(col_names)) col_names
+      ),
+      show_col_types = FALSE
+    ),
     rds = readr::read_rds(path),
-    ods = readODS::read_ods(path),
+    ods = readODS::read_ods(path, sheet = sheet %||% 1L),
     fasta = microseq::readFasta(path),
     fastq = microseq::readFastq(path),
     yaml = {
@@ -250,14 +257,19 @@ write <- function(result) {
       }
       nanoparquet::write_parquet(result, output)
     } else if (identical(cfg$output_format, "json")) {
-      pretty <- cfg$output_indent > 0L
+      # jsonlite takes the number of spaces to indent with
+      pretty <- if (cfg$output_indent > 0L) cfg$output_indent else FALSE
       json <- jsonlite::toJSON(
         result,
         dataframe = "rows",
         pretty = pretty,
         auto_unbox = TRUE
       )
-      if (is.null(output)) cat(json, "\n") else writeLines(json, output)
+      if (is.null(output)) {
+        cat(json, "\n", sep = "")
+      } else {
+        writeLines(json, output)
+      }
     } else if (identical(cfg$output_format, "jsonl")) {
       con_out <- if (is.null(output)) stdout() else file(output, "w")
       jsonlite::stream_out(result, con_out, verbose = FALSE)
@@ -268,7 +280,8 @@ write <- function(result) {
       }
       arrow::write_ipc_file(result, output)
     } else if (identical(cfg$output_format, "xlsx")) {
-      xlsx_data <- if (!is.null(cfg$output_sheet)) {
+      # A list of data frames (from as_sheets()) becomes one sheet each
+      xlsx_data <- if (is.data.frame(result) && !is.null(cfg$output_sheet)) {
         stats::setNames(list(result), cfg$output_sheet)
       } else {
         result
@@ -303,11 +316,27 @@ write <- function(result) {
     } else if (identical(cfg$output_format, "rds")) {
       readr::write_rds(result, output)
     } else if (identical(cfg$output_format, "ods")) {
-      readODS::write_ods(result, output)
-    } else if (identical(cfg$output_format, "fasta")) {
-      microseq::writeFasta(result, output)
-    } else if (identical(cfg$output_format, "fastq")) {
-      microseq::writeFastq(result, output)
+      if (is.data.frame(result) && !is.null(cfg$output_sheet)) {
+        readODS::write_ods(result, output, sheet = cfg$output_sheet)
+      } else {
+        readODS::write_ods(result, output)
+      }
+    } else if (cfg$output_format %in% c("fasta", "fastq")) {
+      # microseq needs a file and the columns Header, Sequence, and Quality,
+      # which clean names (as when reading a FASTA file) turns into lowercase
+      cols <- c("Header", "Sequence", "Quality")
+      idx <- match(tolower(names(result)), tolower(cols))
+      names(result)[!is.na(idx)] <- cols[idx[!is.na(idx)]]
+      file <- if (is.null(output)) tempfile() else output
+      if (identical(cfg$output_format, "fasta")) {
+        microseq::writeFasta(result, file)
+      } else {
+        microseq::writeFastq(result, file)
+      }
+      if (is.null(output)) {
+        writeBin(readBin(file, raw(), n = file.size(file)), stdout_binary())
+        unlink(file)
+      }
     } else if (identical(cfg$output_format, "yaml")) {
       rows <- lapply(seq_len(nrow(result)), function(i) {
         as.list(result[i, , drop = FALSE])
@@ -456,8 +485,10 @@ write <- function(result) {
       table_name,
       table_index
     ) {
-      while (grepl("%[(][^)]+[)]([^%]*[a-z])", tmpl)) {
-        m <- regexec("%[(]([^)]+)[)]([^%]*[a-z])", tmpl)[[1]]
+      while (grepl("%[(][^)]+[)]([-+ 0#]*[0-9]*[.]?[0-9]*[a-zA-Z])", tmpl)) {
+        m <- regexec("%[(]([^)]+)[)]([-+ 0#]*[0-9]*[.]?[0-9]*[a-zA-Z])", tmpl)[[
+          1
+        ]]
         full <- regmatches(tmpl, list(m))[[1]]
         field <- full[2]
         spec <- full[3]
@@ -470,7 +501,11 @@ write <- function(result) {
           ""
         )
         replacement <- expand_field(value, spec)
-        tmpl <- sub("%[(]([^)]+)[)]([^%]*[a-z])", replacement, tmpl)
+        tmpl <- sub(
+          "%[(]([^)]+)[)]([-+ 0#]*[0-9]*[.]?[0-9]*[a-zA-Z])",
+          replacement,
+          tmpl
+        )
       }
       tmpl
     }
@@ -505,8 +540,17 @@ write <- function(result) {
   } else if (is.data.frame(result)) {
     write_result(result, output)
   } else if (rlang::is_bare_list(result)) {
+    sheets <- if (cfg$output_format %in% c("xlsx", "ods")) as_sheets(result)
     if (cfg$output_format %in% c("duckdb", "sqlite")) {
       write_result(result, output)
+    } else if (!is.null(sheets)) {
+      write_result(sheets, output)
+    } else if (cfg$output_format %in% c("xlsx", "ods")) {
+      stop(
+        "Can't write this list to a spreadsheet: ",
+        "every element must be a data frame, which becomes a sheet.",
+        call. = FALSE
+      )
     } else {
       result <- tibble::enframe(result)
       write_result(result, output)
@@ -514,6 +558,31 @@ write <- function(result) {
   }
 
   invisible()
+}
+
+# Turn a list of data frames into a named list with one element per sheet of
+# a spreadsheet, or return NULL if the list holds anything else. An element
+# that is itself a list of data frames (a database read as input) contributes
+# its tables under their own names, as in write_tables().
+as_sheets <- function(result) {
+  sheets <- list()
+  nms <- names(result) %||% rep("", length(result))
+  for (i in seq_along(result)) {
+    item <- result[[i]]
+    name <- if (nzchar(nms[[i]])) nms[[i]] else paste0("Sheet", i)
+    if (is.data.frame(item)) {
+      sheets[[name]] <- item
+    } else if (
+      rlang::is_bare_list(item) &&
+        length(item) > 0 &&
+        all(vapply(item, is.data.frame, logical(1)))
+    ) {
+      sheets[names(item)] <- item
+    } else {
+      return(NULL)
+    }
+  }
+  if (length(sheets) == 0) NULL else sheets
 }
 
 # Write a list of data frames to a database connection, one table each. An

@@ -321,6 +321,70 @@ test_that("output_format = 'fasta' emits microseq::writeFasta", {
   expect_true(any(grepl("^#\\|   - microseq$", script)))
 })
 
+test_that("write() writes FASTA and FASTQ with lowercase column names", {
+  skip_if_not_installed("microseq")
+  seqs <- data.frame(
+    header = c("a", "b"),
+    sequence = c("ACGT", "GATTACA"),
+    quality = c("IIII", "IIIIHHG")
+  )
+  fasta <- withr::local_tempfile(fileext = ".fasta")
+  init(output = fasta, output_format = "fasta")
+  write(seqs)
+  expect_equal(readLines(fasta), c(">a", "ACGT", ">b", "GATTACA"))
+  fastq <- withr::local_tempfile(fileext = ".fastq")
+  init(output = fastq, output_format = "fastq")
+  write(seqs)
+  expect_equal(readLines(fastq)[1:4], c("@a", "ACGT", "+", "IIII"))
+})
+
+test_that("write() indents JSON by output_indent", {
+  path <- withr::local_tempfile(fileext = ".json")
+  init(output = path, output_format = "json", output_indent = 4L)
+  write(data.frame(a = 1))
+  expect_equal(readLines(path)[2:3], c("    {", '        "a": 1'))
+})
+
+test_that("write() expands l, u, and padded specs in output templates", {
+  dir <- withr::local_tempdir()
+  init(
+    output_template = file.path(dir, "%(file_name)l_%(file_index)02d.csv"),
+    output_format = "delim"
+  )
+  write(list(Alpha = data.frame(a = 1), Beta = data.frame(a = 2)))
+  expect_setequal(list.files(dir), c("alpha_01.csv", "beta_02.csv"))
+
+  dir2 <- withr::local_tempdir()
+  init(output_template = file.path(dir2, "%(file_name)u.csv"))
+  write(list(alpha = data.frame(a = 1)))
+  expect_equal(list.files(dir2), "ALPHA.csv")
+})
+
+test_that("write() writes a list of data frames as sheets", {
+  skip_if_not_installed("writexl")
+  skip_if_not_installed("readxl")
+  path <- withr::local_tempfile(fileext = ".xlsx")
+  init(output = path, output_format = "xlsx")
+  write(list(cars = head(mtcars, 2), db = list(a = data.frame(x = 1))))
+  expect_equal(readxl::excel_sheets(path), c("cars", "a"))
+
+  unnamed <- withr::local_tempfile(fileext = ".xlsx")
+  init(output = unnamed, output_format = "xlsx")
+  write(list(data.frame(x = 1), data.frame(y = 2)))
+  expect_equal(readxl::excel_sheets(unnamed), c("Sheet1", "Sheet2"))
+
+  init(output = path, output_format = "xlsx")
+  expect_error(write(list(a = data.frame(x = 1), b = 1:3)), "every element")
+})
+
+test_that("write() names the ODS sheet with output_sheet", {
+  skip_if_not_installed("readODS")
+  path <- withr::local_tempfile(fileext = ".ods")
+  init(output = path, output_format = "ods", output_sheet = "cars")
+  write(head(mtcars, 2))
+  expect_equal(readODS::list_ods_sheets(path), "cars")
+})
+
 # FASTQ -----------------------------------------------------------------------
 
 test_that("output_format = 'fastq' emits microseq::writeFastq", {

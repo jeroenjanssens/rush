@@ -251,8 +251,13 @@ test_that("plot reads a single file into df", {
   expect_true(any(grepl("df <- dfs\\[\\[1(L)?\\]\\]", script)))
 })
 
-test_that("plot defaults to reading df from stdin", {
-  script <- dry_run("plot", "-n", "-x", "wt")
+test_that("plot without a file is an error", {
+  expect_error(dry_run("plot", "-n", "-x", "wt"), "No input file to plot")
+  expect_error(rush("plot", "-x", "wt"), "No input file to plot")
+})
+
+test_that("plot reads standard input with an explicit -", {
+  script <- dry_run("plot", "-n", "-x", "wt", "-")
   expect_true(any(grepl('dfs\\[\\["stdin"\\]\\] <- .*stdin', script)))
   expect_true(any(grepl("df <- dfs\\[\\[1(L)?\\]\\]", script)))
 })
@@ -304,6 +309,74 @@ test_that("plot -O ansi forces terminal art in generated script", {
 test_that("plot -O ascii forces terminal art in generated script", {
   script <- dry_run("plot", "-n", "-x", "wt", "-O", "ascii", "mtcars.csv")
   expect_true(any(grepl("output_format.*ascii", script)))
+})
+
+test_that("writing a read-only format is an error", {
+  for (ext in c("xls", "por", "fwf")) {
+    expect_error(
+      dry_run("run", "-n", "-o", paste0("out.", ext), "df", "data.csv"),
+      "Can't write"
+    )
+  }
+  expect_error(
+    dry_run("convert", "-n", "-o", "out.xls", "data.csv"),
+    "but not write them"
+  )
+  expect_error(
+    dry_run("convert", "-n", "-o", "%(file_name)s.por", "a.csv", "b.csv"),
+    "Can't write"
+  )
+})
+
+test_that("-O with a format rush can't write is an error", {
+  expect_error(
+    dry_run("run", "-n", "-O", "xls", "df", "data.csv"),
+    "Can't write output format"
+  )
+  expect_error(
+    dry_run("sql", "-n", "-O", "png", "SELECT 1"),
+    "Can't write output format"
+  )
+})
+
+test_that("writable formats and plot output still work", {
+  expect_no_error(dry_run("run", "-n", "-O", "csv", "df", "data.csv"))
+  expect_no_error(dry_run("run", "-n", "-O", "svg", "df", "data.csv"))
+  expect_no_error(dry_run("run", "-n", "-o", "out.txt", "df", "data.csv"))
+  expect_no_error(dry_run("plot", "-n", "-x", "a", "-o", "p.pdf", "data.csv"))
+})
+
+test_that("sql with a file DuckDB can't query is an error", {
+  expect_error(
+    dry_run("sql", "-n", "SELECT 1", "data.xlsx"),
+    "can't query"
+  )
+  expect_no_error(dry_run("sql", "-n", "SELECT 1", "data.tsv"))
+})
+
+test_that("convert writes multiple inputs to a spreadsheet as sheets", {
+  for (ext in c("xlsx", "ods")) {
+    script <- dry_run(
+      "convert",
+      "-n",
+      "-o",
+      paste0("book.", ext),
+      "a.csv",
+      "b.csv"
+    )
+    expect_true(any(grepl("result <- dfs", script, fixed = TRUE)))
+  }
+  script <- dry_run("convert", "-n", "-o", "one.xlsx", "a.csv")
+  expect_true(any(grepl("result <- df$", script)))
+})
+
+test_that("--input-sheet selects the sheet of an ODS file", {
+  script <- dry_run("run", "-n", "--input-sheet", "cars", "df", "data.ods")
+  expect_true(any(grepl(
+    'read_ods("data.ods", sheet = "cars")',
+    script,
+    fixed = TRUE
+  )))
 })
 
 test_that("-o - writes to standard output", {

@@ -203,6 +203,95 @@ resolve_output_format <- function(output, output_format) {
   "delim"
 }
 
+# Extensions that rush reads but can't write
+read_only_extensions <- c(
+  xls = "Excel 97-2003",
+  por = "SPSS portable",
+  fwf = "fixed-width"
+)
+
+# Values of -O that rush can write data in
+data_output_formats <- c(
+  "csv",
+  "tsv",
+  "delim",
+  "parquet",
+  "json",
+  "jsonl",
+  "arrow",
+  "xlsx",
+  "sav",
+  "zsav",
+  "dta",
+  "sas7bdat",
+  "xpt",
+  "duckdb",
+  "sqlite",
+  "rds",
+  "ods",
+  "fasta",
+  "fastq",
+  "yaml",
+  "toml",
+  "xml"
+)
+
+# Values of -O for plots: terminal art and ggsave() devices
+plot_output_formats <- c(
+  "ansi",
+  "ascii",
+  "png",
+  "svg",
+  "pdf",
+  "jpeg",
+  "jpg",
+  "tiff",
+  "bmp",
+  "eps",
+  "ps",
+  "tex",
+  "wmf"
+)
+
+# Abort when the output can't be written, instead of silently writing CSV.
+# `rush plot` is skipped: there, the extension of -o picks a graphics device.
+check_output_format <- function(flags) {
+  command <- flags$command
+  if (is.null(command) || identical(command, "plot")) {
+    return(invisible())
+  }
+  fmt <- flags$output_format %||% "auto"
+  if (identical(fmt, "auto") && !is.null(flags$output)) {
+    ext <- tolower(tools::file_ext(flags$output))
+    if (ext %in% names(read_only_extensions)) {
+      cli::cli_abort(
+        c(
+          "Can't write {.file {flags$output}}.",
+          x = "rush can read {read_only_extensions[[ext]]} ({.file .{ext}}) files, but not write them.",
+          i = "See {.url https://rush.jeroenjanssens.com/formats.html} for the formats rush can write."
+        ),
+        call = NULL
+      )
+    }
+  }
+  if (!identical(fmt, "auto")) {
+    allowed <- data_output_formats
+    if (identical(command, "run")) {
+      allowed <- c(allowed, plot_output_formats)
+    }
+    if (!fmt %in% allowed) {
+      cli::cli_abort(
+        c(
+          "Can't write output format {.val {fmt}}.",
+          i = "Use one of: {paste(allowed, collapse = ', ')}."
+        ),
+        call = NULL
+      )
+    }
+  }
+  invisible()
+}
+
 input_names <- function(files) {
   nms <- ifelse(
     files == "-",
@@ -265,15 +354,26 @@ emit_read_files <- function(con, files, flags) {
       read_pkgs <- "haven"
       read_expr <- expr(haven::read_xpt(!!path))
     } else if (kind == "fwf") {
+      fwf_names <- flags$resolved_col_names
+      positions <- if (is.character(fwf_names)) {
+        expr(readr::fwf_empty(!!path, col_names = !!fwf_names))
+      } else {
+        expr(readr::fwf_empty(!!path))
+      }
       read_expr <- expr(readr::read_fwf(
         !!path,
-        col_positions = readr::fwf_empty(!!path)
+        col_positions = !!positions,
+        show_col_types = FALSE
       ))
     } else if (kind == "rds") {
       read_expr <- expr(readr::read_rds(!!path))
     } else if (kind == "ods") {
       read_pkgs <- "readODS"
-      read_expr <- expr(readODS::read_ods(!!path))
+      read_expr <- if (!is.null(flags$input_sheet)) {
+        expr(readODS::read_ods(!!path, sheet = !!flags$input_sheet))
+      } else {
+        expr(readODS::read_ods(!!path))
+      }
     } else if (kind == "fasta") {
       read_pkgs <- "microseq"
       read_expr <- expr(microseq::readFasta(!!path))
@@ -453,6 +553,20 @@ emit_sql <- function(con, query, files, flags) {
   if (length(files) > 0) {
     names <- input_names(files)
     kinds <- vapply(files, file_kind, character(1))
+
+    # DuckDB reads these directly; anything else would be read as CSV
+    sql_kinds <- c("delim", "parquet", "json", "jsonl", "duckdb", "stdin")
+    unsupported <- files[!kinds %in% sql_kinds]
+    if (length(unsupported) > 0) {
+      cli::cli_abort(
+        c(
+          "{.code rush sql} can't query {.file {unsupported}}.",
+          i = "It queries CSV/TSV, Parquet, JSON/JSONL, and DuckDB files.",
+          i = "Convert other formats first, e.g. {.code rush convert -o data.parquet {unsupported[[1]]}}, or use {.code rush run}."
+        ),
+        call = NULL
+      )
+    }
 
     if (any(kinds %in% c("json", "jsonl"))) {
       writeLines(
@@ -666,9 +780,9 @@ if (.has_tty) options(width = if (is.null(.rush$width)) cli::console_width() els
     if (is.null(output)) stop("Parquet format requires --output (-o) file path")
     nanoparquet::write_parquet(result, output)
   } else if (identical(.rush$output_format, "json")) {
-    .pretty <- .rush$output_indent > 0L
+    .pretty <- if (.rush$output_indent > 0L) .rush$output_indent else FALSE
     json <- jsonlite::toJSON(result, dataframe = "rows", pretty = .pretty, auto_unbox = TRUE)
-    if (is.null(output)) cat(json, "\n") else writeLines(json, output)
+    if (is.null(output)) cat(json, "\n", sep = "") else writeLines(json, output)
   } else if (identical(.rush$output_format, "jsonl")) {
     con_out <- if (is.null(output)) stdout() else file(output, "w")
     jsonlite::stream_out(result, con_out, verbose = FALSE)
@@ -677,7 +791,7 @@ if (.has_tty) options(width = if (is.null(.rush$width)) cli::console_width() els
     if (is.null(output)) stop("Arrow format requires --output (-o) file path")
     arrow::write_ipc_file(result, output)
   } else if (identical(.rush$output_format, "xlsx")) {
-    .xlsx_data <- if (!is.null(.rush$output_sheet)) {
+    .xlsx_data <- if (is.data.frame(result) && !is.null(.rush$output_sheet)) {
       stats::setNames(list(result), .rush$output_sheet)
     } else {
       result
@@ -724,11 +838,27 @@ if (.has_tty) options(width = if (is.null(.rush$width)) cli::console_width() els
   } else if (identical(.rush$output_format, "rds")) {
     readr::write_rds(result, output)
   } else if (identical(.rush$output_format, "ods")) {
-    readODS::write_ods(result, output)
-  } else if (identical(.rush$output_format, "fasta")) {
-    microseq::writeFasta(result, output)
-  } else if (identical(.rush$output_format, "fastq")) {
-    microseq::writeFastq(result, output)
+    if (is.data.frame(result) && !is.null(.rush$output_sheet)) {
+      readODS::write_ods(result, output, sheet = .rush$output_sheet)
+    } else {
+      readODS::write_ods(result, output)
+    }
+  } else if (.rush$output_format %in% c("fasta", "fastq")) {
+    # microseq needs a file and the columns Header, Sequence, and Quality,
+    # which clean names (as when reading a FASTA file) turns into lowercase
+    .cols <- c("Header", "Sequence", "Quality")
+    .match <- match(tolower(names(result)), tolower(.cols))
+    names(result)[!is.na(.match)] <- .cols[.match[!is.na(.match)]]
+    .file <- if (is.null(output)) tempfile() else output
+    if (identical(.rush$output_format, "fasta")) {
+      microseq::writeFasta(result, .file)
+    } else {
+      microseq::writeFastq(result, .file)
+    }
+    if (is.null(output)) {
+      writeBin(readBin(.file, raw(), n = file.size(.file)), .stdout_binary())
+      unlink(.file)
+    }
   } else if (identical(.rush$output_format, "yaml")) {
     rows <- lapply(seq_len(nrow(result)), function(.i) {
       as.list(result[.i, , drop = FALSE])
@@ -785,8 +915,8 @@ if (!is.null(.rush$output_template)) {
     }
   }
   .expand_template <- function(tmpl, file_name, file_index, table_name, table_index) {
-    while (grepl("%[(][^)]+[)]([^%]*[a-z])", tmpl)) {
-      m <- regexec("%[(]([^)]+)[)]([^%]*[a-z])", tmpl)[[1]]
+    while (grepl("%[(][^)]+[)]([-+ 0#]*[0-9]*[.]?[0-9]*[a-zA-Z])", tmpl)) {
+      m <- regexec("%[(]([^)]+)[)]([-+ 0#]*[0-9]*[.]?[0-9]*[a-zA-Z])", tmpl)[[1]]
       full <- regmatches(tmpl, list(m))[[1]]
       field <- full[2]
       spec <- full[3]
@@ -795,7 +925,7 @@ if (!is.null(.rush$output_template)) {
         table_name = table_name, table_index = table_index,
         "")
       replacement <- .expand_field(value, spec)
-      tmpl <- sub("%[(]([^)]+)[)]([^%]*[a-z])", replacement, tmpl)
+      tmpl <- sub("%[(]([^)]+)[)]([-+ 0#]*[0-9]*[.]?[0-9]*[a-zA-Z])", replacement, tmpl)
     }
     tmpl
   }
@@ -826,8 +956,34 @@ if (!is.null(.rush$output_template)) {
 } else if (is.data.frame(result)) {
   .write_result(result, .rush$output)
 } else if (rlang::is_bare_list(result)) {
+  # A list of data frames becomes one sheet each in a spreadsheet; a database
+  # read as input contributes its tables under their own names
+  .sheets <- NULL
+  if (.rush$output_format %in% c("xlsx", "ods")) {
+    .sheets <- list()
+    .nms <- names(result) %||% rep("", length(result))
+    for (.i in seq_along(result)) {
+      .item <- result[[.i]]
+      .name <- if (nzchar(.nms[[.i]])) .nms[[.i]] else paste0("Sheet", .i)
+      if (is.data.frame(.item)) {
+        .sheets[[.name]] <- .item
+      } else if (rlang::is_bare_list(.item) && length(.item) > 0 &&
+                 all(vapply(.item, is.data.frame, logical(1)))) {
+        .sheets[names(.item)] <- .item
+      } else {
+        .sheets <- NULL
+        break
+      }
+    }
+    if (length(.sheets) == 0) .sheets <- NULL
+  }
   if (.rush$output_format %in% c("duckdb", "sqlite")) {
     .write_result(result, .rush$output)
+  } else if (!is.null(.sheets)) {
+    .write_result(.sheets, .rush$output)
+  } else if (.rush$output_format %in% c("xlsx", "ods")) {
+    stop("Can\x27t write this list to a spreadsheet: ",
+         "every element must be a data frame, which becomes a sheet.", call. = FALSE)
   } else {
     result <- tibble::enframe(result)
     .write_result(result, .rush$output)
