@@ -70,12 +70,14 @@ Pass arguments to the geom, as R code. For example, `adjust` smooths a density
 curve, and `alpha` makes it transparent:
 
 ```{term}
-rush plot -x hwy -f drv -g density --geom-args 'adjust = 2, alpha = 0.5' -n mpg.csv | grep 'ggplot('
+rush plot -x hwy -f drv -g density --geom-args 'adjust = 2, alpha = 0.5' -n mpg.csv | grep -A 1 'ggplot('
 ```
 
 ```{term}
-rush plot -x hwy -f drv -g density --geom-args 'adjust = 2, alpha = 0.5' -O ansi --width 78 mpg.csv
+rush plot -x hwy -f drv -g density --geom-args 'adjust = 2, alpha = 0.5' mpg.csv > density.png
 ```
+
+![](density.png){fig-alt="Smoothed, half-transparent density curves of highway mileage for each drive type in the mpg data set" width="500"}
 
 Arguments set fixed values for the whole layer, unlike aesthetics such as
 `--alpha`, which map a column. They also work with the guessed geom, e.g.
@@ -299,5 +301,5 @@ rush plot -h
 
 ```{term}
 #| include: false
-rm -f mtcars.csv colored.png hires.png
+rm -f mtcars.csv mpg.csv colored.png hires.png
 ```
