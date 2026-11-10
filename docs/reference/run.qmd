@@ -203,7 +203,9 @@ rush run -t 'df |> group_by(cyl) |> summarise(avg_mpg = mean(mpg))' mtcars.csv
 
 ### `--library` (`-l`)
 
-Load packages, separated by commas. `rush` installs them when needed:
+Load packages, separated by commas. `rush` installs them when needed. You
+don't need `-l` for a package you only call with `pkg::`, such as
+`readxl::excel_sheets()`: `rush` installs those too.
 
 ```{term}
 rush run -l dplyr,tidyr 'df |>

@@ -27,6 +27,72 @@ includes `rush` itself, which the script refers to on GitHub
 (`github::jeroenjanssens/rush`), pinned to the commit or release that
 generated it, so the script keeps working when `rush` changes.
 
+## Which packages a script needs
+
+`rush` lists every package that the script needs in the `#|` header, so that
+`ir` can install them. To see the list, print the script with `--dry-run` and
+keep only the header with `grep`. A script always needs `rush` and a few
+packages that `rush` itself uses:
+
+```{term}
+rush run -n '6 * 7' | grep '^#|'
+```
+
+Other packages are added for what the script does. Reading a file adds its
+reader, and janitor, which cleans the column names:
+
+```{term}
+rush run -n 'nrow(df)' mtcars.parquet | grep '^#|'
+```
+
+Writing a file adds its writer, here writexl for Excel:
+
+```{term}
+rush run -n -o cars.xlsx 'head(df)' mtcars.csv | grep '^#|'
+```
+
+`--library` (`-l`) adds the packages you name, and `--tidyverse` (`-t`) adds
+the tidyverse and glue:
+
+```{term}
+rush run -n -l lubridate 'today()' | grep '^#|'
+```
+
+Packages that your R code calls with `pkg::` are added too, so you don't need
+`-l` for them:
+
+```{term}
+rush run -n 'stringr::str_to_title("hello")' | grep '^#|'
+```
+
+And so are packages that your code loads with `library()`:
+
+```{term}
+rush run -n 'library(glue); glue("6 * 7 = {6 * 7}")' | grep '^#|'
+```
+
+Plots add ggplot2 and the packages that draw in the terminal. Packages in the
+aesthetics and in `--pre` and `--post` are added as well, here forcats:
+
+```{term}
+rush plot -n -x 'forcats::fct_infreq(class)' mpg.csv | grep '^#|'
+```
+
+In short:
+
+| A package is added for | Example |
+|------------------------|---------|
+| Reading a file | `mtcars.parquet` adds nanoparquet |
+| Writing a file | `-o cars.xlsx` adds writexl, `-o plot.svg` adds svglite |
+| `--library` (`-l`) | `-l lubridate` adds lubridate |
+| `--tidyverse` (`-t`) | adds tidyverse and glue |
+| `pkg::` in R code | `stringr::str_to_title()` adds stringr |
+| `library()` in R code | `library(glue)` adds glue |
+| A plot | ggplot2, and devoutansi for the terminal |
+
+Packages that come with R, such as stats and utils, are never listed, because
+they are always installed.
+
 ## Running a script
 
 Run it with `ir run`. `ir` installs any missing packages, so the script needs
