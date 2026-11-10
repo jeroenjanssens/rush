@@ -312,6 +312,15 @@ test_that("-o - writes to standard output", {
   expect_false(any(grepl('output = "-"', script, fixed = TRUE)))
 })
 
+test_that("plot to SVG declares svglite", {
+  script <- dry_run("plot", "-n", "-x", "wt", "-o", "p.svg", "mtcars.csv")
+  expect_true("#|   - svglite" %in% script)
+  script <- dry_run("plot", "-n", "-x", "wt", "-O", "svg", "mtcars.csv")
+  expect_true("#|   - svglite" %in% script)
+  script <- dry_run("plot", "-n", "-x", "wt", "-o", "p.png", "mtcars.csv")
+  expect_false("#|   - svglite" %in% script)
+})
+
 test_that("plot --width sets terminal art width", {
   script <- dry_run("plot", "-n", "-x", "wt", "--width", "40", "mtcars.csv")
   expect_true(any(grepl("width = 40", script)))

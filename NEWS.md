@@ -6,6 +6,9 @@
   column, it sets fixed values. It also works with the guessed geom.
 * `rush plot -O svg` (or `pdf`, `jpeg`, and other ggplot2 devices) now writes
   that format to standard output. It used to be ignored, so PNG was written.
+* Scripts that save a plot as SVG (`-o plot.svg` or `-O svg`) now declare
+  svglite, which `ggsave()` needs for SVG. They used to fail when svglite
+  wasn't installed.
 * `-o -` now writes to standard output, like omitting `-o`. It used to create
   a file named `-`, and `rush plot -o -` failed with "Unknown graphics device".
 * The `<file>` description in `rush plot -h` now lists all input formats and

@@ -278,6 +278,13 @@ output_packages <- function(flags) {
     "yaml"
   } else if (identical(fmt, "xml")) {
     "xml2"
+  } else if (
+    identical(fmt, "svg") ||
+      (!is.null(flags$output) &&
+        tolower(tools::file_ext(flags$output)) %in% c("svg", "svgz"))
+  ) {
+    # ggsave() needs svglite for SVG plots
+    "svglite"
   } else {
     character(0)
   }
