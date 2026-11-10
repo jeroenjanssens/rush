@@ -183,14 +183,16 @@ build_plot_call <- function(flags, compact = FALSE) {
   plot_call <- rlang::call2("ggplot", rlang::sym("df"), aes_call)
 
   geom <- flags$geom
+  # --geom-args: arguments for the geometry, e.g. geom_density(adjust = 3)
+  geom_args <- flags$geom_args %||% list()
   geom_call <- if (geom != "auto") {
-    rlang::call2(paste0("geom_", geom))
+    rlang::call2(paste0("geom_", geom), !!!geom_args)
   } else if (!is.null(flags$y)) {
-    rlang::call2("geom_point")
+    rlang::call2("geom_point", !!!geom_args)
   } else if (compact) {
     # A bar chart or histogram, depending on the type of x (decided when the
     # script runs, so it also works for stdin)
-    rlang::call2("geom_auto", .ns = "rush")
+    rlang::call2("geom_auto", !!!geom_args, .ns = "rush")
   } else {
     # The same choice as geom_auto(), without depending on rush
     rlang::expr({
@@ -199,9 +201,9 @@ build_plot_call <- function(flags, compact = FALSE) {
         (is.numeric(.x) && !is.factor(.x)) ||
           inherits(.x, c("Date", "POSIXt", "difftime", "hms"))
       ) {
-        geom_histogram()
+        geom_histogram(!!!geom_args)
       } else {
-        geom_bar()
+        geom_bar(!!!geom_args)
       }
     })
   }

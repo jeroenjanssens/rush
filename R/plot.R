@@ -16,6 +16,10 @@
 #'   `geom_point()` is used if both `x` and `y` are set, and [geom_auto()]
 #'   otherwise: a histogram for numbers, dates, and times, and a bar chart for
 #'   anything else.
+#' @param geom_args Arguments for the geometry, as a string of R code (e.g.
+#'   `"adjust = 3, alpha = 0.5"` for `geom_density(adjust = 3, alpha = 0.5)`)
+#'   or a list. Unlike `alpha`, which maps a column, `geom_args = "alpha =
+#'   0.5"` sets a fixed value.
 #' @param facets A facet specification as a string. Use a two-sided formula
 #'   (e.g. `"gear ~ cyl"`) for [ggplot2::facet_grid()] or a one-sided formula
 #'   (e.g. `"~ cyl"`) for [ggplot2::facet_wrap()].
@@ -99,6 +103,7 @@ rush_plot <- function(
   shape = NULL,
   group = NULL,
   geom = "auto",
+  geom_args = NULL,
   facets = NULL,
   log = NULL,
   title = NULL,
@@ -159,6 +164,7 @@ rush_plot <- function(
     shape = shape,
     group = group,
     geom = geom,
+    geom_args = geom_args,
     facets = facets,
     log = log,
     title = title,

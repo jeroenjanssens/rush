@@ -16,6 +16,7 @@ rush_plot(
   shape = NULL,
   group = NULL,
   geom = "auto",
+  geom_args = NULL,
   facets = NULL,
   log = NULL,
   title = NULL,
@@ -62,6 +63,10 @@ aesthetics (as strings).}
 \code{geom_point()} is used if both \code{x} and \code{y} are set, and \code{\link[=geom_auto]{geom_auto()}}
 otherwise: a histogram for numbers, dates, and times, and a bar chart for
 anything else.}
+
+\item{geom_args}{Arguments for the geometry, as a string of R code (e.g.
+\code{"adjust = 3, alpha = 0.5"} for \code{geom_density(adjust = 3, alpha = 0.5)})
+or a list. Unlike \code{alpha}, which maps a column, \code{geom_args = "alpha = 0.5"} sets a fixed value.}
 
 \item{facets}{A facet specification as a string. Use a two-sided formula
 (e.g. \code{"gear ~ cyl"}) for \code{\link[ggplot2:facet_grid]{ggplot2::facet_grid()}} or a one-sided formula

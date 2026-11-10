@@ -1,5 +1,11 @@
 # rush (development version)
 
+* New `--geom-args` option for `rush plot` (and `geom_args` for `rush_plot()`)
+  passes arguments to the geom, e.g. `--geom-args 'adjust = 3, alpha = 0.5'`
+  for `geom_density(adjust = 3, alpha = 0.5)`. Unlike `--alpha`, which maps a
+  column, it sets fixed values. It also works with the guessed geom.
+* Invalid option values (e.g. for `--aes`) now give their own error message,
+  without purrr's "In index" wrapper.
 * `rush plot` with only `--x` now draws a bar chart for a text, factor, or
   logical column and a histogram for numbers, dates, and times, like the
   `qplot()` that rush 0.1 used. It always used a histogram, which fails for a
