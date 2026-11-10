@@ -87,13 +87,16 @@ transform \code{df}).}
 \item{post}{A character string of R code to run after plotting (e.g. to
 add layers to \code{p}).}
 
-\item{output}{Path to save the plot. When \code{NULL} (the default), renders to
-the terminal as ANSI art if interactive, or streams PNG to stdout.}
+\item{output}{Path to save the plot. The graphics device is inferred from
+the extension (e.g. \code{.png}, \code{.svg}, \code{.pdf}). When \code{NULL} (the default) or
+\code{"-"}, the plot is written to standard output: as ANSI art on a terminal,
+and as PNG otherwise.}
 
-\item{output_format}{Output format override. Use \code{"ansi"} for colored
-terminal art or \code{"ascii"} for plain-text characters without escape codes.
-Both force terminal rendering regardless of TTY detection. When \code{"auto"}
-(the default), the format is inferred from \code{output} or the terminal.}
+\item{output_format}{Output format override for standard output. Use
+\code{"ansi"} for colored terminal art, \code{"ascii"} for plain-text characters
+without escape codes, or a graphics device such as \code{"png"}, \code{"svg"}, or
+\code{"pdf"}. Any of these is used regardless of TTY detection. When \code{"auto"}
+(the default), the format is inferred from the terminal.}
 
 \item{width, height}{Plot dimensions. In terminal mode, \code{width} is in
 characters; for file output, in \code{units}.}

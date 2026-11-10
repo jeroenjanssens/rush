@@ -227,8 +227,9 @@ test_that("rush_plot output_format ansi forces terminal art in script", {
   )
   expect_true(any(grepl("output_format.*ansi", script)))
   expect_true(any(grepl(
-    'if \\(.rush\\$output_format %in% c\\("ansi", "ascii"\\)',
-    script
+    'if (!fmt %in% c("auto", "delim")) fmt',
+    script,
+    fixed = TRUE
   )))
 })
 

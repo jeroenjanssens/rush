@@ -4,6 +4,12 @@
   passes arguments to the geom, e.g. `--geom-args 'adjust = 3, alpha = 0.5'`
   for `geom_density(adjust = 3, alpha = 0.5)`. Unlike `--alpha`, which maps a
   column, it sets fixed values. It also works with the guessed geom.
+* `rush plot -O svg` (or `pdf`, `jpeg`, and other ggplot2 devices) now writes
+  that format to standard output. It used to be ignored, so PNG was written.
+* `-o -` now writes to standard output, like omitting `-o`. It used to create
+  a file named `-`, and `rush plot -o -` failed with "Unknown graphics device".
+* The `<file>` description in `rush plot -h` now lists all input formats and
+  explains where the plot goes without `--output`.
 * Invalid option values (e.g. for `--aes`) now give their own error message,
   without purrr's "In index" wrapper.
 * `rush plot` with only `--x` now draws a bar chart for a text, factor, or

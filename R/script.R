@@ -592,7 +592,10 @@ dispatch_plot_output <- function() {
   w <- .rush$width
   h <- .rush$height
   if (is.null(out)) {
-    out <- if (.rush$output_format %in% c("ansi", "ascii")) .rush$output_format
+    # An explicit -O (ansi, ascii, or a device such as svg) wins; otherwise
+    # ANSI art on a terminal and PNG bytes when piped.
+    fmt <- .rush$output_format
+    out <- if (!fmt %in% c("auto", "delim")) fmt
            else if (.has_tty) "ansi"
            else "png"
   }

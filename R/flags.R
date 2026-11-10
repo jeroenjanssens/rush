@@ -182,15 +182,18 @@ Usage:
   rush plot [options] [--] [<file>...]
 
 Arguments:
-  <file>                   Data file(s) to read before plotting. The reader is
-                           chosen by extension: '.parquet'/'.pq' via
-                           nanoparquet, '.duckdb'/'.ddb' via DuckDB, everything
-                           else as delimited text. A single file is read into a
-                           data frame named 'df'; use '-' or omit to read
-                           delimited text from standard input. Multiple files
-                           are each read into a named element of a list 'dfs';
-                           combine them into 'df' yourself with the --pre
-                           option, e.g. 'df <- dplyr::bind_rows(dfs)'.
+  <file>                   Data file(s) to plot. The reader is chosen by
+                           extension (or overridden with -F). The first input
+                           is read into a data frame named 'df', and all inputs
+                           into a named list 'dfs', keyed by file stem; combine
+                           multiple files into 'df' with the --pre option, e.g.
+                           'df <- dplyr::bind_rows(dfs)'. Use '-' or omit to
+                           read from standard input.
+
+Note: Without --output, the plot is drawn as ANSI art on a terminal and
+written as PNG to standard output otherwise. Use -O ansi, -O ascii, or a
+graphics device such as -O svg to choose, or -o with a file extension
+(.png, .svg, .pdf, ...) to save it.
 
 Reading options:
 {flags_section(category == 'read')}

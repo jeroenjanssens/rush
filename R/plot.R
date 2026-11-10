@@ -32,12 +32,15 @@
 #'   transform `df`).
 #' @param post A character string of R code to run after plotting (e.g. to
 #'   add layers to `p`).
-#' @param output Path to save the plot. When `NULL` (the default), renders to
-#'   the terminal as ANSI art if interactive, or streams PNG to stdout.
-#' @param output_format Output format override. Use `"ansi"` for colored
-#'   terminal art or `"ascii"` for plain-text characters without escape codes.
-#'   Both force terminal rendering regardless of TTY detection. When `"auto"`
-#'   (the default), the format is inferred from `output` or the terminal.
+#' @param output Path to save the plot. The graphics device is inferred from
+#'   the extension (e.g. `.png`, `.svg`, `.pdf`). When `NULL` (the default) or
+#'   `"-"`, the plot is written to standard output: as ANSI art on a terminal,
+#'   and as PNG otherwise.
+#' @param output_format Output format override for standard output. Use
+#'   `"ansi"` for colored terminal art, `"ascii"` for plain-text characters
+#'   without escape codes, or a graphics device such as `"png"`, `"svg"`, or
+#'   `"pdf"`. Any of these is used regardless of TTY detection. When `"auto"`
+#'   (the default), the format is inferred from the terminal.
 #' @param width,height Plot dimensions. In terminal mode, `width` is in
 #'   characters; for file output, in `units`.
 #' @param units Size units for file output. One of `"in"`, `"cm"`, `"mm"`, or

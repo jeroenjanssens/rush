@@ -295,14 +295,21 @@ test_that("plot -O ansi forces terminal art in generated script", {
   script <- dry_run("plot", "-n", "-x", "wt", "-O", "ansi", "mtcars.csv")
   expect_true(any(grepl("output_format.*ansi", script)))
   expect_true(any(grepl(
-    'if \\(.rush\\$output_format %in% c\\("ansi", "ascii"\\)',
-    script
+    'if (!fmt %in% c("auto", "delim")) fmt',
+    script,
+    fixed = TRUE
   )))
 })
 
 test_that("plot -O ascii forces terminal art in generated script", {
   script <- dry_run("plot", "-n", "-x", "wt", "-O", "ascii", "mtcars.csv")
   expect_true(any(grepl("output_format.*ascii", script)))
+})
+
+test_that("-o - writes to standard output", {
+  script <- dry_run("run", "-n", "-o", "-", "head(df)", "data.csv")
+  expect_true(any(grepl("output = NULL", script, fixed = TRUE)))
+  expect_false(any(grepl('output = "-"', script, fixed = TRUE)))
 })
 
 test_that("plot --width sets terminal art width", {

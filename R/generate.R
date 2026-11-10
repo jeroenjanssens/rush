@@ -176,6 +176,10 @@ build_flags <- function(
 }
 
 resolve_flags <- function(flags) {
+  # `-o -` writes to standard output, just like omitting `-o`
+  if (identical(flags$output, "-")) {
+    flags$output <- NULL
+  }
   flags$resolved_no_input_header <- if (isTRUE(flags$no_input_header)) {
     TRUE
   } else {

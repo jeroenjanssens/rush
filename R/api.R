@@ -364,8 +364,11 @@ write <- function(result) {
     w <- cfg$width
     h <- cfg$height
     if (is.null(out)) {
-      out <- if (cfg$output_format %in% c("ansi", "ascii")) {
-        cfg$output_format
+      # An explicit -O (ansi, ascii, or a device such as svg) wins; otherwise
+      # ANSI art on a terminal and PNG bytes when piped.
+      fmt <- cfg$output_format %||% "delim"
+      out <- if (!fmt %in% c("auto", "delim")) {
+        fmt
       } else if (has_tty) {
         "ansi"
       } else {

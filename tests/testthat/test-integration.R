@@ -3057,6 +3057,34 @@ test_that("plot without -o and non-TTY produces PNG bytes", {
   expect_equal(result$stdout[1:4], as.raw(c(0x89, 0x50, 0x4e, 0x47)))
 })
 
+test_that("plot -o - streams PNG bytes to stdout", {
+  skip_on_ci()
+  dir <- withr::local_tempdir()
+  f <- make_csv(data.frame(x = 1:10, y = (1:10)^2), dir)
+  result <- rush_raw_binary(c("plot", "-x", "x", "-y", "y", "-o", "-", "--", f))
+  expect_equal(result$status, 0)
+  expect_equal(result$stdout[1:4], as.raw(c(0x89, 0x50, 0x4e, 0x47)))
+})
+
+test_that("plot -O svg streams SVG to stdout", {
+  skip_on_ci()
+  dir <- withr::local_tempdir()
+  f <- make_csv(data.frame(x = 1:10, y = (1:10)^2), dir)
+  result <- rush_raw_binary(c(
+    "plot",
+    "-x",
+    "x",
+    "-y",
+    "y",
+    "-O",
+    "svg",
+    "--",
+    f
+  ))
+  expect_equal(result$status, 0)
+  expect_match(rawToChar(result$stdout), "<svg", fixed = TRUE)
+})
+
 test_that("plot -O ansi with --width 60 produces wider output", {
   skip_on_ci()
   dir <- withr::local_tempdir()
