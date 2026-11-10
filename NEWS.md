@@ -33,6 +33,11 @@
   ignored, so the first sheet was read and the sheet was named `Sheet1`.
 * `rush plot` without a file is now an error, like the other commands. It
   used to read standard input; use `-` for that.
+* Packages that your R code uses, as `pkg::fun()` or `library(pkg)`, are now
+  declared in the generated script, so `ir` installs them. For example,
+  `rush run 'readxl::excel_sheets("data.xlsx")'` used to fail when readxl
+  wasn't installed. This covers expressions, `--pre`, `--post`, and the plot
+  aesthetics.
 * `-o -` now writes to standard output, like omitting `-o`. It used to create
   a file named `-`, and `rush plot -o -` failed with "Unknown graphics device".
 * The `<file>` description in `rush plot -h` now lists all input formats and

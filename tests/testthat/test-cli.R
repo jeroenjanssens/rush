@@ -379,6 +379,39 @@ test_that("--input-sheet selects the sheet of an ODS file", {
   )))
 })
 
+test_that("packages used in R code are declared", {
+  script <- dry_run(
+    "run",
+    "-n",
+    "library(janitor); x <- stats::median(1); readxl::excel_sheets('a.xlsx')"
+  )
+  expect_true("#|   - readxl" %in% script)
+  expect_true("#|   - janitor" %in% script)
+  expect_false("#|   - stats" %in% script)
+
+  script <- dry_run(
+    "plot",
+    "-n",
+    "-x",
+    "forcats::fct_infreq(class)",
+    "--pre",
+    "df <- tidyr::drop_na(df)",
+    "--geom-args",
+    "alpha = scales::rescale(1)",
+    "mpg.csv"
+  )
+  expect_true(all(
+    c("#|   - forcats", "#|   - tidyr", "#|   - scales") %in% script
+  ))
+})
+
+test_that("code_packages() handles missing arguments and strings", {
+  flags <- list(
+    expression = rlang::parse_exprs("df[, 1]; library(package = 'yaml')")
+  )
+  expect_equal(code_packages(flags), "yaml")
+})
+
 test_that("-o - writes to standard output", {
   script <- dry_run("run", "-n", "-o", "-", "head(df)", "data.csv")
   expect_true(any(grepl("output = NULL", script, fixed = TRUE)))

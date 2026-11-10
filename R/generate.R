@@ -254,6 +254,76 @@ base_script_packages <- function() {
   c("rlang", "cli", "tibble", "readr")
 }
 
+# Flags whose values are R code
+code_flags <- c(
+  "expression",
+  "pre",
+  "post",
+  "x",
+  "y",
+  "z",
+  "color",
+  "fill",
+  "alpha",
+  "size",
+  "shape",
+  "group",
+  "aes",
+  "geom_args",
+  "facets"
+)
+
+# Packages that come with R, so they can't (and needn't) be installed
+r_base_packages <- c(
+  "base",
+  "compiler",
+  "datasets",
+  "graphics",
+  "grDevices",
+  "grid",
+  "methods",
+  "parallel",
+  "splines",
+  "stats",
+  "stats4",
+  "tcltk",
+  "tools",
+  "utils"
+)
+
+# Packages that the R code in the flags uses, as `pkg::fun()`, `pkg:::fun()`,
+# `library(pkg)`, or `require(pkg)`, so that the script declares them and ir
+# installs them. rush itself is declared separately.
+code_packages <- function(flags) {
+  pkgs <- character()
+  walk <- function(x) {
+    if (rlang::is_missing(x)) {
+      return()
+    }
+    if (is.call(x)) {
+      fn <- x[[1]]
+      pkg <- NULL
+      if (rlang::is_symbol(fn, c("::", ":::"))) {
+        pkg <- x[[2]]
+      } else if (
+        rlang::is_symbol(fn, c("library", "require", "requireNamespace")) &&
+          length(x) >= 2
+      ) {
+        pkg <- if ("package" %in% names(x)) x[["package"]] else x[[2]]
+      }
+      if (rlang::is_symbol(pkg) || rlang::is_string(pkg)) {
+        pkgs <<- c(pkgs, as.character(pkg))
+      }
+      lapply(as.list(x), walk)
+    } else if (is.list(x) || is.expression(x)) {
+      lapply(x, walk)
+    }
+    invisible()
+  }
+  lapply(flags[intersect(code_flags, names(flags))], walk)
+  setdiff(unique(pkgs), c(r_base_packages, "rush"))
+}
+
 # Packages needed to write the result in the resolved output format.
 output_packages <- function(flags) {
   fmt <- flags$resolved_output_format
@@ -305,7 +375,12 @@ script_packages <- function(command, flags) {
     plot = build_plot_body(con, flags),
     convert = build_convert_body(con, flags)
   )
-  unique(c(base_script_packages(), body_pkgs, output_packages(flags)))
+  unique(c(
+    base_script_packages(),
+    body_pkgs,
+    output_packages(flags),
+    code_packages(flags)
+  ))
 }
 
 # The `rush` package on CRAN is a different package (mlr-org's "Rapid
@@ -387,7 +462,7 @@ generate_script_inline <- function(command, flags) {
     plot = build_plot_body(body, flags),
     convert = build_convert_body(body, flags)
   )
-  pkgs <- c(pkgs, result, output_packages(flags))
+  pkgs <- c(pkgs, result, output_packages(flags), code_packages(flags))
 
   close(body)
 
