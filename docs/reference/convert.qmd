@@ -85,7 +85,7 @@ A spreadsheet (Excel or ODS) works the same way, with a sheet per input:
 
 ```{term}
 rush convert -o chunks.xlsx chunk1.csv chunk2.csv
-rush run 'readxl::excel_sheets("chunks.xlsx")'
+rush run -l readxl 'excel_sheets("chunks.xlsx")'
 ```
 
 Converting a database to another database copies all its tables, and
@@ -95,7 +95,7 @@ converting it to a spreadsheet gives a sheet per table:
 rush convert -o chunks.sqlite chunks.duckdb
 rush run 'names(dfs$chunks)' chunks.sqlite
 rush convert -o tables.xlsx chunks.duckdb
-rush run 'readxl::excel_sheets("tables.xlsx")'
+rush run -l readxl 'excel_sheets("tables.xlsx")'
 ```
 
 ## Options

@@ -37,11 +37,12 @@ rush run 'nrow(df)' mtcars.xlsx
 
 `rush` reads the first sheet of a workbook. To read another, pass its name or
 its position to `--input-sheet`. readxl comes with an example workbook in the
-`.xls` format that has several sheets:
+`.xls` format that has several sheets. Load readxl with `-l` to list them with
+`excel_sheets()`:
 
 ```{term}
-cp "$(rush run 'readxl::readxl_example("datasets.xls")')" datasets.xls
-rush run 'readxl::excel_sheets("datasets.xls")'
+cp "$(rush run -l readxl 'readxl_example("datasets.xls")')" datasets.xls
+rush run -l readxl 'excel_sheets("datasets.xls")'
 rush run --input-sheet quakes 'head(df, 3)' datasets.xls
 ```
 
@@ -51,7 +52,7 @@ Name the sheet that is written (`Sheet1` by default):
 
 ```{term}
 rush run --output-sheet cars -o cars.xlsx 'head(df, 3)' mtcars.csv
-rush run 'readxl::excel_sheets("cars.xlsx")'
+rush run -l readxl 'excel_sheets("cars.xlsx")'
 ```
 
 ### Multiple sheets
@@ -61,7 +62,7 @@ list names. For example, split the cars by their number of cylinders:
 
 ```{term}
 rush run -o split.xlsx 'split(df, ~ cyl)' mtcars.csv
-rush run 'readxl::excel_sheets("split.xlsx")'
+rush run -l readxl 'excel_sheets("split.xlsx")'
 ```
 
 `--input-sheet` takes a number as the position of the sheet, so read the
@@ -77,7 +78,7 @@ becomes a sheet per table:
 ```{term}
 rush run -o fast.csv 'dplyr::filter(df, hp > 200)' mtcars.csv
 rush convert -o book.xlsx mtcars.csv fast.csv
-rush run 'readxl::excel_sheets("book.xlsx")'
+rush run -l readxl 'excel_sheets("book.xlsx")'
 ```
 
 ## ODS (OpenDocument Spreadsheet)
