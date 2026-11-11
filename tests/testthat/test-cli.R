@@ -452,7 +452,11 @@ test_that("--version ends with a newline", {
       R_LIBS = paste(.libPaths(), collapse = .Platform$path.sep)
     )
   )$stdout
-  expect_equal(out, paste0(utils::packageVersion("rush"), "\n"))
+  # Windows ends lines with \r\n
+  expect_equal(
+    sub("\r\n$", "\n", out),
+    paste0(utils::packageVersion("rush"), "\n")
+  )
 })
 
 test_that("-o - writes to standard output", {
