@@ -1,3 +1,11 @@
+# Environment for the R processes that the integration tests start. testthat
+# sets TESTTHAT=true, which makes the package manager behind ir (renv) install
+# into a temporary cache, and ir then keeps libraries that point to the
+# deleted cache, so later runs with the same packages fail.
+rush_test_env <- function() {
+  c("current", RUSH_NO_IR = "", TESTTHAT = "false")
+}
+
 skip_if_no_ir <- function() {
   skip_if_not(nzchar(Sys.which("ir")), "ir not available")
 }
@@ -276,6 +284,22 @@ rush_sql_exec <- function(
   rush_raw(a, stdin_data = stdin_data)
 }
 
+# The tables in a DuckDB file that rush wrote, with their number of rows.
+# The file is read by rush itself, so with the DuckDB that wrote it: the local
+# R library may have an older DuckDB, which can't read files from a newer one.
+duckdb_tables <- function(path) {
+  result <- rush_raw(c(
+    "run",
+    "data.frame(table = names(df), rows = vapply(df, nrow, integer(1)))",
+    "--",
+    path
+  ))
+  if (!identical(result$status, 0L)) {
+    stop("Can't read ", path, ":\n", result$stderr, call. = FALSE)
+  }
+  utils::read.csv(text = result$stdout)
+}
+
 rush_raw <- function(argv, stdin_data = NULL) {
   script <- withr::local_tempfile(fileext = ".R")
   writeLines(
@@ -299,7 +323,7 @@ rush_raw <- function(argv, stdin_data = NULL) {
     stdout = "|",
     stderr = "|",
     error_on_status = FALSE,
-    env = c("current", RUSH_NO_IR = "")
+    env = rush_test_env()
   )
   result
 }
@@ -323,7 +347,7 @@ rush_raw_binary <- function(argv) {
     stdout = out,
     stderr = "|",
     error_on_status = FALSE,
-    env = c("current", RUSH_NO_IR = "")
+    env = rush_test_env()
   )
   result$stdout <- readBin(out, raw(), n = file.size(out))
   result

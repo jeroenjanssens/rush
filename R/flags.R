@@ -294,7 +294,8 @@ parse_arguments <- function(...) {
   args <- docopt::docopt(
     glue::glue(doc),
     args = argv,
-    version = as.character(utils::packageVersion("rush")),
+    # docopt prints the version as is, so end it with a newline
+    version = paste0(utils::packageVersion("rush"), "\n"),
     strict = FALSE
   )
 

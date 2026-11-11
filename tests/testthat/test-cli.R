@@ -443,6 +443,18 @@ test_that("--input-sheet '*' reads all sheets as a list", {
   expect_true(any(grepl("df <- df[[1L]]", script, fixed = TRUE)))
 })
 
+test_that("--version ends with a newline", {
+  out <- processx::run(
+    "Rscript",
+    c("-e", "rush::rush('--version')"),
+    env = c(
+      "current",
+      R_LIBS = paste(.libPaths(), collapse = .Platform$path.sep)
+    )
+  )$stdout
+  expect_equal(out, paste0(utils::packageVersion("rush"), "\n"))
+})
+
 test_that("-o - writes to standard output", {
   script <- dry_run("run", "-n", "-o", "-", "head(df)", "data.csv")
   expect_true(any(grepl("output = NULL", script, fixed = TRUE)))

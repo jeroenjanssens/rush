@@ -982,6 +982,18 @@ if (!is.null(.rush$output_template)) {
   }
 } else if (inherits(result, "gg")) {
   .write_plot(result)
+} else if (rlang::is_atomic(result) && length(dim(result)) == 2) {
+  # A matrix (or two-way table) keeps its row and column names
+  .m <- unclass(result)
+  if (is.null(colnames(.m))) colnames(.m) <- paste0("V", seq_len(ncol(.m)))
+  .rownames <- if (!is.null(rownames(.m))) "rowname"
+  .write_result(tibble::as_tibble(.m, rownames = .rownames, .name_repair = "minimal"), .rush$output)
+} else if (rlang::is_atomic(result) && !is.null(names(result)) && length(dim(result)) <= 1) {
+  # A named vector keeps its names
+  if (inherits(result, c("table", "summaryDefault"))) {
+    result <- stats::setNames(as.vector(unclass(result)), names(result))
+  }
+  .write_result(tibble::enframe(result), .rush$output)
 } else if (rlang::is_atomic(result)) {
   if (is.null(.rush$output)) {
     cli::cat_line(result)

@@ -415,6 +415,25 @@ test_that("read() reads all sheets with sheet = '*'", {
   expect_equal(names(sheets$First), "a_b")
 })
 
+test_that("write() keeps the names of named vectors and matrices", {
+  path <- withr::local_tempfile(fileext = ".csv")
+  init(output = path)
+  write(c(a = 1, b = 2))
+  expect_equal(readLines(path), c("name,value", "a,1", "b,2"))
+
+  init(output = path)
+  write(table(c("x", "y", "y")))
+  expect_equal(readLines(path), c("name,value", "x,1", "y,2"))
+
+  init(output = path)
+  write(matrix(1:4, 2, dimnames = list(c("r1", "r2"), c("c1", "c2"))))
+  expect_equal(readLines(path), c("rowname,c1,c2", "r1,1,3", "r2,2,4"))
+
+  init(output = path)
+  write(c("p", "q"))
+  expect_equal(readLines(path), c("x", "p", "q"))
+})
+
 # FASTQ -----------------------------------------------------------------------
 
 test_that("output_format = 'fastq' emits microseq::writeFastq", {

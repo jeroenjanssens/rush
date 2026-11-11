@@ -39,11 +39,10 @@ test_that("logical vector prints one value per line", {
   expect_equal(stdout_lines(result), c("TRUE", "FALSE", "TRUE"))
 })
 
-test_that("named vector prints values only", {
+test_that("named vector prints names and values", {
   skip_on_ci()
   result <- rush_run_exec("c(a = 1, b = 2, c = 3)")
-  lines <- stdout_lines(result)
-  expect_true(all(c("1", "2", "3") %in% lines))
+  expect_equal(stdout_lines(result), c("name,value", "a,1", "b,2", "c,3"))
 })
 
 test_that("invisible NULL produces no output", {
@@ -655,11 +654,9 @@ test_that("write DuckDB file: table created", {
   out <- file.path(dir, "out.duckdb")
   result <- rush_run_exec("df", file = f, args = list(output = out))
   expect_equal(result$status, 0)
-  con <- DBI::dbConnect(duckdb::duckdb(), dbdir = out, read_only = TRUE)
-  on.exit(DBI::dbDisconnect(con, shutdown = TRUE))
-  expect_true("data" %in% DBI::dbListTables(con))
-  df <- DBI::dbReadTable(con, "data")
-  expect_equal(nrow(df), 3)
+  tables <- duckdb_tables(out)
+  expect_true("data" %in% tables$table)
+  expect_equal(tables$rows[tables$table == "data"], 3)
 })
 
 test_that("write SQLite file: table created", {
@@ -1938,9 +1935,7 @@ test_that("convert CSV -> DuckDB", {
   out <- file.path(dir, "out.duckdb")
   result <- rush_convert_exec(f, args = list(output = out))
   expect_equal(result$status, 0)
-  con <- DBI::dbConnect(duckdb::duckdb(), dbdir = out, read_only = TRUE)
-  on.exit(DBI::dbDisconnect(con, shutdown = TRUE))
-  expect_true("data" %in% DBI::dbListTables(con))
+  expect_true("data" %in% duckdb_tables(out)$table)
 })
 
 test_that("convert CSV -> SQLite", {
@@ -2131,9 +2126,7 @@ test_that("convert multiple CSVs -> DuckDB: tables named after files", {
   f2 <- make_csv(data.frame(y = 3:4), dir, "items.csv")
   out <- file.path(dir, "out.duckdb")
   result <- rush_convert_exec(c(f1, f2), args = list(output = out))
-  con <- DBI::dbConnect(duckdb::duckdb(), dbdir = out, read_only = TRUE)
-  on.exit(DBI::dbDisconnect(con, shutdown = TRUE))
-  tables <- DBI::dbListTables(con)
+  tables <- duckdb_tables(out)$table
   expect_true("orders" %in% tables)
   expect_true("items" %in% tables)
 })

@@ -555,6 +555,9 @@ write <- function(result) {
         }
       }
     }
+  } else if (rlang::is_atomic(result) && !is.null(atomic_as_table(result))) {
+    # A named vector or a matrix keeps its names as columns
+    write_result(atomic_as_table(result), output)
   } else if (rlang::is_atomic(result)) {
     if (is.null(output)) {
       cli::cat_line(result)
@@ -597,6 +600,27 @@ write <- function(result) {
   }
 
   invisible()
+}
+
+# A named vector as a table with the columns `name` and `value`, or a matrix
+# (or two-way table) as a table with its row names in a column `rowname`. NULL
+# for other vectors, which are written one element per line.
+atomic_as_table <- function(x) {
+  if (length(dim(x)) == 2) {
+    m <- unclass(x)
+    if (is.null(colnames(m))) {
+      colnames(m) <- paste0("V", seq_len(ncol(m)))
+    }
+    rownames <- if (!is.null(rownames(m))) "rowname"
+    return(tibble::as_tibble(m, rownames = rownames, .name_repair = "minimal"))
+  }
+  if (is.null(names(x)) || length(dim(x)) > 1) {
+    return(NULL)
+  }
+  if (inherits(x, c("table", "summaryDefault"))) {
+    x <- stats::setNames(as.vector(unclass(x)), names(x))
+  }
+  tibble::enframe(x)
 }
 
 # Turn a list of data frames into a named list with one element per sheet of

@@ -1,5 +1,12 @@
 # rush (development version)
 
+* A named vector, such as the result of `table()` or `quantile()`, is now
+  written with its names, as a table with the columns `name` and `value`.
+  A matrix, such as the result of `cor()`, is now written as a table with
+  its row and column names. Both used to be written as one value per line,
+  without names.
+* `rush --version` now ends with a newline.
+
 # rush 0.3.0
 
 ## Breaking changes
