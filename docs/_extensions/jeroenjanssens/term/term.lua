@@ -1,8 +1,10 @@
 local FILTER_DIR = debug.getinfo(1, "S").source:sub(2):match("(.*[/\\])") or "./"
-local VERSION = "0.5.0"
+local VERSION = "0.8.2"
 
 local cell_mod = dofile(FILTER_DIR .. "cell.lua")
 local chrome = dofile(FILTER_DIR .. "chrome.lua")
+local output = dofile(FILTER_DIR .. "output.lua")
+local callout_list = dofile(FILTER_DIR .. "callout_list.lua")
 local engine = dofile(FILTER_DIR .. "engine.lua")
 local theme = dofile(FILTER_DIR .. "theme.lua")
 theme.init(FILTER_DIR)
@@ -130,15 +132,61 @@ function Pandoc(doc)
   local _marker = config.marker
   local _chrome = config._chrome
   local _cache = config._cache
+  local _cache_dependencies = {}
+  for _, path in ipairs(config._init_files or {}) do table.insert(_cache_dependencies, path) end
+  for _, path in ipairs(config._cache_depends or {}) do table.insert(_cache_dependencies, path) end
   config.marker = nil
   config._cache = nil
   config._chrome = nil
+  config._init_files = nil
+  config._cache_depends = nil
 
   local term_positions = {}
   local cells = {}
 
-  for i, block in ipairs(doc.blocks) do
-    if is_term_block(block) then
+  -- Collect term blocks anywhere in the document (also inside divs, lists,
+  -- definition lists, block quotes, ...), in document order. They are
+  -- replaced in a second walk with the same order (see replace_term_blocks).
+  local term_blocks = {}
+  local replacements = {}
+  local knitr_processed = false
+  doc:walk({
+    CodeBlock = function(block)
+      if is_term_block(block) then
+        table.insert(term_blocks, block)
+        -- knitr turns ```{term} chunks into {.term .cell-code} blocks after
+        -- acting on (and removing) their cell options
+        for _, cls in ipairs(block.classes) do
+          if cls == "cell-code" then knitr_processed = true end
+        end
+      end
+    end,
+  })
+  if knitr_processed then
+    local msg = "quarto-term: this document uses knitr, which consumed the ```{term} chunks "
+      .. "(their cell options are lost, and include: false chunks don't run). "
+      .. "Write ```{.term} instead; knitr leaves those alone."
+    if quarto and quarto.log and quarto.log.warning then
+      quarto.log.warning(msg)
+    else
+      io.stderr:write("[WARNING] " .. msg .. "\n")
+    end
+  end
+
+  local function replace_term_blocks()
+    local n = 0
+    return doc:walk({
+      CodeBlock = function(block)
+        if is_term_block(block) then
+          n = n + 1
+          return replacements[n]
+        end
+      end,
+    })
+  end
+
+  for i, block in ipairs(term_blocks) do
+    do
       -- Pass config with marker still set so build_cell can use it
       config.marker = _marker
       local cell = build_cell(block, 0, config)
@@ -150,6 +198,8 @@ function Pandoc(doc)
       local cell_colorscheme_dark = cell._colorscheme_dark
       local cell_chrome = cell._chrome
       if cell_chrome == nil then cell_chrome = _chrome end
+      local cell_callout_list = cell._callout_list
+      cell._callout_list = nil
       cell._eval = nil
       cell._include = nil
       cell._colorscheme = nil
@@ -172,19 +222,27 @@ function Pandoc(doc)
           colorscheme_light = cell_colorscheme_light,
           colorscheme_dark = cell_colorscheme_dark,
           chrome = cell_chrome,
+          callout_list = cell_callout_list,
         })
       else
         -- Strip #| option lines from the code block
         block.text = cell.code
         block.classes = {"bash"}
-        doc.blocks[i] = block
+        replacements[i] = block
       end
     end
   end
 
   config._fmt_key = nil
+  -- Cell defaults, already applied by build_cell
+  config._callout_values = nil
+  config._callout_format = nil
+  config._callout_list = nil
 
   if #cells == 0 then
+    if next(replacements) then
+      return replace_term_blocks()
+    end
     return nil
   end
 
@@ -236,6 +294,24 @@ function Pandoc(doc)
     cells = cells,
   }
 
+  -- With pull: always and caching, pull before computing the cache key, so
+  -- a new image behind the same tag is a cache miss. The binary then only
+  -- needs to check that the image is present.
+  if _cache ~= false and config.docker and config.docker.pull == "always" then
+    local cmd = "docker pull -q"
+    if config.docker.platform then
+      cmd = cmd .. " --platform '" .. config.docker.platform:gsub("'", "") .. "'"
+    end
+    cmd = cmd .. " '" .. config.docker.image:gsub("'", "") .. "' >&2"
+    if config.verbose then
+      io.stderr:write("quarto-term: pulling image " .. config.docker.image .. "\n")
+    end
+    local ok = os.execute(cmd)
+    if ok == true or ok == 0 then
+      config.docker.pull = "missing"
+    end
+  end
+
   local input_json = pandoc.json.encode(request)
 
   local results = cache.run(input_json, {
@@ -243,8 +319,15 @@ function Pandoc(doc)
     engine = ENGINE,
     verbose = config.verbose,
     version = VERSION,
+    docker_image = config.docker and config.docker.image or nil,
+    dependencies = _cache_dependencies,
   })
-  if not results then return nil end
+  if not results then
+    if next(replacements) then
+      return replace_term_blocks()
+    end
+    return nil
+  end
 
   local raw_format = "html"
   if config.format == "latex" then
@@ -256,6 +339,7 @@ function Pandoc(doc)
   end
 
   local cell_theme_css = {}
+  local callout_list_css = {}
 
   for _, pos in ipairs(term_positions) do
     local result = results[pos.cell_i]
@@ -267,7 +351,7 @@ function Pandoc(doc)
         end
       end
       if pos.include == false then
-        doc.blocks[pos.block_i] = pandoc.RawBlock(raw_format, "")
+        replacements[pos.block_i] = pandoc.RawBlock(raw_format, "")
       else
         local content = result.markup
         if type(content) == "string" and content ~= "" then
@@ -307,11 +391,27 @@ function Pandoc(doc)
               content = chrome.wrap(content, chrome_cfg)
             end
           end
-          doc.blocks[pos.block_i] = pandoc.RawBlock(raw_format, content)
+          local block = output.block(raw_format, content)
+          local cell = cells[pos.cell_i]
+          if pos.callout_list and raw_format == "html" and #cell.options.callout > 0 then
+            local symbols = callout_list.symbols(cell.options.callout_values, cell.options.callout_format)
+            callout_list_css[callout_list.class_name(symbols)] = callout_list.css(symbols)
+            replacements[pos.block_i] = pandoc.Blocks({ block, callout_list.marker(symbols) })
+          else
+            replacements[pos.block_i] = block
+          end
         else
-          doc.blocks[pos.block_i] = pandoc.RawBlock(raw_format, "")
+          replacements[pos.block_i] = pandoc.RawBlock(raw_format, "")
         end
       end
+    end
+  end
+
+  doc = replace_term_blocks()
+  if next(callout_list_css) then
+    doc = doc:walk({ Blocks = callout_list.wrap })
+    for _, css in pairs(callout_list_css) do
+      cell_theme_css["callout-list:" .. css] = css
     end
   end
 

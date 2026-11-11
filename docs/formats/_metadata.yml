@@ -1,0 +1,7 @@
+# rush's code is part of the term cache key (see ../_quarto.yml); paths are
+# relative to the pages in this directory
+extensions:
+  term:
+    cache-depends:
+      - ../../R
+      - ../../exec

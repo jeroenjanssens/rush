@@ -16,6 +16,12 @@ extensions:
       - 'cd \"\$QUARTO_DOCUMENT_PATH\"'
     spacing: true
     timeout: 120
+    # rush's code is part of the cache key, so that cells run again when it
+    # changes. Paths are relative to each page; see reference/_metadata.yml
+    # and formats/_metadata.yml for the pages in those directories.
+    cache-depends:
+      - ../R
+      - ../exec
     style:
       html:
         colorscheme-light: solarized-dark

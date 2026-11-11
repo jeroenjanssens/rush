@@ -46,6 +46,26 @@ rush run -l readxl 'excel_sheets("datasets.xls")'
 rush run --input-sheet quakes 'head(df, 3)' datasets.xls
 ```
 
+### All sheets
+
+Pass `*` to `--input-sheet` to read every sheet. Like a database, the
+workbook then becomes a list: `df` is the list of sheets, and
+`dfs$datasets$quakes` is one sheet:
+
+```{term}
+rush run --input-sheet '*' 'names(df)' datasets.xls
+rush run --input-sheet '*' 'head(dfs$datasets$chickwts, 3)' datasets.xls
+```
+
+With `rush convert`, a workbook converts like a database: to a database or
+another workbook, or to a file per sheet with an
+[output template](../reference/convert.qmd#multiple-files-with-output-templates):
+
+```{term}
+rush convert --input-sheet '*' -o 'sheet_%(table_name)s.csv' datasets.xls
+ls sheet_*
+```
+
 ### `--output-sheet`
 
 Name the sheet that is written (`Sheet1` by default):
@@ -97,5 +117,5 @@ too.
 ```{term}
 #| include: false
 rm -f mtcars.csv fast.csv sales.xlsx mtcars.xlsx datasets.xls cars.xlsx sales.ods
-rm -f split.xlsx book.xlsx
+rm -f split.xlsx book.xlsx sheet_*.csv
 ```

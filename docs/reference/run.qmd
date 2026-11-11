@@ -79,8 +79,9 @@ printf 'name,score\nAlice,92\nBob,85\nCarol,97\n' |
   rush run 'dplyr::arrange(df, dplyr::desc(score))' -
 ```
 
-Without `-`, `rush run` doesn't read standard input. Standard input is read
-as CSV; use `-F` for another format:
+Without `-`, `rush run` doesn't read standard input, so an expression that
+uses `df` or `dfs` is an error. Standard input is read as CSV; use `-F` for
+another format:
 
 ```{term}
 rush run -O json 'head(df, 2)' mtcars.csv |
@@ -97,6 +98,7 @@ and whether standard output is a terminal:
 | A data frame  | A table       | CSV                 |
 | A vector      | One element per line | The same     |
 | A ggplot      | ANSI art      | PNG                 |
+| Anything else | As R prints it | The same           |
 
 ### Terminal and pipe
 
@@ -110,6 +112,12 @@ Piped into another command, it is written as CSV, which `cat` shows here:
 
 ```{term}
 rush run 'head(df, 3)' mtcars.csv | cat
+```
+
+Anything else, such as a model, is printed as R prints it:
+
+```{term}
+rush run 'lm(mpg ~ wt, df)' mtcars.csv
 ```
 
 A ggplot is drawn as a plot. See [`rush plot`](plot.qmd#output) for its output
