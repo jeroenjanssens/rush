@@ -91,6 +91,12 @@ jobs:
           fi
         shell: bash
 
+      # An example can also fail silently, e.g. `rush run 'df'` without input
+      # prints nothing, so check for rush and ir commands without output
+      - name: Check rendered examples for missing output
+        run: python3 .github/scripts/check_empty_output.py docs/_site
+        shell: bash
+
       - name: Upload the rendered site when the check fails
         if: failure()
         uses: actions/upload-artifact@v4
