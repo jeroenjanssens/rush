@@ -97,6 +97,7 @@ and whether standard output is a terminal:
 |---------------|---------------|---------------------|
 | A data frame  | A table       | CSV                 |
 | A vector      | One element per line | The same     |
+| A named vector or a matrix | A table | CSV            |
 | A ggplot      | ANSI art      | PNG                 |
 | Anything else | As R prints it | The same           |
 
@@ -112,6 +113,14 @@ Piped into another command, it is written as CSV, which `cat` shows here:
 
 ```{term}
 rush run 'head(df, 3)' mtcars.csv | cat
+```
+
+A named vector, such as a count with `table()`, and a matrix, such as a
+correlation matrix, keep their names:
+
+```{term}
+rush run 'table(df$cyl)' mtcars.csv
+rush run 'round(cor(df[c("mpg", "hp", "wt")]), 2)' mtcars.csv
 ```
 
 Anything else, such as a model, is printed as R prints it:
