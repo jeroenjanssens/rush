@@ -444,8 +444,9 @@ test_that("--input-sheet '*' reads all sheets as a list", {
 })
 
 test_that("--version ends with a newline", {
+  # R CMD check (with --as-cran) refuses Rscript without its path
   out <- processx::run(
-    "Rscript",
+    file.path(R.home("bin"), "Rscript"),
     c("-e", "rush::rush('--version')"),
     env = c(
       "current",
