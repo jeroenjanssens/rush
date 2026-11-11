@@ -412,6 +412,37 @@ test_that("code_packages() handles missing arguments and strings", {
   expect_equal(code_packages(flags), "yaml")
 })
 
+test_that("run with df or dfs but no input is an error", {
+  expect_error(dry_run("run", "-n", "nrow(df)"), "isn't defined")
+  expect_error(dry_run("run", "-n", "names(dfs)"), "`dfs` isn't defined")
+  expect_no_error(dry_run("run", "-n", "df <- data.frame(a = 1); nrow(df)"))
+  expect_no_error(dry_run("run", "-n", "stats::df(1, 2, 3)"))
+  expect_no_error(dry_run("run", "-n", "df(1, 2, 3)"))
+  expect_no_error(dry_run("run", "-n", "x <- list(df = 1); x$df"))
+  expect_no_error(dry_run("run", "-n", "nrow(df)", "data.csv"))
+})
+
+test_that("--input-sheet '*' reads all sheets as a list", {
+  script <- dry_run("run", "-n", "--input-sheet", "*", "names(df)", "book.xlsx")
+  expect_true(any(grepl("excel_sheets", script, fixed = TRUE)))
+  script <- dry_run(
+    "convert",
+    "-n",
+    "--input-sheet",
+    "*",
+    "-o",
+    "b.duckdb",
+    "book.xlsx"
+  )
+  expect_true(any(grepl("result <- dfs", script, fixed = TRUE)))
+  expect_error(
+    dry_run("convert", "-n", "--input-sheet", "*", "-o", "b.csv", "book.xlsx"),
+    "output template"
+  )
+  script <- dry_run("plot", "-n", "--input-sheet", "*", "-x", "a", "book.ods")
+  expect_true(any(grepl("df <- df[[1L]]", script, fixed = TRUE)))
+})
+
 test_that("-o - writes to standard output", {
   script <- dry_run("run", "-n", "-o", "-", "head(df)", "data.csv")
   expect_true(any(grepl("output = NULL", script, fixed = TRUE)))

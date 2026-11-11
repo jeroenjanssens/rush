@@ -334,7 +334,12 @@ test_that("rush_run declares plot packages only when the expression may plot", {
   )
   expect_true(declares_devoutansi(plot_script))
 
-  lib_script <- capture_script(rush_run, expr = "nrow(df)", library = "ggplot2")
+  lib_script <- capture_script(
+    rush_run,
+    expr = "nrow(df)",
+    file = "data.csv",
+    library = "ggplot2"
+  )
   expect_true(declares_devoutansi(lib_script))
 
   plain_script <- capture_script(rush_run, expr = "nrow(df)", file = "data.csv")

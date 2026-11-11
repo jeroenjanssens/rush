@@ -385,6 +385,36 @@ test_that("write() names the ODS sheet with output_sheet", {
   expect_equal(readODS::list_ods_sheets(path), "cars")
 })
 
+test_that("write() prints results it can't write as data", {
+  init()
+  expect_output(write(mean), "UseMethod")
+  expect_silent(write(NULL))
+})
+
+test_that("write() writes a list of atomic values as names and values", {
+  path <- withr::local_tempfile(fileext = ".csv")
+  init(output = path)
+  write(list(a = 1, b = c("x", "y")))
+  expect_equal(readLines(path), c("name,value", "a,1", 'b,"x, y"'))
+})
+
+test_that("read() reads all sheets with sheet = '*'", {
+  skip_if_not_installed("writexl")
+  skip_if_not_installed("readxl")
+  skip_if_not_installed("janitor")
+  path <- withr::local_tempfile(fileext = ".xlsx")
+  writexl::write_xlsx(
+    list(
+      First = data.frame(`A B` = 1, check.names = FALSE),
+      Second = data.frame(x = 2)
+    ),
+    path
+  )
+  sheets <- read(path, sheet = "*")
+  expect_equal(names(sheets), c("First", "Second"))
+  expect_equal(names(sheets$First), "a_b")
+})
+
 # FASTQ -----------------------------------------------------------------------
 
 test_that("output_format = 'fastq' emits microseq::writeFastq", {

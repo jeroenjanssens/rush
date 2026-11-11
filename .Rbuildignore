@@ -4,7 +4,6 @@
 ^CODE_OF_CONDUCT\.md$
 ^docs$
 ^\.github$
-^cran-comments\.md$
 ^air\.toml$
 ^doc$
 ^Meta$

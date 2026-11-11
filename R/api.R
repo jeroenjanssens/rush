@@ -113,7 +113,18 @@ read <- function(
     json = jsonlite::fromJSON(path),
     jsonl = jsonlite::stream_in(file(path), verbose = FALSE),
     xlsx = {
-      if (!is.null(sheet)) {
+      if (identical(sheet, "*")) {
+        # Every sheet, as a named list like a database
+        sheets <- readxl::excel_sheets(path)
+        result <- stats::setNames(
+          lapply(sheets, function(s) readxl::read_excel(path, sheet = s)),
+          sheets
+        )
+        if (clean_names) {
+          result <- lapply(result, janitor::clean_names)
+        }
+        return(result)
+      } else if (!is.null(sheet)) {
         readxl::read_excel(path, sheet = sheet)
       } else {
         readxl::read_excel(path)
@@ -134,7 +145,20 @@ read <- function(
       show_col_types = FALSE
     ),
     rds = readr::read_rds(path),
-    ods = readODS::read_ods(path, sheet = sheet %||% 1L),
+    ods = {
+      if (identical(sheet, "*")) {
+        sheets <- readODS::list_ods_sheets(path)
+        result <- stats::setNames(
+          lapply(sheets, function(s) readODS::read_ods(path, sheet = s)),
+          sheets
+        )
+        if (clean_names) {
+          result <- lapply(result, janitor::clean_names)
+        }
+        return(result)
+      }
+      readODS::read_ods(path, sheet = sheet %||% 1L)
+    },
     fasta = microseq::readFasta(path),
     fastq = microseq::readFastq(path),
     yaml = {
@@ -552,9 +576,24 @@ write <- function(result) {
         call. = FALSE
       )
     } else {
-      result <- tibble::enframe(result)
+      # Atomic elements become text, so that CSV doesn't write them as empty
+      flat <- vapply(
+        result,
+        function(x) {
+          if (is.atomic(x)) paste(format(x), collapse = ", ") else NA_character_
+        },
+        character(1)
+      )
+      result <- if (anyNA(flat)) {
+        tibble::enframe(result)
+      } else {
+        tibble::enframe(flat)
+      }
       write_result(result, output)
     }
+  } else if (!is.null(result)) {
+    # Anything else, such as a function or a model, is printed as R prints it
+    print(result)
   }
 
   invisible()

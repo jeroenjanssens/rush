@@ -593,6 +593,7 @@ build_run_body_compact <- function(con, flags) {
       i = "See {.code rush run -h} for usage."
     ))
   }
+  check_run_input(flags)
 
   emit_compact_libraries(con, flags)
 
@@ -626,8 +627,8 @@ build_plot_body_compact <- function(con, flags) {
   plot_files <- plot_input_files(flags)
   emit_compact_reads(con, plot_files, flags)
 
-  first_kind <- file_kind(plot_files[[1]], flags$input_format %||% "auto")
-  if (first_kind %in% c("duckdb", "sqlite")) {
+  # A database, or a spreadsheet with all its sheets, plots its first table
+  if (multi_table_input(plot_files[[1]], flags)) {
     writeLines("if (is.list(df) && !is.data.frame(df)) df <- df[[1L]]", con)
   }
 
@@ -672,14 +673,7 @@ build_convert_body_compact <- function(con, flags) {
   emit_compact_reads(con, flags$file, flags)
 
   is_multi <- length(flags$file) > 1 ||
-    any(
-      vapply(
-        flags$file,
-        function(f) file_kind(f, flags$input_format %||% "auto"),
-        character(1)
-      ) %in%
-        c("duckdb", "sqlite")
-    )
+    any(vapply(flags$file, multi_table_input, logical(1), flags = flags))
   output_is_db <- flags$resolved_output_format %in% c("duckdb", "sqlite")
   # Multiple inputs (or a database) become one sheet each in a spreadsheet
   output_is_book <- flags$resolved_output_format %in% c("xlsx", "ods")

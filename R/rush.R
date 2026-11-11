@@ -6,6 +6,58 @@ rush <- function(...) {
   generate_script(flags$command, flags)
 }
 
+# Abort when the expression reads `df` or `dfs` without any input files.
+# Without files, `df` would be R's F density function `stats::df()`, so the
+# expression would silently print nothing.
+check_run_input <- function(flags) {
+  if (length(flags$file) > 0 || is.null(flags$expression)) {
+    return(invisible())
+  }
+  used <- character()
+  assigned <- character()
+  walk <- function(x) {
+    if (rlang::is_missing(x)) {
+      return()
+    }
+    if (is.symbol(x)) {
+      used <<- c(used, as.character(x))
+    } else if (is.call(x)) {
+      fn <- x[[1]]
+      if (rlang::is_symbol(fn, c("::", ":::", "$", "@"))) {
+        # `stats::df` and `x$df` don't refer to the input
+        walk(x[[2]])
+        return()
+      }
+      if (rlang::is_symbol(fn, c("<-", "=", "<<-")) && is.symbol(x[[2]])) {
+        assigned <<- c(assigned, as.character(x[[2]]))
+      }
+      if (rlang::is_symbol(fn, "assign") && rlang::is_string(x[[2]])) {
+        assigned <<- c(assigned, x[[2]])
+      }
+      # A symbol in function position, as in `df(1, 2, 3)`, is a function
+      if (!is.symbol(fn)) {
+        walk(fn)
+      }
+      lapply(as.list(x)[-1], walk)
+    } else if (is.list(x) || is.expression(x)) {
+      lapply(x, walk)
+    }
+    invisible()
+  }
+  walk(flags$expression)
+  missing_input <- setdiff(intersect(c("df", "dfs"), used), assigned)
+  if (length(missing_input) > 0) {
+    cli::cli_abort(
+      c(
+        "{.code {missing_input[[1]]}} isn't defined, because there is no input.",
+        i = "Pass a file, e.g. {.code rush run 'nrow(df)' data.csv}, or {.code -} to read from standard input."
+      ),
+      call = NULL
+    )
+  }
+  invisible()
+}
+
 build_run_body <- function(con, flags) {
   if (is.null(flags$expression) && length(flags$file) == 0) {
     cli::cli_abort(c(
@@ -14,6 +66,7 @@ build_run_body <- function(con, flags) {
       i = "See {.code rush run -h} for usage."
     ))
   }
+  check_run_input(flags)
 
   pkgs <- emit_setup_libraries(con, flags)
 
@@ -98,8 +151,8 @@ build_plot_body <- function(con, flags) {
   plot_files <- plot_input_files(flags)
   pkgs <- c(pkgs, emit_read_files(con, plot_files, flags))
 
-  first_kind <- file_kind(plot_files[[1]], flags$input_format %||% "auto")
-  if (first_kind %in% c("duckdb", "sqlite")) {
+  # A database, or a spreadsheet with all its sheets, plots its first table
+  if (multi_table_input(plot_files[[1]], flags)) {
     writeLines("if (is.list(df) && !is.data.frame(df)) df <- df[[1L]]", con)
   }
 
@@ -146,14 +199,7 @@ build_convert_body <- function(con, flags) {
   pkgs <- c(pkgs, emit_read_files(con, flags$file, flags))
 
   is_multi <- length(flags$file) > 1 ||
-    any(
-      vapply(
-        flags$file,
-        function(f) file_kind(f, flags$input_format %||% "auto"),
-        character(1)
-      ) %in%
-        c("duckdb", "sqlite")
-    )
+    any(vapply(flags$file, multi_table_input, logical(1), flags = flags))
   output_is_db <- flags$resolved_output_format %in% c("duckdb", "sqlite")
   # Multiple inputs (or a database) become one sheet each in a spreadsheet
   output_is_book <- flags$resolved_output_format %in% c("xlsx", "ods")

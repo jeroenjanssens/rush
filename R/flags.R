@@ -50,7 +50,7 @@ flags_df <-
     "d"    , "delimiter"        , "str"       , "Delimiter (input and output)"           , ","      , NA                 , as.character       , "read"    ,
     NA     , "input-delimiter"  , "str"       , "Input delimiter (overrides -d)"         , NA       , "input_delimiter"  , as.character       , "read"    ,
     "F"    , "input-format"     , "format"    , "Input format"                           , "auto"   , "input_format"     , as.character       , "read"    ,
-    NA     , "input-sheet"      , "name|int"  , "Excel sheet to read"                    , NA       , "input_sheet"      , parse_guess        , "read"    ,
+    NA     , "input-sheet"      , "name|int"  , "Sheet to read, or * for all"            , NA       , "input_sheet"      , parse_guess        , "read"    ,
     "H"    , "no-header"        , NA          , "No header (input and output)"           , NA       , NA                 , as.logical         , "read"    ,
     NA     , "no-input-header"  , NA          , "No input header"                        , NA       , "no_input_header"  , as.logical         , "read"    ,
     NA     , "no-output-header" , NA          , "No output header"                       , NA       , "no_output_header" , as.logical         , "read"    ,
@@ -82,7 +82,7 @@ flags_df <-
     "D"    , "output-delimiter" , "str"       , "Output delimiter (overrides -d)"        , NA       , "output_delimiter" , as.character       , "save"    ,
     "O"    , "output-format"    , "format"    , "Output format"                          , "auto"   , "output_format"    , as.character       , "save"    ,
     NA     , "output-root"      , "str"       , "Root element name (XML)"                , "root"   , "output_root"      , as.character       , "save"    ,
-    NA     , "output-record"    , "str"       , "Record element name (XML, TOML)"        , "record" , "output_record"    , as.character       , "save"    ,
+    NA     , "output-record"    , "str"       , "Record name (XML, TOML)"                , "record" , "output_record"    , as.character       , "save"    ,
     NA     , "output-sheet"     , "str"       , "Excel sheet name to write"              , NA       , "output_sheet"     , as.character       , "save"    ,
     NA     , "output-indent"    , "int"       , "Indentation level (JSON, YAML)"         , "2"      , "output_indent"    , as.integer         , "save"    ,
     NA     , "head"             , "int"       , "Limit output rows"                      , NA       , NA                 , as.integer         , "save"    ,
@@ -243,18 +243,19 @@ Arguments:
   <query>                  DuckDB SQL query to run. Its result is printed or
                            written out.
   <file>                   File(s) to expose to the query, each as a DuckDB
-                           relation named after the file's base name (lowercased,
-                           non-alphanumeric chars become underscores; names
-                           starting with a digit are prefixed with 'x'). The
-                           relation is double-quoted in the generated SQL, so
-                           refer to it as e.g. SELECT * FROM \"x2024\". CSV files
-                           are read with read_csv_auto, Parquet with read_parquet,
-                           JSON and JSONL with read_json_auto, and a '.duckdb'
-                           database is attached so its tables are addressed as
-                           name.table. Other formats can't be queried; convert
-                           them first. Use '-' to read CSV from
-                           standard input as a relation named 'stdin'. Files with
-                           the same base name in different directories collide.
+                           relation named after the file's base name
+                           (lowercased, non-alphanumeric chars become
+                           underscores; names starting with a digit are prefixed
+                           with 'x'). The relation is double-quoted in the
+                           generated SQL, so refer to it as e.g. SELECT * FROM
+                           \"x2024\". CSV files are read with read_csv_auto,
+                           Parquet with read_parquet, JSON and JSONL with
+                           read_json_auto, and a '.duckdb' database is attached
+                           so its tables are addressed as name.table. Other
+                           formats can't be queried; convert them first. Use '-'
+                           to read CSV from standard input as a relation named
+                           'stdin'. Files with the same base name in different
+                           directories collide.
 
 Setup options:
 {flags_section(category == 'setup')}

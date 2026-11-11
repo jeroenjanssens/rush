@@ -292,6 +292,19 @@ check_output_format <- function(flags) {
   invisible()
 }
 
+# Whether a spreadsheet input is read with all its sheets (--input-sheet "*"),
+# which makes it a named list of data frames, like a database
+all_sheets <- function(kind, flags) {
+  kind %in% c("xlsx", "ods") && identical(flags$input_sheet, "*")
+}
+
+# Whether an input is read as a list of tables: a database, or a spreadsheet
+# with all its sheets
+multi_table_input <- function(path, flags) {
+  kind <- file_kind(path, flags$input_format %||% "auto")
+  kind %in% c("duckdb", "sqlite") || all_sheets(kind, flags)
+}
+
 input_names <- function(files) {
   nms <- ifelse(
     files == "-",
@@ -330,7 +343,17 @@ emit_read_files <- function(con, files, flags) {
       }
     } else if (kind == "xlsx") {
       read_pkgs <- "readxl"
-      read_expr <- if (!is.null(flags$input_sheet)) {
+      read_expr <- if (identical(flags$input_sheet, "*")) {
+        expr(local({
+          .sheets <- readxl::excel_sheets(!!path)
+          stats::setNames(
+            lapply(.sheets, function(.s) {
+              readxl::read_excel(!!path, sheet = .s)
+            }),
+            .sheets
+          )
+        }))
+      } else if (!is.null(flags$input_sheet)) {
         expr(readxl::read_excel(!!path, sheet = !!flags$input_sheet))
       } else {
         expr(readxl::read_excel(!!path))
@@ -369,7 +392,15 @@ emit_read_files <- function(con, files, flags) {
       read_expr <- expr(readr::read_rds(!!path))
     } else if (kind == "ods") {
       read_pkgs <- "readODS"
-      read_expr <- if (!is.null(flags$input_sheet)) {
+      read_expr <- if (identical(flags$input_sheet, "*")) {
+        expr(local({
+          .sheets <- readODS::list_ods_sheets(!!path)
+          stats::setNames(
+            lapply(.sheets, function(.s) readODS::read_ods(!!path, sheet = .s)),
+            .sheets
+          )
+        }))
+      } else if (!is.null(flags$input_sheet)) {
         expr(readODS::read_ods(!!path, sheet = !!flags$input_sheet))
       } else {
         expr(readODS::read_ods(!!path))
@@ -446,7 +477,11 @@ emit_read_files <- function(con, files, flags) {
       ))
     }
     if (!flags$no_clean_names) {
-      read_expr <- expr(janitor::clean_names(!!read_expr))
+      read_expr <- if (all_sheets(kind, flags)) {
+        expr(lapply(!!read_expr, janitor::clean_names))
+      } else {
+        expr(janitor::clean_names(!!read_expr))
+      }
     }
     list(expr = read_expr, packages = read_pkgs)
   }
@@ -985,9 +1020,16 @@ if (!is.null(.rush$output_template)) {
     stop("Can\x27t write this list to a spreadsheet: ",
          "every element must be a data frame, which becomes a sheet.", call. = FALSE)
   } else {
-    result <- tibble::enframe(result)
+    # Atomic elements become text, so that CSV doesn\x27t write them as empty
+    .flat <- vapply(result, function(.x) {
+      if (is.atomic(.x)) paste(format(.x), collapse = ", ") else NA_character_
+    }, character(1))
+    result <- if (anyNA(.flat)) tibble::enframe(result) else tibble::enframe(.flat)
     .write_result(result, .rush$output)
   }
+} else if (!is.null(result)) {
+  # Anything else, such as a function or a model, is printed as R prints it
+  print(result)
 }
 '
   )
