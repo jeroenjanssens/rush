@@ -345,3 +345,17 @@ test_that("rush_run declares plot packages only when the expression may plot", {
   plain_script <- capture_script(rush_run, expr = "nrow(df)", file = "data.csv")
   expect_false(declares_devoutansi(plain_script))
 })
+
+test_that("rush_run accepts a result_type", {
+  script <- capture_script(
+    rush_run,
+    expr = "head(df)",
+    file = "data.csv",
+    result_type = "data.frame"
+  )
+  expect_true("if (!is.data.frame(result)) {" %in% script)
+  expect_error(
+    capture_script(rush_run, expr = "1", result_type = "frame"),
+    "must be one of"
+  )
+})

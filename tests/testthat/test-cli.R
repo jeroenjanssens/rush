@@ -1209,3 +1209,118 @@ test_that("inline scripts with every output format parse", {
     ))
   }
 })
+
+# --result-type -------------------------------------------------------------------
+
+test_that("--result-type accepts dataframe and data.frame as aliases", {
+  for (type in c("data-frame", "dataframe", "data.frame")) {
+    flags <- resolve_flags(parse_arguments("run", "--result-type", type, "1"))
+    expect_equal(flags$result_type, "data-frame")
+  }
+  expect_equal(resolve_flags(parse_arguments("run", "1"))$result_type, "auto")
+})
+
+test_that("--result-type rejects unknown types and odd combinations", {
+  expect_error(
+    rush("run", "-n", "--result-type", "frame", "1"),
+    "must be one of"
+  )
+  expect_error(
+    rush("run", "-n", "--result-type", "plot", "-O", "csv", "1"),
+    "can't be written"
+  )
+  expect_error(
+    rush("run", "-n", "--result-type", "vector", "-O", "png", "1"),
+    "is for plots"
+  )
+  expect_error(
+    rush("run", "-n", "--result-type", "print", "-o", "out.csv", "1"),
+    "prints the result"
+  )
+  expect_error(
+    rush(
+      "run",
+      "-n",
+      "--result-type",
+      "data-frame",
+      "-o",
+      "%(file_name)s.csv",
+      "df",
+      "a.csv"
+    ),
+    "output template"
+  )
+})
+
+test_that("--result-type data-frame writes the result directly", {
+  script <- dry_run(
+    "run",
+    "-n",
+    "-O",
+    "csv",
+    "--result-type",
+    "dataframe",
+    "head(df)",
+    "data.csv"
+  )
+  expect_true("if (!is.data.frame(result)) {" %in% script)
+  expect_true(any(grepl(
+    "^readr::write_delim\\(result, \\.stdout_binary\\(\\)",
+    script
+  )))
+  for (other in c(".write_result", "is_atomic", "inherits(result", "print(")) {
+    expect_false(any(grepl(other, script, fixed = TRUE)), label = other)
+  }
+  expect_no_error(parse(text = script))
+})
+
+test_that("each --result-type has only the code for that type", {
+  types <- list(
+    vector = c("table(df$a)", "enframe"),
+    matrix = c("cor(df)", "as_tibble(.m"),
+    list = c("dfs", "tibble::enframe(.flat)"),
+    plot = c("ggplot2::qplot(1)", "devoutansi::ansi("),
+    print = c("lm(a ~ b, df)", "print(result)")
+  )
+  for (type in names(types)) {
+    script <- dry_run(
+      "run",
+      "-n",
+      "--result-type",
+      type,
+      types[[type]][[1]],
+      "data.csv"
+    )
+    expect_true(
+      any(grepl(types[[type]][[2]], script, fixed = TRUE)),
+      label = type
+    )
+    # The code for the other types is gone
+    expect_false(any(grepl("} else if (", script, fixed = TRUE)), label = type)
+    if (type != "plot") {
+      expect_false(
+        any(grepl("devoutansi::", script, fixed = TRUE)),
+        label = type
+      )
+    }
+    expect_no_error(parse(text = script))
+  }
+})
+
+test_that("--result-type plot declares the plot packages", {
+  script <- dry_run("run", "-n", "--result-type", "plot", "p", "data.csv")
+  expect_true(
+    paste0("#|   - ", terminal_plot_packages[["devoutansi"]]) %in% script
+  )
+})
+
+test_that("compact scripts check the --result-type too", {
+  old_path <- Sys.getenv("PATH")
+  Sys.setenv(PATH = "")
+  on.exit(Sys.setenv(PATH = old_path))
+  script <- utils::capture.output(
+    rush("run", "-n", "--result-type", "vector", "1:3")
+  )
+  expect_true(any(grepl("The result isn't a vector", script, fixed = TRUE)))
+  expect_true("rush::write(result)" %in% script)
+})

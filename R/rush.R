@@ -106,6 +106,9 @@ plot_packages <- function() {
 # generated script must declare the plotting packages. Checked statically,
 # because the result type is only known once the script runs.
 run_may_plot <- function(flags) {
+  if (identical(flags$result_type, "plot")) {
+    return(TRUE)
+  }
   if ("ggplot2" %in% as.character(flags$library)) {
     return(TRUE)
   }

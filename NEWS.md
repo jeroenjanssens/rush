@@ -17,6 +17,12 @@
   went from about 470 to about 60 lines. With `-O csv`, which writes CSV
   also on a terminal, the script doesn't need the code that prints a table
   or draws a plot.
+* New `--result-type` option for `rush run` (`result_type` in `rush_run()`):
+  `data-frame` (or `dataframe`, `data.frame`), `vector`, `matrix`, `list`,
+  `plot`, or `print`. When you know the type of the result, the script only
+  has the code that writes that type, and stops with an error when the result
+  has another type. With `-O csv --result-type dataframe`, a `--no-rush`
+  script ends with a type check and a single `readr::write_delim()` call.
 
 # rush 0.3.0
 

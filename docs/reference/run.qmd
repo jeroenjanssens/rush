@@ -162,6 +162,41 @@ Write only the first rows of a data frame:
 rush run --head 2 'df' mtcars.csv | cat
 ```
 
+### `--result-type`
+
+By default, `rush` finds out what the result is when it runs, and writes it
+as described in the table above. If you know the type, `--result-type` tells
+`rush`, so the generated script only has the code that writes that type:
+
+| `--result-type` | The result is |
+|-----------------|---------------|
+| `auto` (default) | Anything; `rush` checks when it runs |
+| `data-frame` (or `dataframe`, `data.frame`) | A data frame |
+| `vector` | A vector, with or without names |
+| `matrix` | A matrix or two-way table |
+| `list` | A list, such as `dfs` |
+| `plot` | A ggplot |
+| `print` | Anything that should be printed as R prints it, such as a model |
+
+The output is the same as without `--result-type`:
+
+```{term}
+rush run --result-type vector 'table(df$cyl)' mtcars.csv
+```
+
+The difference shows in the script, which `--dry-run` prints. With
+`--no-rush`, a data frame needs only a check and the code that writes it:
+
+```{term}
+rush run -n -R -O csv --result-type dataframe 'head(df)' mtcars.csv
+```
+
+If the result has another type, the script stops with an error instead of
+writing something odd, e.g. `The result isn't a data frame (--result-type
+data-frame): its class is integer` for `'nrow(df)'`. See
+[Scripts](../scripts.qmd#a-plain-r-script) for how this keeps a plain R script
+short.
+
 ### `--width` (`-w`), `--height`
 
 Limit the width and the number of rows of a table in the terminal. (For plots,

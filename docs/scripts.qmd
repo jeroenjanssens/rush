@@ -185,6 +185,19 @@ table or the plot code:
 rush run -n -I -R -O csv 'dplyr::filter(df, hp > 200)' mtcars.csv
 ```
 
+Most of what's left handles the type of the result. You know that
+`dplyr::filter()` returns a data frame, so say so with `--result-type`
+(`dataframe` and `data.frame` work too). The script then checks that the
+result is a data frame, and writes it:
+
+```{term}
+rush run -n -I -R -O csv --result-type dataframe 'dplyr::filter(df, hp > 200)' \
+  mtcars.csv
+```
+
+The other result types are `vector`, `matrix`, `list`, `plot`, and `print`.
+See [`--result-type`](reference/run.qmd#result-type) for what each one means.
+
 Writing to a file, such as `-o cars.parquet`, works the same way: the script
 gets only the code that writes Parquet. On the input side, the reader is
 chosen by the extension of each file, or by `-F` (`--input-format`), and `-`

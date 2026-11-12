@@ -30,7 +30,8 @@ rush_run(
   dry_run = FALSE,
   no_ir = FALSE,
   no_rush = FALSE,
-  verbose = FALSE
+  verbose = FALSE,
+  result_type = "auto"
 )
 }
 \arguments{
@@ -107,6 +108,12 @@ shebang instead of the \code{ir} shebang and package frontmatter.}
 the rush package.}
 
 \item{verbose}{If \code{TRUE}, print debugging information to stderr.}
+
+\item{result_type}{The type of the value of \code{expr}: \code{"auto"} (any type),
+\code{"data-frame"} (or \code{"dataframe"}, \code{"data.frame"}), \code{"vector"},
+\code{"matrix"}, \code{"list"}, \code{"plot"}, or \code{"print"} (print it as R does). With a
+type, the generated script only has the code that writes that type, and
+stops with an error when the value is of another type.}
 }
 \value{
 Invisibly returns the exit status of the script (integer), or

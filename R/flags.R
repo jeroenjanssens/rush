@@ -91,6 +91,7 @@ flags_df <-
     NA     , "units"            , "str"       , "Plot size units"                        , "in"     , NA                 , as.character       , "save"    ,
     NA     , "dpi"              , "int"       , "Plot resolution"                        , "300"    , NA                 , as.integer         , "save"    ,
     "o"    , "output"           , "str"       , "Output file"                            , NA       , NA                 , as.character       , "save"    ,
+    NA     , "result-type"      , "type"      , "Type of the result (see below)"         , "auto"   , "result_type"      , as.character       , "result"  ,
   ) |>
   dplyr::mutate(arg = dplyr::if_else(is.na(arg), long, arg))
 
@@ -171,7 +172,12 @@ Setup options:
 {flags_section(category == 'setup')}
 
 Saving options:
-{flags_section(category == 'save')}
+{flags_section(category %in% c('save', 'result'))}
+
+Result types: data-frame (or dataframe, data.frame), vector, matrix, list,
+plot, and print (print the result as R does, e.g. a model). With a type, the
+script only has the code that writes that type, and stops with an error when
+the result is of another type. The default, auto, handles every type.
 
 General options:
 {flags_section(category == 'general')}",

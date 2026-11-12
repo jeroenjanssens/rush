@@ -3286,3 +3286,61 @@ test_that("--no-ir still produces correct output", {
   expect_equal(result$status, 0)
   expect_equal(trimws(result$stdout), "2")
 })
+
+# Section 31: --result-type -----------------------------------------------------
+
+test_that("--result-type data-frame writes a data frame", {
+  skip_on_ci()
+  dir <- withr::local_tempdir()
+  f <- make_csv(test_df(), dir)
+  result <- rush_raw(c(
+    "run",
+    "--result-type",
+    "dataframe",
+    "-O",
+    "csv",
+    "head(df, 2)",
+    f
+  ))
+  expect_equal(result$status, 0)
+  expect_length(stdout_lines(result), 3)
+})
+
+test_that("--result-type stops when the result has another type", {
+  skip_on_ci()
+  dir <- withr::local_tempdir()
+  f <- make_csv(test_df(), dir)
+  result <- rush_raw(c("run", "--result-type", "data-frame", "nrow(df)", f))
+  # rush_raw() runs rush() in R, which returns the exit status instead of
+  # exiting with it, so check that nothing was written and why
+  expect_equal(stdout_lines(result), character())
+  expect_match(result$stderr, "The result isn't a data frame")
+})
+
+test_that("--result-type vector keeps the names of a named vector", {
+  skip_on_ci()
+  result <- rush_raw(c("run", "--result-type", "vector", "c(a = 1, b = 2)"))
+  expect_equal(result$status, 0)
+  expect_equal(stdout_lines(result), c("name,value", "a,1", "b,2"))
+  unnamed <- rush_raw(c("run", "--result-type", "vector", "1:3"))
+  expect_equal(stdout_lines(unnamed), c("1", "2", "3"))
+})
+
+test_that("--result-type matrix keeps row and column names", {
+  skip_on_ci()
+  result <- rush_raw(c(
+    "run",
+    "--result-type",
+    "matrix",
+    "matrix(1:4, 2, dimnames = list(c('r1', 'r2'), c('x', 'y')))"
+  ))
+  expect_equal(result$status, 0)
+  expect_equal(stdout_lines(result), c("rowname,x,y", "r1,1,3", "r2,2,4"))
+})
+
+test_that("--result-type print prints the result as R does", {
+  skip_on_ci()
+  result <- rush_raw(c("run", "--result-type", "print", "factor(c('a', 'b'))"))
+  expect_equal(result$status, 0)
+  expect_equal(stdout_lines(result), c("[1] a b", "Levels: a b"))
+})

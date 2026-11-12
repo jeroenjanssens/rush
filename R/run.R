@@ -52,6 +52,11 @@
 #' @param no_rush If `TRUE`, generate fully inlined code with no dependency on
 #'   the rush package.
 #' @param verbose If `TRUE`, print debugging information to stderr.
+#' @param result_type The type of the value of `expr`: `"auto"` (any type),
+#'   `"data-frame"` (or `"dataframe"`, `"data.frame"`), `"vector"`,
+#'   `"matrix"`, `"list"`, `"plot"`, or `"print"` (print it as R does). With a
+#'   type, the generated script only has the code that writes that type, and
+#'   stops with an error when the value is of another type.
 #'
 #' @return Invisibly returns the exit status of the script (integer), or
 #'   `NULL` when `dry_run = TRUE`.
@@ -101,7 +106,8 @@ rush_run <- function(
   dry_run = FALSE,
   no_ir = FALSE,
   no_rush = FALSE,
-  verbose = FALSE
+  verbose = FALSE,
+  result_type = "auto"
 ) {
   flags <- build_flags(
     command = "run",
@@ -130,7 +136,8 @@ rush_run <- function(
     dry_run = dry_run,
     no_ir = no_ir,
     no_rush = no_rush,
-    verbose = verbose
+    verbose = verbose,
+    result_type = result_type
   )
   flags <- resolve_flags(flags)
   generate_script("run", flags)

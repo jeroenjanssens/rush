@@ -50,7 +50,8 @@ build_flags <- function(
   output_record = "record",
   output_sheet = NULL,
   output_indent = 2L,
-  input_sheet = NULL
+  input_sheet = NULL,
+  result_type = "auto"
 ) {
   expression <- if (!is.null(expr)) {
     if (is.character(expr)) {
@@ -171,7 +172,8 @@ build_flags <- function(
     output_record = output_record,
     output_sheet = output_sheet,
     output_indent = output_indent,
-    input_sheet = input_sheet
+    input_sheet = input_sheet,
+    result_type = result_type
   )
 }
 
@@ -228,7 +230,7 @@ resolve_flags <- function(flags) {
     flags$output_template <- NULL
   }
 
-  flags
+  resolve_result_type(flags)
 }
 
 generate_script <- function(command, flags) {
@@ -420,6 +422,10 @@ generate_script_compact <- function(command, flags) {
   )
 
   writeLines("", body)
+  check <- result_type_check(flags)
+  if (!is.null(check)) {
+    writeLines(check, body)
+  }
   writeLines("rush::write(result)", body)
 
   close(body)

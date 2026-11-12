@@ -195,10 +195,12 @@ ggsave_lines <- function(flags, target, needs) {
 # --- Data -------------------------------------------------------------------
 
 dispatch_data <- function(command, flags, needs) {
+  check <- result_type_check(flags)
   template <- flags$output_template
   if (!is.null(template)) {
     # Every file that the template expands to gets the same writer
     return(c(
+      check,
       ".write_result <- function(result, output) {",
       indent_lines(writer_lines(flags, "output", needs)),
       "}",
@@ -213,6 +215,13 @@ dispatch_data <- function(command, flags, needs) {
   # A query always returns a data frame
   if (command == "sql") {
     return(writer_lines(flags, out, needs))
+  }
+
+  # With --result-type, the result has one known type, so its code can write
+  # it directly
+  type <- flags$result_type %||% "auto"
+  if (command == "run" && type != "auto") {
+    return(c(check, typed_result_lines(type, flags, out, needs)))
   }
 
   write <- function(x) paste0(".write_result(", x, ")")
@@ -246,7 +255,7 @@ dispatch_data <- function(command, flags, needs) {
         branch('inherits(result, "gg")', plot_lines(flags, needs))
       },
       branch(
-        "rlang::is_atomic(result) && length(dim(result)) == 2",
+        result_type_conds[["matrix"]],
         matrix_lines(write)
       ),
       branch(
@@ -302,6 +311,166 @@ table_to_vector_lines <- function() {
     if (inherits(result, c("table", "summaryDefault"))) {
       result <- stats::setNames(as.vector(unclass(result)), names(result))
     }'
+  )
+}
+
+# The code for a result of the type given with --result-type. Only one value
+# is written, so the writer is inlined instead of defined as a function.
+typed_result_lines <- function(type, flags, out, needs) {
+  write <- function(x) {
+    c(
+      if (x != "result") paste0("result <- ", x),
+      writer_lines(flags, out, needs)
+    )
+  }
+  switch(
+    type,
+    "data-frame" = write("result"),
+    matrix = matrix_lines(write),
+    vector = if (is.null(out)) {
+      # An unnamed vector is written one value per line; a named vector
+      # keeps its names
+      code_chain(list(
+        branch("is.null(names(result))", "cli::cat_line(result)"),
+        branch(NULL, table_to_vector_lines(), write("tibble::enframe(result)"))
+      ))
+    } else {
+      c(
+        table_to_vector_lines(),
+        write(
+          "if (is.null(names(result))) tibble::tibble(x = result) else tibble::enframe(result)"
+        )
+      )
+    },
+    list = list_lines(flags$resolved_output_format, write),
+    plot = plot_lines(flags, needs),
+    print = c(print_width_line(flags, needs), "print(result)")
+  )
+}
+
+# --- Result types -------------------------------------------------------------
+
+result_types <- c(
+  "auto",
+  "data-frame",
+  "vector",
+  "matrix",
+  "list",
+  "plot",
+  "print"
+)
+
+result_type_aliases <- c(dataframe = "data-frame", data.frame = "data-frame")
+
+# The condition that a result of each type meets, and how to name it
+result_type_conds <- c(
+  "data-frame" = "is.data.frame(result)",
+  vector = "rlang::is_atomic(result) && length(dim(result)) <= 1",
+  matrix = "rlang::is_atomic(result) && length(dim(result)) == 2",
+  list = "rlang::is_bare_list(result)",
+  plot = 'inherits(result, "gg")'
+)
+
+result_type_names <- c(
+  "data-frame" = "a data frame",
+  vector = "a vector",
+  matrix = "a matrix",
+  list = "a list",
+  plot = "a ggplot"
+)
+
+# Check --result-type and its combination with the output options, and turn
+# an alias such as "dataframe" into "data-frame"
+resolve_result_type <- function(flags) {
+  type <- flags$result_type %||% "auto"
+  if (type %in% names(result_type_aliases)) {
+    type <- result_type_aliases[[type]]
+  }
+  if (!type %in% result_types) {
+    cli::cli_abort(
+      c(
+        "{.arg --result-type} must be one of {.or {.val {result_types}}}.",
+        x = "Got {.val {type}}."
+      ),
+      call = NULL
+    )
+  }
+  fmt <- flags$resolved_output_format
+  if (type == "plot" && !(fmt == "delim" || fmt %in% plot_output_formats)) {
+    cli::cli_abort(
+      c(
+        "A plot can't be written as {.val {fmt}}.",
+        i = "Use {.code -O} with a plot format, such as {.val png} or {.val ansi}."
+      ),
+      call = NULL
+    )
+  }
+  if (
+    type %in%
+      c("data-frame", "vector", "matrix", "list") &&
+      fmt %in% plot_output_formats
+  ) {
+    cli::cli_abort(
+      c(
+        "{.code -O {fmt}} is for plots, but {.code --result-type {type}} isn't a plot.",
+        i = "Use {.code --result-type plot}, or a data format such as {.val csv}."
+      ),
+      call = NULL
+    )
+  }
+  if (
+    type == "print" &&
+      (!is.null(flags$output) ||
+        !is.null(flags$output_template) ||
+        !identical(flags$output_format %||% "auto", "auto"))
+  ) {
+    cli::cli_abort(
+      c(
+        "{.code --result-type print} prints the result, so it can't be combined with {.code -o} or {.code -O}.",
+        i = "Use another result type to write the result to a file or in a format."
+      ),
+      call = NULL
+    )
+  }
+  if (!is.null(flags$output_template) && !type %in% c("auto", "list")) {
+    cli::cli_abort(
+      c(
+        "An output template writes a list of data frames, so it needs {.code --result-type list}.",
+        x = "Got {.code --result-type {type}}."
+      ),
+      call = NULL
+    )
+  }
+  flags$result_type <- type
+  flags
+}
+
+# Code that stops the script when the result isn't of the type given with
+# --result-type, so that a wrong guess doesn't give odd output
+result_type_check <- function(flags) {
+  type <- flags$result_type %||% "auto"
+  if (!type %in% names(result_type_conds)) {
+    return(NULL)
+  }
+  cond <- result_type_conds[[type]]
+  if (grepl(" ", cond, fixed = TRUE)) {
+    cond <- paste0("(", cond, ")")
+  }
+  message <- paste0(
+    "The result isn't ",
+    result_type_names[[type]],
+    " (--result-type ",
+    type,
+    "): its class is "
+  )
+  c(
+    paste0("if (!", cond, ") {"),
+    paste0(
+      "  stop(",
+      lit(message),
+      ", paste(class(result), collapse = \"/\"), call. = FALSE)"
+    ),
+    "}"
   )
 }
 
@@ -521,8 +690,12 @@ delim_lines <- function(flags, out, needs) {
   code_chain(list(
     branch(
       ".has_tty",
-      # `rush run` sets the width for all printing, at the top of the block
-      if (identical(flags$command, "run")) {
+      # With the default result type, `rush run` sets the width for all
+      # printing, at the top of the block
+      if (
+        identical(flags$command, "run") &&
+          identical(flags$result_type %||% "auto", "auto")
+      ) {
         code("options(tibble.width = <<width_code(flags)>>)")
       } else {
         code(
