@@ -159,6 +159,17 @@ Run it with `Rscript installed.R`, or make it executable
 packages, just like `rush --no-ir` does. For a script that `ir` can run
 anywhere, print it again without `--no-ir`.
 
+## A plain R script
+
+Combine `--dry-run`, `--no-ir`, and `--no-rush` for a plain R script that
+needs neither `rush` nor `ir`, only `Rscript` and the packages it uses. Here
+is the whole script for the same filter as above. It's long, because it
+contains all the code that `rush` uses to read the file and write the result:
+
+```{term}
+rush run -n -I -R 'dplyr::filter(df, hp > 200)' mtcars.csv
+```
+
 ```{term}
 #| include: false
 rm -f mtcars.csv analysis.R standalone.R installed.R
