@@ -10,3 +10,4 @@ exec/*
 docs/.quarto-term-cache/
 docs/_site/
 docs/_extensions/**/bin/
+/.dev/
