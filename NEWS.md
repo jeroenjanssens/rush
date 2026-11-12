@@ -6,6 +6,10 @@
   its row and column names. Both used to be written as one value per line,
   without names.
 * `rush --version` now ends with a newline.
+* With `--no-ir` (or `RUSH_NO_IR`), the script now starts with an `Rscript`
+  shebang and no longer has the `#|` frontmatter that declares packages for
+  `ir`. This shows with `--dry-run`, so a saved script runs with your
+  installed packages, as `--no-ir` does.
 
 # rush 0.3.0
 

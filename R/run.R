@@ -46,7 +46,9 @@
 #' @param output_record Record element name for XML/TOML output.
 #' @param output_sheet Excel sheet name for xlsx output.
 #' @param output_indent Indentation level for JSON/YAML output.
-#' @param no_ir If `TRUE`, execute the script with `Rscript` instead of `ir`.
+#' @param no_ir If `TRUE`, execute the script with `Rscript` instead of `ir`,
+#'   using the installed packages. The script then starts with an `Rscript`
+#'   shebang instead of the `ir` shebang and package frontmatter.
 #' @param no_rush If `TRUE`, generate fully inlined code with no dependency on
 #'   the rush package.
 #' @param verbose If `TRUE`, print debugging information to stderr.

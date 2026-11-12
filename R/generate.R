@@ -429,7 +429,7 @@ generate_script_compact <- function(command, flags) {
 
   writeLines(
     c(
-      frontmatter(pkgs),
+      frontmatter(pkgs, flags),
       "",
       readLines(body_file)
     ),
@@ -471,7 +471,7 @@ generate_script_inline <- function(command, flags) {
 
   writeLines(
     c(
-      frontmatter(unique(pkgs)),
+      frontmatter(unique(pkgs), flags),
       "",
       script_preamble(flags),
       "",

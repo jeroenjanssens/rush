@@ -137,7 +137,9 @@ name) or an integer (sheet index).}
 \item{dry_run}{If \code{TRUE}, print the generated script instead of executing
 it.}
 
-\item{no_ir}{If \code{TRUE}, execute the script with \code{Rscript} instead of \code{ir}.}
+\item{no_ir}{If \code{TRUE}, execute the script with \code{Rscript} instead of \code{ir},
+using the installed packages. The script then starts with an \code{Rscript}
+shebang instead of the \code{ir} shebang and package frontmatter.}
 
 \item{no_rush}{If \code{TRUE}, generate fully inlined code with no dependency on
 the rush package.}

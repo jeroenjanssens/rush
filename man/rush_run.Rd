@@ -36,7 +36,7 @@ rush_run(
 \arguments{
 \item{expr}{A character string of R code to evaluate. The value of the last
 expression becomes the result. May also be a language object created with
-\code{\link[=quote]{quote()}} or a list of language objects from \code{\link[rlang:defusing-advanced]{rlang::exprs()}}.}
+\code{\link[=quote]{quote()}} or a list of language objects from \code{\link[rlang:exprs]{rlang::exprs()}}.}
 
 \item{file}{Character vector of input file paths. The reader is chosen by
 extension (override with \code{input_format}). Use \code{"-"} to read from standard
@@ -99,7 +99,9 @@ name) or an integer (sheet index).}
 \item{dry_run}{If \code{TRUE}, print the generated script instead of executing
 it.}
 
-\item{no_ir}{If \code{TRUE}, execute the script with \code{Rscript} instead of \code{ir}.}
+\item{no_ir}{If \code{TRUE}, execute the script with \code{Rscript} instead of \code{ir},
+using the installed packages. The script then starts with an \code{Rscript}
+shebang instead of the \code{ir} shebang and package frontmatter.}
 
 \item{no_rush}{If \code{TRUE}, generate fully inlined code with no dependency on
 the rush package.}

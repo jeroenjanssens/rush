@@ -144,12 +144,22 @@ runs the script with plain `Rscript` instead:
 rush run --no-ir '6 * 7'
 ```
 
-In this mode the `#|` frontmatter is left as inert comments and nothing is
-installed, so every package the script needs must already be present. The
-generated script itself is unchanged, so the same file still runs under `ir`
-later.
+Nothing is installed in this mode, so every package the script needs must
+already be present. Because nothing reads the `#|` frontmatter, `rush` leaves
+it out, and the script starts with an `Rscript` shebang instead. You can see
+this when you combine `--no-ir` with `--dry-run`:
+
+```{term}
+rush run -n -I 'dplyr::filter(df, hp > 200)' mtcars.csv > installed.R
+cat installed.R
+```
+
+Run it with `Rscript installed.R`, or make it executable
+(`chmod +x installed.R && ./installed.R`), and it uses your installed
+packages, just like `rush --no-ir` does. For a script that `ir` can run
+anywhere, print it again without `--no-ir`.
 
 ```{term}
 #| include: false
-rm -f mtcars.csv analysis.R standalone.R
+rm -f mtcars.csv analysis.R standalone.R installed.R
 ```

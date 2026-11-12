@@ -257,7 +257,15 @@ every helper is inlined. See [Scripts](../scripts.qmd#scripts-without-rush).
 ### `--no-ir` (`-I`)
 
 Run the script with `Rscript` instead of `ir`, using the packages installed in
-your R library. See [Scripts](../scripts.qmd#running-without-ir).
+your R library. The script then starts with an `Rscript` shebang, without the
+`#|` frontmatter that declares packages for `ir`. Combine it with `--dry-run`
+to see this:
+
+```{term}
+rush run -n -I 'dplyr::filter(df, mpg > 25)' mtcars.csv
+```
+
+See [Scripts](../scripts.qmd#running-without-ir) for more.
 
 ### `--verbose` (`-v`)
 

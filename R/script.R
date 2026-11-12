@@ -21,10 +21,20 @@ emit_result_exprs <- function(con, exprs) {
   code_expression(con, !!last)
 }
 
+# Whether the generated script runs with `ir`. `--no-ir` and the
+# `RUSH_NO_IR` environment variable run it with `Rscript` instead.
+use_ir <- function(flags) {
+  !isTRUE(flags$no_ir) && !nzchar(Sys.getenv("RUSH_NO_IR", ""))
+}
+
 # The `#| packages:` frontmatter that turns the generated script into a
 # self-describing `ir` script. `ir run` resolves these refs with pak before
-# executing the script.
-frontmatter <- function(packages) {
+# executing the script. A script that runs with `Rscript` uses the packages
+# that are installed, so it gets only an `Rscript` shebang.
+frontmatter <- function(packages, flags) {
+  if (!use_ir(flags)) {
+    return("#!/usr/bin/env Rscript")
+  }
   c(
     "#!/usr/bin/env -S ir run",
     "#| packages:",

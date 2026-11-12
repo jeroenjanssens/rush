@@ -185,10 +185,10 @@ test_that("expr accepts a list of expressions", {
   expect_true(any(grepl("result <- x \\+ 1", script)))
 })
 
-test_that("no_ir flag is propagated (script is still identical)", {
+test_that("no_ir gives an Rscript shebang and no frontmatter", {
   script <- capture_script(rush_run, expr = "1 + 1", no_ir = TRUE)
-  expect_equal(script[[1]], "#!/usr/bin/env -S ir run")
-  expect_true(any(grepl("^#\\| packages:$", script)))
+  expect_equal(script[[1]], "#!/usr/bin/env Rscript")
+  expect_false(any(grepl("^#\\|", script)))
 })
 
 test_that("delimiter sets both input and output delimiters", {

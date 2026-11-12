@@ -16,15 +16,26 @@ test_that("run without an expression or file errors gracefully", {
   expect_error(rush("run"), "No expression to run")
 })
 
-test_that("--no-ir parses to no_ir and keeps the frontmatter intact", {
+test_that("--no-ir gives an Rscript shebang and no frontmatter", {
   expect_true(parse_arguments("run", "-I", "1 + 1")$no_ir)
   expect_false(parse_arguments("run", "1 + 1")$no_ir)
-  # The script is identical either way; only the executable that runs it
-  # differs, so --no-ir still emits the ir shebang and package frontmatter,
-  # keeping the saved script portable back to ir.
-  script <- dry_run("run", "-n", "-I", "1 + 1")
-  expect_equal(script[[1]], "#!/usr/bin/env -S ir run")
-  expect_true(any(grepl("^#\\| packages:$", script)))
+  # Rscript runs the script with the installed packages, so the ir shebang
+  # and package frontmatter would only be misleading.
+  for (script in list(
+    dry_run("run", "-n", "-I", "1 + 1"),
+    utils::capture.output(rush("run", "-n", "-I", "1 + 1"))
+  )) {
+    expect_equal(script[[1]], "#!/usr/bin/env Rscript")
+    expect_false(any(grepl("^#\\|", script)))
+    expect_false(any(grepl("ir run", script, fixed = TRUE)))
+  }
+})
+
+test_that("RUSH_NO_IR also gives an Rscript shebang", {
+  withr::local_envvar(RUSH_NO_IR = "1")
+  script <- dry_run("run", "-n", "1 + 1")
+  expect_equal(script[[1]], "#!/usr/bin/env Rscript")
+  expect_false(any(grepl("^#\\|", script)))
 })
 
 test_that("--dry-run runs the script through air when it is available", {
