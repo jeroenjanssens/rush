@@ -14,7 +14,7 @@ test_that("rush_convert csv to parquet", {
   )
   expect_true(any(grepl("read_delim\\(\"data.csv\"", script)))
   expect_true(any(grepl("result <- df", script)))
-  expect_true(any(grepl('output_format = "parquet"', script)))
+  expect_true(any(grepl("nanoparquet::write_parquet(", script, fixed = TRUE)))
   expect_true(any(grepl("nanoparquet::write_parquet", script)))
 })
 
@@ -33,7 +33,7 @@ test_that("rush_convert to stdout with output_format", {
   )
   expect_true(any(grepl("read_delim", script)))
   expect_true(any(grepl("result <- df", script)))
-  expect_true(any(grepl('output_format = "json"', script)))
+  expect_true(any(grepl("jsonlite::toJSON(", script, fixed = TRUE)))
   expect_true(any(grepl("jsonlite::toJSON", script)))
 })
 
@@ -52,7 +52,11 @@ test_that("rush_convert with output template emits result <- dfs", {
   )
   expect_true(any(grepl("dfs <- list", script)))
   expect_true(any(grepl("result <- dfs", script)))
-  expect_true(any(grepl("output_template", script)))
+  expect_true(any(grepl(
+    '.expand_template("%(file_name)s.parquet"',
+    script,
+    fixed = TRUE
+  )))
 })
 
 test_that("rush_convert csv to sav", {
@@ -107,7 +111,7 @@ test_that("rush_convert csv to duckdb", {
     file = "data.csv",
     output = "out.duckdb"
   )
-  expect_true(any(grepl('output_format = "duckdb"', script)))
+  expect_true(any(grepl("duckdb::duckdb()", script, fixed = TRUE)))
   expect_true(any(grepl("duckdb::duckdb\\(\\)", script)))
   expect_true(any(grepl("dbWriteTable", script)))
 })
@@ -118,7 +122,7 @@ test_that("rush_convert multiple csvs to duckdb", {
     file = c("a.csv", "b.csv"),
     output = "combined.duckdb"
   )
-  expect_true(any(grepl('output_format = "duckdb"', script)))
+  expect_true(any(grepl("duckdb::duckdb()", script, fixed = TRUE)))
   expect_true(any(grepl("result <- dfs", script)))
   expect_true(any(grepl("for \\(.name in names\\(result\\)\\)", script)))
   expect_true(any(grepl("dbWriteTable\\(.con, .tbl_name", script)))
@@ -130,7 +134,7 @@ test_that("rush_convert multiple csvs to sqlite", {
     file = c("a.csv", "b.csv"),
     output = "combined.sqlite"
   )
-  expect_true(any(grepl('output_format = "sqlite"', script)))
+  expect_true(any(grepl("RSQLite::SQLite()", script, fixed = TRUE)))
   expect_true(any(grepl("result <- dfs", script)))
   expect_true(any(grepl("for \\(.name in names\\(result\\)\\)", script)))
 })
@@ -152,7 +156,7 @@ test_that("rush_convert respects output_format override", {
     output_format = "jsonl",
     output = "out.txt"
   )
-  expect_true(any(grepl('output_format = "jsonl"', script)))
+  expect_true(any(grepl("jsonlite::stream_out(", script, fixed = TRUE)))
   expect_true(any(grepl("jsonlite::stream_out", script)))
 })
 
@@ -163,7 +167,7 @@ test_that("rush_convert applies head to limit rows", {
     output = "out.csv",
     head = 10
   )
-  expect_true(any(grepl("head = 10L", script)))
+  expect_true(any(grepl("result <- head(result, 10L)", script, fixed = TRUE)))
 })
 
 test_that("rush_convert parquet to xlsx", {

@@ -92,10 +92,10 @@ test_that("rush_sql without json files does not emit INSTALL json", {
 
 test_that("rush_sql respects output_format", {
   script <- capture_script(rush_sql, query = "SELECT 1", output_format = "json")
-  expect_true(any(grepl('output_format = "json"', script)))
+  expect_true(any(grepl("jsonlite::toJSON(", script, fixed = TRUE)))
 })
 
 test_that("rush_sql respects head", {
   script <- capture_script(rush_sql, query = "SELECT 1", head = 5)
-  expect_true(any(grepl("head = 5L", script)))
+  expect_true(any(grepl("result <- head(result, 5L)", script, fixed = TRUE)))
 })

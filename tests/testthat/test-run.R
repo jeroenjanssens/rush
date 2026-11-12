@@ -107,7 +107,7 @@ test_that("header = FALSE suppresses output header", {
     file = "data.csv",
     header = FALSE
   )
-  expect_true(any(grepl("output_header = FALSE", script)))
+  expect_true(any(grepl("write_delim\\(.*col_names = FALSE", script)))
 })
 
 test_that("input_header = FALSE only affects reading", {
@@ -118,7 +118,7 @@ test_that("input_header = FALSE only affects reading", {
     input_header = FALSE
   )
   expect_true(any(grepl("col_names = FALSE", script)))
-  expect_true(any(grepl("output_header = TRUE", script)))
+  expect_true(any(grepl("write_delim\\(.*col_names = TRUE", script)))
 })
 
 test_that("output_header = FALSE only affects writing", {
@@ -129,7 +129,7 @@ test_that("output_header = FALSE only affects writing", {
     output_header = FALSE
   )
   expect_true(any(grepl("col_names = TRUE", script)))
-  expect_true(any(grepl("output_header = FALSE", script)))
+  expect_true(any(grepl("write_delim\\(.*col_names = FALSE", script)))
 })
 
 test_that("names provides column names and implies no input header", {
@@ -140,7 +140,7 @@ test_that("names provides column names and implies no input header", {
     names = "a,b,c"
   )
   expect_true(any(grepl('col_names = c\\("a", "b", "c"\\)', script)))
-  expect_true(any(grepl("output_header = TRUE", script)))
+  expect_true(any(grepl("write_delim\\(.*col_names = TRUE", script)))
 })
 
 test_that("names with output_header = FALSE suppresses output header", {
@@ -152,7 +152,7 @@ test_that("names with output_header = FALSE suppresses output header", {
     output_header = FALSE
   )
   expect_true(any(grepl('col_names = c\\("x", "y"\\)', script)))
-  expect_true(any(grepl("output_header = FALSE", script)))
+  expect_true(any(grepl("write_delim\\(.*col_names = FALSE", script)))
 })
 
 test_that("clean_names = FALSE omits the janitor call", {
@@ -167,7 +167,7 @@ test_that("clean_names = FALSE omits the janitor call", {
 
 test_that("head limits output rows", {
   script <- capture_script(rush_run, expr = "df", file = "data.csv", head = 3)
-  expect_true(any(grepl("head = 3L", script)))
+  expect_true(any(grepl("result <- head(result, 3L)", script, fixed = TRUE)))
 })
 
 test_that("expr accepts a language object", {
@@ -199,7 +199,7 @@ test_that("delimiter sets both input and output delimiters", {
     delimiter = "\t"
   )
   expect_true(any(grepl('delim = "\\\\t"', script)))
-  expect_true(any(grepl('delimiter = "\\\\t"', script)))
+  expect_true(any(grepl('write_delim\\(.*delim = "\\\\t"', script)))
 })
 
 test_that("output_delimiter overrides only the output delimiter", {
@@ -211,7 +211,7 @@ test_that("output_delimiter overrides only the output delimiter", {
   )
   read_line <- script[grepl("read_delim", script)]
   expect_true(any(grepl('delim = ","', read_line)))
-  expect_true(any(grepl('delimiter = "\\\\t"', script)))
+  expect_true(any(grepl('write_delim\\(.*delim = "\\\\t"', script)))
 })
 
 test_that("input_delimiter overrides only the input delimiter", {
@@ -223,7 +223,7 @@ test_that("input_delimiter overrides only the input delimiter", {
   )
   read_line <- script[grepl("read_delim", script)]
   expect_true(any(grepl('delim = "\\\\t"', read_line)))
-  expect_true(any(grepl('delimiter = ","', script)))
+  expect_true(any(grepl('write_delim\\(.*delim = ","', script)))
 })
 
 test_that("input_format = 'tsv' implies tab as input delimiter", {
@@ -254,7 +254,7 @@ test_that("output_format = 'tsv' implies tab as output delimiter", {
     file = "data.csv",
     output_format = "tsv"
   )
-  expect_true(any(grepl('delimiter = "\\\\t"', script)))
+  expect_true(any(grepl('write_delim\\(.*delim = "\\\\t"', script)))
 })
 
 test_that("build_flags errors on invalid expr type", {
@@ -319,7 +319,7 @@ test_that("rush_run dispatches ggplot results to the plot output", {
     library = "ggplot2"
   )
   expect_true(any(grepl('inherits(result, "gg")', script, fixed = TRUE)))
-  expect_true(any(grepl(".write_plot <- function", script, fixed = TRUE)))
+  expect_true(any(grepl("devoutansi::ansi(", script, fixed = TRUE)))
 })
 
 test_that("rush_run declares plot packages only when the expression may plot", {

@@ -76,25 +76,25 @@ test_that("--no-header reads without column names", {
 
 test_that("--no-header suppresses output header", {
   script <- dry_run("run", "-n", "-H", "head(df)", "data.csv")
-  expect_true(any(grepl("output_header = FALSE", script)))
+  expect_true(any(grepl("write_delim\\(.*col_names = FALSE", script)))
 })
 
 test_that("--no-input-header only affects reading", {
   script <- dry_run("run", "-n", "--no-input-header", "head(df)", "data.csv")
   expect_true(any(grepl("col_names = FALSE", script)))
-  expect_true(any(grepl("output_header = TRUE", script)))
+  expect_true(any(grepl("write_delim\\(.*col_names = TRUE", script)))
 })
 
 test_that("--no-output-header only affects writing", {
   script <- dry_run("run", "-n", "--no-output-header", "head(df)", "data.csv")
   expect_true(any(grepl("col_names = TRUE", script)))
-  expect_true(any(grepl("output_header = FALSE", script)))
+  expect_true(any(grepl("write_delim\\(.*col_names = FALSE", script)))
 })
 
 test_that("--names provides column names and implies no input header", {
   script <- dry_run("run", "-n", "--names", "a,b,c", "head(df)", "data.csv")
   expect_true(any(grepl('col_names = c\\("a", "b", "c"\\)', script)))
-  expect_true(any(grepl("output_header = TRUE", script)))
+  expect_true(any(grepl("write_delim\\(.*col_names = TRUE", script)))
 })
 
 test_that("--names with --no-output-header suppresses output header", {
@@ -108,7 +108,7 @@ test_that("--names with --no-output-header suppresses output header", {
     "data.csv"
   )
   expect_true(any(grepl('col_names = c\\("x", "y"\\)', script)))
-  expect_true(any(grepl("output_header = FALSE", script)))
+  expect_true(any(grepl("write_delim\\(.*col_names = FALSE", script)))
 })
 
 test_that("--seed emits set.seed before other code", {
@@ -172,7 +172,7 @@ test_that("run reads a Parquet file with nanoparquet", {
 
 test_that("run writes a Parquet file when --output ends in .parquet", {
   script <- dry_run("run", "-n", "-o", "out.parquet", "df", "data.csv")
-  expect_true(any(grepl('output_format = "parquet"', script)))
+  expect_true(any(grepl("nanoparquet::write_parquet(", script, fixed = TRUE)))
   expect_true(any(grepl("nanoparquet::write_parquet", script)))
   expect_true(any(grepl("^#\\|   - nanoparquet$", script)))
 })
@@ -301,25 +301,24 @@ test_that("plot frontmatter injects the terminal-plotting GitHub packages", {
   expect_true(all(paste0("#|   - ", terminal_plot_packages) %in% script))
 })
 
-test_that("plot generates devoutansi terminal dispatch", {
+test_that("plot draws ANSI art on a terminal and PNG bytes otherwise", {
   script <- dry_run("plot", "-n", "-x", "wt", "mtcars.csv")
   expect_true(any(grepl("devoutansi::ansi\\(", script)))
-  expect_true(any(grepl('out %in% c\\("ansi", "ascii"\\)', script)))
+  expect_true("if (.has_tty) {" %in% script)
+  expect_true(any(grepl('device = "png"', script, fixed = TRUE)))
 })
 
 test_that("plot -O ansi forces terminal art in generated script", {
   script <- dry_run("plot", "-n", "-x", "wt", "-O", "ansi", "mtcars.csv")
-  expect_true(any(grepl("output_format.*ansi", script)))
-  expect_true(any(grepl(
-    'if (!fmt %in% c("auto", "delim")) fmt',
-    script,
-    fixed = TRUE
-  )))
+  expect_true(any(grepl("devoutansi::ansi\\(", script)))
+  expect_false(any(grepl(".has_tty", script, fixed = TRUE)))
+  expect_false(any(grepl("ggsave", script, fixed = TRUE)))
 })
 
 test_that("plot -O ascii forces terminal art in generated script", {
   script <- dry_run("plot", "-n", "-x", "wt", "-O", "ascii", "mtcars.csv")
-  expect_true(any(grepl("output_format.*ascii", script)))
+  expect_true(any(grepl("plain_ascii = TRUE", script, fixed = TRUE)))
+  expect_false(any(grepl(".has_tty", script, fixed = TRUE)))
 })
 
 test_that("writing a read-only format is an error", {
@@ -473,8 +472,12 @@ test_that("--version ends with a newline", {
 
 test_that("-o - writes to standard output", {
   script <- dry_run("run", "-n", "-o", "-", "head(df)", "data.csv")
-  expect_true(any(grepl("output = NULL", script, fixed = TRUE)))
-  expect_false(any(grepl('output = "-"', script, fixed = TRUE)))
+  expect_true(any(grepl(
+    "write_delim(result, .stdout_binary()",
+    script,
+    fixed = TRUE
+  )))
+  expect_false(any(grepl('"-"', script, fixed = TRUE)))
 })
 
 test_that("plot to SVG declares svglite", {
@@ -615,7 +618,7 @@ test_that("-d sets both input and output delimiters", {
   # Input side: read_delim uses tab
   expect_true(any(grepl('delim = "\\\\t"', script)))
   # Output side: .rush$delimiter is tab
-  expect_true(any(grepl('delimiter = "\\\\t"', script)))
+  expect_true(any(grepl('write_delim\\(.*delim = "\\\\t"', script)))
 })
 
 test_that("--output-delimiter overrides only the output delimiter", {
@@ -624,7 +627,7 @@ test_that("--output-delimiter overrides only the output delimiter", {
   read_line <- script[grepl("read_delim", script)]
   expect_true(any(grepl('delim = ","', read_line)))
   # Output side uses tab
-  expect_true(any(grepl('delimiter = "\\\\t"', script)))
+  expect_true(any(grepl('write_delim\\(.*delim = "\\\\t"', script)))
 })
 
 test_that("--input-delimiter overrides only the input delimiter", {
@@ -640,7 +643,7 @@ test_that("--input-delimiter overrides only the input delimiter", {
   read_line <- script[grepl("read_delim", script)]
   expect_true(any(grepl('delim = "\\\\t"', read_line)))
   # Output side uses default comma
-  expect_true(any(grepl('delimiter = ","', script)))
+  expect_true(any(grepl('write_delim\\(.*delim = ","', script)))
 })
 
 test_that("-F tsv implies tab as input delimiter", {
@@ -651,18 +654,17 @@ test_that("-F tsv implies tab as input delimiter", {
 
 test_that("-O tsv implies tab as output delimiter", {
   script <- dry_run("run", "-n", "-O", "tsv", "head(df)", "data.csv")
-  expect_true(any(grepl('delimiter = "\\\\t"', script)))
+  expect_true(any(grepl('write_delim\\(.*delim = "\\\\t"', script)))
 })
 
 test_that("--head adds a head() call in the dispatch block", {
   script <- dry_run("run", "-n", "--head", "3", "head(df)", "data.csv")
-  expect_true(any(grepl('\\.rush\\$head', script)))
-  expect_true(any(grepl('head = 3L', script)))
+  expect_true(any(grepl("result <- head(result, 3L)", script, fixed = TRUE)))
 })
 
 test_that("-O json sets output_format to json in preamble", {
   script <- dry_run("run", "-n", "-O", "json", "df", "data.csv")
-  expect_true(any(grepl('output_format = "json"', script)))
+  expect_true(any(grepl("jsonlite::toJSON(", script, fixed = TRUE)))
 })
 
 test_that("-O parquet works like --output ending in .parquet", {
@@ -676,7 +678,7 @@ test_that("-O parquet works like --output ending in .parquet", {
     "df",
     "data.csv"
   )
-  expect_true(any(grepl('output_format = "parquet"', script)))
+  expect_true(any(grepl("nanoparquet::write_parquet(", script, fixed = TRUE)))
   expect_true(any(grepl("nanoparquet::write_parquet", script)))
   expect_true(any(grepl("^#\\|   - nanoparquet$", script)))
 })
@@ -703,7 +705,7 @@ test_that("convert to stdout with -O works", {
   script <- dry_run("convert", "-n", "-O", "json", "data.csv")
   expect_true(any(grepl("read_delim", script)))
   expect_true(any(grepl("result <- df", script)))
-  expect_true(any(grepl('output_format = "json"', script)))
+  expect_true(any(grepl("jsonlite::toJSON(", script, fixed = TRUE)))
   expect_true(any(grepl("jsonlite::toJSON", script)))
 })
 
@@ -711,7 +713,7 @@ test_that("convert csv to parquet generates correct script", {
   script <- dry_run("convert", "-n", "-o", "out.parquet", "data.csv")
   expect_true(any(grepl("read_delim\\(\"data.csv\"", script)))
   expect_true(any(grepl("result <- df", script)))
-  expect_true(any(grepl('output_format = "parquet"', script)))
+  expect_true(any(grepl("nanoparquet::write_parquet(", script, fixed = TRUE)))
   expect_true(any(grepl("nanoparquet::write_parquet", script)))
 })
 
@@ -740,7 +742,11 @@ test_that("convert with output template emits result <- dfs", {
   )
   expect_true(any(grepl("dfs <- list", script)))
   expect_true(any(grepl("result <- dfs", script)))
-  expect_true(any(grepl("output_template", script)))
+  expect_true(any(grepl(
+    '.expand_template("%(file_name)s.parquet"',
+    script,
+    fixed = TRUE
+  )))
 })
 
 test_that("convert respects -F for input format override", {
@@ -750,7 +756,7 @@ test_that("convert respects -F for input format override", {
 
 test_that("convert respects -O for output format override", {
   script <- dry_run("convert", "-n", "-O", "jsonl", "-o", "out.txt", "data.csv")
-  expect_true(any(grepl('output_format = "jsonl"', script)))
+  expect_true(any(grepl("jsonlite::stream_out(", script, fixed = TRUE)))
   expect_true(any(grepl("jsonlite::stream_out", script)))
 })
 
@@ -770,7 +776,7 @@ test_that("convert applies --head to limit rows", {
     "out.csv",
     "data.parquet"
   )
-  expect_true(any(grepl("head = 10L", script)))
+  expect_true(any(grepl("result <- head(result, 10L)", script, fixed = TRUE)))
 })
 
 test_that("plot --pre and --post wrap the plot call", {
@@ -795,13 +801,20 @@ test_that("plot --pre and --post wrap the plot call", {
 
 # Output templates ------------------------------------------------------------
 
-test_that("output template is detected and stored in preamble", {
+test_that("output template is written into the script", {
   script <- dry_run("convert", "-n", "-o", "%(file_name)s.parquet", "a.csv")
   expect_true(any(grepl(
-    'output_template = "%\\(file_name\\)s.parquet"',
-    script
+    '.expand_template("%(file_name)s.parquet"',
+    script,
+    fixed = TRUE
   )))
-  expect_true(any(grepl("output = NULL", script)))
+  # Every file gets the same writer, with the expanded path
+  expect_true(".write_result <- function(result, output) {" %in% script)
+  expect_true(any(grepl(
+    "nanoparquet::write_parquet(result, output)",
+    script,
+    fixed = TRUE
+  )))
 })
 
 test_that("template dispatch includes .expand_template helper", {
@@ -850,7 +863,7 @@ test_that("-O duckdb emits DuckDB write via DBI", {
     "df",
     "data.csv"
   )
-  expect_true(any(grepl('output_format = "duckdb"', script)))
+  expect_true(any(grepl("duckdb::duckdb()", script, fixed = TRUE)))
   expect_true(any(grepl("duckdb::duckdb\\(\\)", script)))
   expect_true(any(grepl("dbWriteTable", script)))
   expect_true(any(grepl("^#\\|   - duckdb$", script)))
@@ -859,19 +872,19 @@ test_that("-O duckdb emits DuckDB write via DBI", {
 
 test_that("convert csv to duckdb", {
   script <- dry_run("convert", "-n", "-o", "out.duckdb", "data.csv")
-  expect_true(any(grepl('output_format = "duckdb"', script)))
+  expect_true(any(grepl("duckdb::duckdb()", script, fixed = TRUE)))
   expect_true(any(grepl("duckdb::duckdb\\(\\)", script)))
   expect_true(any(grepl("dbWriteTable", script)))
 })
 
 test_that("convert .ddb extension resolves to duckdb format", {
   script <- dry_run("convert", "-n", "-o", "out.ddb", "data.csv")
-  expect_true(any(grepl('output_format = "duckdb"', script)))
+  expect_true(any(grepl("duckdb::duckdb()", script, fixed = TRUE)))
 })
 
 test_that("convert multiple csvs to duckdb writes multi-table", {
   script <- dry_run("convert", "-n", "-o", "combined.duckdb", "a.csv", "b.csv")
-  expect_true(any(grepl('output_format = "duckdb"', script)))
+  expect_true(any(grepl("duckdb::duckdb()", script, fixed = TRUE)))
   expect_true(any(grepl("result <- dfs", script)))
   expect_true(any(grepl("for \\(.name in names\\(result\\)\\)", script)))
   expect_true(any(grepl("dbWriteTable\\(.con, .tbl_name", script)))
@@ -879,7 +892,7 @@ test_that("convert multiple csvs to duckdb writes multi-table", {
 
 test_that("convert multiple csvs to sqlite writes multi-table", {
   script <- dry_run("convert", "-n", "-o", "combined.sqlite", "a.csv", "b.csv")
-  expect_true(any(grepl('output_format = "sqlite"', script)))
+  expect_true(any(grepl("RSQLite::SQLite()", script, fixed = TRUE)))
   expect_true(any(grepl("result <- dfs", script)))
   expect_true(any(grepl("for \\(.name in names\\(result\\)\\)", script)))
 })
@@ -1093,4 +1106,106 @@ test_that("plot --help lists --geom-args", {
   help <- glue::glue(docs[["plot"]])
   expect_true(grepl("--geom-args <args>", help, fixed = TRUE))
   expect_true(grepl("Arguments for the geometry", help, fixed = TRUE))
+})
+
+# Inline scripts contain only the output code they need ------------------------
+
+test_that("inline scripts write the option values into the code", {
+  script <- dry_run("run", "-n", "-o", "out.json", "df", "data.csv")
+  expect_false(any(grepl(".rush", script, fixed = TRUE)))
+  expect_true(any(grepl('writeLines(.json, "out.json")', script, fixed = TRUE)))
+})
+
+test_that("inline scripts have only the writer for the output format", {
+  script <- dry_run("run", "-n", "-o", "out.parquet", "df", "data.csv")
+  expect_true(any(grepl("nanoparquet::write_parquet", script, fixed = TRUE)))
+  for (writer in c(
+    "write_delim",
+    "jsonlite::",
+    "haven::",
+    "writexl::",
+    "xml2::"
+  )) {
+    expect_false(any(grepl(writer, script, fixed = TRUE)), label = writer)
+  }
+  # Writing to a file never depends on the terminal
+  expect_false(any(grepl(".has_tty", script, fixed = TRUE)))
+})
+
+test_that("-O csv always writes CSV, also on a terminal", {
+  default <- dry_run("run", "-n", "df", "data.csv")
+  expect_true(any(grepl(
+    "print(tibble::as_tibble(result))",
+    default,
+    fixed = TRUE
+  )))
+  csv <- dry_run("run", "-n", "-O", "csv", "df", "data.csv")
+  expect_false(any(grepl("as_tibble(result)", csv, fixed = TRUE)))
+  expect_true(any(grepl(
+    "write_delim(result, .stdout_binary()",
+    csv,
+    fixed = TRUE
+  )))
+  # A ggplot can't be written as CSV, so there's no plot code
+  expect_false(any(grepl("ggplot2::", csv, fixed = TRUE)))
+})
+
+test_that("convert and sql scripts have no plot or vector code", {
+  for (script in list(
+    dry_run("convert", "-n", "-o", "out.parquet", "data.csv"),
+    dry_run("sql", "-n", "SELECT * FROM data", "data.csv")
+  )) {
+    expect_false(any(grepl('inherits(result, "gg")', script, fixed = TRUE)))
+    expect_false(any(grepl("is_atomic", script, fixed = TRUE)))
+  }
+  # A query returns a data frame, which is written directly
+  sql <- dry_run(
+    "sql",
+    "-n",
+    "-o",
+    "out.parquet",
+    "SELECT * FROM data",
+    "data.csv"
+  )
+  expect_false(any(grepl(".write_result", sql, fixed = TRUE)))
+})
+
+test_that("spreadsheet code is only included for spreadsheets", {
+  csv <- dry_run("convert", "-n", "-o", "%(file_name)s.csv", "a.csv", "b.csv")
+  expect_false(any(grepl(".sheets", csv, fixed = TRUE)))
+  xlsx <- dry_run("convert", "-n", "-o", "out.xlsx", "a.csv", "b.csv")
+  expect_true(any(grepl(".sheets", xlsx, fixed = TRUE)))
+})
+
+test_that("plot -o file only saves the plot", {
+  script <- dry_run("plot", "-n", "-x", "wt", "-o", "p.png", "mtcars.csv")
+  expect_true(any(grepl(
+    'ggplot2::ggsave("p.png", result',
+    script,
+    fixed = TRUE
+  )))
+  expect_false(any(grepl("devoutansi::", script, fixed = TRUE)))
+  expect_false(any(grepl(".has_tty", script, fixed = TRUE)))
+})
+
+test_that("inline scripts with every output format parse", {
+  for (fmt in data_output_formats) {
+    script <- dry_run(
+      "convert",
+      "-n",
+      "-O",
+      fmt,
+      "-o",
+      paste0("out.", fmt),
+      "a.csv"
+    )
+    expect_no_error(parse(text = script))
+    stdout_script <- dry_run("run", "-n", "-O", fmt, "df", "a.csv")
+    expect_no_error(parse(text = stdout_script))
+  }
+  for (fmt in c("ansi", "ascii", "png", "svg")) {
+    expect_no_error(parse(
+      text = dry_run("plot", "-n", "-x", "a", "-O", fmt, "a.csv")
+    ))
+  }
 })

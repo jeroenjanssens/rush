@@ -118,7 +118,8 @@ rush run -n -R 'dplyr::filter(df, hp > 200)' mtcars.csv > standalone.R
 wc -l analysis.R standalone.R
 ```
 
-The script is longer, but it only uses common packages such as readr, and it
+The script is longer, because it also contains the code that reads the file
+and writes the result, but it only uses common packages such as readr, and it
 runs the same way:
 
 ```{term}
@@ -163,11 +164,35 @@ anywhere, print it again without `--no-ir`.
 
 Combine `--dry-run`, `--no-ir`, and `--no-rush` for a plain R script that
 needs neither `rush` nor `ir`, only `Rscript` and the packages it uses. Here
-is the whole script for the same filter as above. It's long, because it
-contains all the code that `rush` uses to read the file and write the result:
+is the whole script for the same filter as above:
 
 ```{term}
 rush run -n -I -R 'dplyr::filter(df, hp > 200)' mtcars.csv
+```
+
+The script only contains the code for the output that `rush` knows you'll
+get: here, CSV on standard output. What it can't know yet is decided when the
+script runs. On a terminal, it prints a table instead of CSV (`.has_tty`). And
+the type of the result decides how it's written: a ggplot is drawn, a named
+vector or matrix keeps its names, and anything else, such as a model, is
+printed as R prints it.
+
+The options you pass narrow this down further. `-O csv` (`--output-format`)
+says to always write CSV, also on a terminal, so the script doesn't need the
+table or the plot code:
+
+```{term}
+rush run -n -I -R -O csv 'dplyr::filter(df, hp > 200)' mtcars.csv
+```
+
+Writing to a file, such as `-o cars.parquet`, works the same way: the script
+gets only the code that writes Parquet. On the input side, the reader is
+chosen by the extension of each file, or by `-F` (`--input-format`), and `-`
+reads standard input. A `rush convert` or `rush sql` script is shorter still,
+because its result is always a data frame:
+
+```{term}
+rush sql -n -I -R -o cars.parquet 'SELECT * FROM mtcars' mtcars.csv
 ```
 
 ```{term}

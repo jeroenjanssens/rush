@@ -10,6 +10,13 @@
   shebang and no longer has the `#|` frontmatter that declares packages for
   `ir`. This shows with `--dry-run`, so a saved script runs with your
   installed packages, as `--no-ir` does.
+* Scripts made with `--no-rush` are much shorter. They now only contain the
+  code that writes the output you asked for, with the values of the options
+  written into it, instead of the code for every output format and a `.rush`
+  list with every option. For example, `rush run -n -R 'head(df)' data.csv`
+  went from about 470 to about 60 lines. With `-O csv`, which writes CSV
+  also on a terminal, the script doesn't need the code that prints a table
+  or draws a plot.
 
 # rush 0.3.0
 

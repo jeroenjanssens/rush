@@ -187,11 +187,16 @@ test_that("rush_plot with database input auto-selects first table", {
 test_that("rush_plot generates devoutansi dispatch when no output", {
   script <- capture_script(rush_plot, file = "mtcars.csv", x = "wt")
   expect_true(any(grepl("devoutansi::ansi\\(", script)))
-  expect_true(any(grepl('out %in% c\\("ansi", "ascii"\\)', script)))
+  expect_true("if (.has_tty) {" %in% script)
 })
 
 test_that("rush_plot asks devoutansi for plain text in ascii mode", {
-  script <- capture_script(rush_plot, file = "mtcars.csv", x = "wt")
+  script <- capture_script(
+    rush_plot,
+    file = "mtcars.csv",
+    x = "wt",
+    output_format = "ascii"
+  )
   expect_true(any(grepl("colour = FALSE", script, fixed = TRUE)))
   expect_false(any(grepl("ansi_strip", script, fixed = TRUE)))
 })
@@ -209,7 +214,7 @@ test_that("rush_plot skips default theme when --post is used", {
     x = "wt",
     post = "p + theme_bw()"
   )
-  expect_true(any(grepl("!.rush\\$has_post", script)))
+  expect_false(any(grepl("theme_minimal", script, fixed = TRUE)))
 })
 
 test_that("rush_plot passes width to ansi device", {
@@ -229,12 +234,9 @@ test_that("rush_plot output_format ansi forces terminal art in script", {
     x = "wt",
     output_format = "ansi"
   )
-  expect_true(any(grepl("output_format.*ansi", script)))
-  expect_true(any(grepl(
-    'if (!fmt %in% c("auto", "delim")) fmt',
-    script,
-    fixed = TRUE
-  )))
+  expect_true(any(grepl("devoutansi::ansi\\(", script)))
+  expect_false(any(grepl(".has_tty", script, fixed = TRUE)))
+  expect_false(any(grepl("ggsave", script, fixed = TRUE)))
 })
 
 test_that("rush_plot output_format ascii forces terminal art in script", {
@@ -244,7 +246,8 @@ test_that("rush_plot output_format ascii forces terminal art in script", {
     x = "wt",
     output_format = "ascii"
   )
-  expect_true(any(grepl("output_format.*ascii", script)))
+  expect_true(any(grepl("plain_ascii = TRUE", script, fixed = TRUE)))
+  expect_false(any(grepl(".has_tty", script, fixed = TRUE)))
 })
 
 test_that("rush_plot color aesthetic works", {

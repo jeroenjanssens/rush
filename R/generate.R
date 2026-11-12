@@ -473,11 +473,9 @@ generate_script_inline <- function(command, flags) {
     c(
       frontmatter(unique(pkgs), flags),
       "",
-      script_preamble(flags),
-      "",
       readLines(body_file),
       "",
-      dispatch_block(command)
+      dispatch_block(command, flags)
     ),
     filename
   )
